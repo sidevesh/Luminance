@@ -1,11 +1,11 @@
 # Luminance
 A simple GTK application to control brightness of external displays supporting DDC/CI
 
-# Dependencies
+## Dependencies
 - ddcutil library package (typically libddcutil or libddcutil-dev if not already installed with ddcutil)
 - GTK 3.0
 
-# Setup
+## Setup
 
 1. Firstly, ensure that all the dependencies are installed.
 
@@ -52,6 +52,6 @@ sudo ./install.sh
 
 You should now be able to find Luminance in your application menu under utilities.
 
-# Credits
+## Credits
 - @ahshabbir : for ddcbc-api and ddcbc-gtk: https://github.com/ahshabbir/ddcbc-api
 - @rockowitz : for ddcutil c api: https://github.com/rockowitz/ddcutil
