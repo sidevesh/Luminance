@@ -24,7 +24,6 @@ sudo apt install ddcutil libddcutil-dev
 ```
 sudo dnf install ddcutil libddcutil libddcutil-devel gtk3-devel gcc
 ```
-TODO: Add other distributions to this! [#3](../../issues/3)
 
 2. Ensure that your user has access to the i2c devices:
 https://www.ddcutil.com/i2c_permissions/
