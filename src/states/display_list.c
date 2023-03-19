@@ -13,15 +13,6 @@ ddcbc_display_list _display_list_instance;
 
 extern void update_window_contents();
 
-void initialize_display_list() {
-  _display_list_instance = ddcbc_display_list_init(FALSE);
-  _display_list = &_display_list_instance;
-}
-
-void free_display_list() {
-  ddcbc_display_list_free(_display_list);
-}
-
 void _start_refreshing_displays() {
 	_is_display_list_loading = TRUE;
 	update_window_contents();
@@ -30,6 +21,15 @@ void _start_refreshing_displays() {
 void _finish_refreshing_displays() {
 	_is_display_list_loading = FALSE;
 	update_window_contents();
+}
+
+void initialize_display_list() {
+  _display_list_instance = ddcbc_display_list_init(FALSE);
+  _display_list = &_display_list_instance;
+}
+
+void free_display_list() {
+  ddcbc_display_list_free(_display_list);
 }
 
 void refresh_displays() {

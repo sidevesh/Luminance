@@ -51,7 +51,7 @@ GtkWidget* get_displays_screen() {
 		sibling = sections[index];
 	}
 
-	link_brightness_check_button = get_link_brightness_check_button();
+	link_brightness_check_button = get_link_brightness_check_button(get_is_brightness_linked());
 	g_signal_connect(link_brightness_check_button, "toggled", G_CALLBACK(link_brightness), NULL);
 	gtk_grid_attach_next_to(GTK_GRID(grid), link_brightness_check_button, sibling->separator_right_column, GTK_POS_BOTTOM, 1, 1);
 

@@ -6,6 +6,7 @@
 
 #include "./types/display_section.c"
 #include "./states/display_list.c"
+#include "./states/is_brightness_linked.c"
 #include "./ui/constants/main.c"
 #include "./ui/components/display_brightness_scale.c"
 #include "./ui/components/display_icon.c"
@@ -20,9 +21,6 @@
 display_section **display_sections;
 guint display_sections_count = 0;
 
-gboolean is_brightness_linked = FALSE;
-
-
 gboolean set_brightness(GtkWidget *widget, GdkEvent *event, guint data) {
 	guint index_of_display_section = GPOINTER_TO_UINT(data);
 
@@ -35,7 +33,7 @@ gboolean set_brightness(GtkWidget *widget, GdkEvent *event, guint data) {
 	// If the link checkbox is checked, set all other displays to the same value:
 	// TODO: It might be the case that the new value will exceed the max of other
 	// displays.
-	if (is_brightness_linked) {
+	if (get_is_brightness_linked()) {
 		for (guint index = 0; index < display_sections_count; index++) {
 			GtkWidget *scale = display_sections[index]->scale;
 			gtk_range_set_value(GTK_RANGE(scale), new_val);
@@ -67,14 +65,15 @@ void update_display_brightness_scales(GtkRange *range, guint data) {
 
 	guint new_value = gtk_range_get_value(range);
 	for (guint index = 0; index < display_sections_count; index++) {
-		if (is_brightness_linked || index == index_of_display_section) {
+		if (get_is_brightness_linked() || index == index_of_display_section) {
 			gtk_range_set_value(GTK_RANGE(display_sections[index]->scale), new_value);
 		}
 	}
 }
 
 void link_brightness(GtkToggleButton *link_brightness_check_button) {
-	is_brightness_linked = gtk_toggle_button_get_active(link_brightness_check_button);
+	gboolean is_brightness_linked = gtk_toggle_button_get_active(link_brightness_check_button);
+	set_is_brightness_linked(is_brightness_linked);
 
 	if (!is_brightness_linked) {
 		return;
