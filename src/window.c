@@ -6,7 +6,7 @@
 
 #include "./states/display_list.c"
 
-#define MINIMUM_WINDOW_WIDTH 454
+#define MINIMUM_WINDOW_WIDTH 391
 #define MINIMUM_WINDOW_HEIGHT 474
 
 GtkWidget *_window;
@@ -40,11 +40,6 @@ void initialize_application_window(GtkApplication *app) {
 	gtk_window_set_keep_above(GTK_WINDOW(_window), TRUE);
 
   _window_header = gtk_header_bar_new();
-	if (is_display_list_loading == FALSE) {
-		GtkWidget *refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic", GTK_ICON_SIZE_BUTTON);
-		gtk_header_bar_pack_start(GTK_HEADER_BAR(_window_header), refresh_displays_button);
-		g_signal_connect(refresh_displays_button, "clicked", G_CALLBACK(refresh_displays), NULL);
-	}
 	gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(_window_header), TRUE);
 
 	GtkWidget *menu_button = gtk_menu_button_new();
@@ -72,8 +67,14 @@ void initialize_application_window(GtkApplication *app) {
 
 	gtk_container_add(GTK_CONTAINER(menu_popover), menu_box);
 	gtk_menu_button_set_popover(GTK_MENU_BUTTON(menu_button), menu_popover);
-	gtk_header_bar_pack_end(GTK_HEADER_BAR(_window_header), menu_button);
 	gtk_widget_show_all(menu_box);
+	gtk_header_bar_pack_end(GTK_HEADER_BAR(_window_header), menu_button);
+
+	if (is_display_list_loading() == FALSE) {
+		GtkWidget *refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic", GTK_ICON_SIZE_BUTTON);
+		gtk_header_bar_pack_start(GTK_HEADER_BAR(_window_header), refresh_displays_button);
+		g_signal_connect(refresh_displays_button, "clicked", G_CALLBACK(refresh_displays), NULL);
+	}
 
 	GtkCssProvider *header_css_provider = gtk_css_provider_new();
 	gtk_css_provider_load_from_data(header_css_provider, "headerbar {border-bottom: 0px;background-color: @theme_bg_color;}", -1, NULL);
@@ -95,7 +96,7 @@ void update_window_content_screen(GtkWidget *new_window_content_screen) {
 	if (g_list_length(children) > 1) {
 		refresh_displays_button = g_list_nth_data(children, 0);
 	}
-	if (is_display_list_loading == FALSE) {
+	if (is_display_list_loading() == FALSE) {
 		if (refresh_displays_button == NULL) {
 			refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic", GTK_ICON_SIZE_BUTTON);
 			gtk_header_bar_pack_start(GTK_HEADER_BAR(_window_header), refresh_displays_button);
