@@ -23,7 +23,7 @@ void _open_about_dialog() {
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(about_dialog), "A simple GTK application to control brightness of external displays supporting DDC/CI");
 	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_dialog), "https://github.com/sidevesh/Luminance");
 	gtk_about_dialog_set_website_label(GTK_ABOUT_DIALOG(about_dialog), "GitHub");
-	gtk_about_dialog_set_logo_icon_name(GTK_ABOUT_DIALOG(about_dialog), "display-brightness-symbolic");
+	gtk_about_dialog_set_logo_icon_name(GTK_ABOUT_DIALOG(about_dialog), "video-display");
 	gtk_about_dialog_set_license_type(GTK_ABOUT_DIALOG(about_dialog), GTK_LICENSE_GPL_3_0);
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about_dialog), (const gchar *[]){"DDCBC Developers", NULL});
 	gtk_about_dialog_set_artists(GTK_ABOUT_DIALOG(about_dialog), (const gchar *[]){"DDCBC Developers", NULL});
