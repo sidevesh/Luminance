@@ -7,12 +7,13 @@
 #include "./states/display_list.c"
 
 #define MINIMUM_WINDOW_WIDTH 391
-#define MINIMUM_WINDOW_HEIGHT 474
 
 GtkWidget *_window;
 GtkWidget *_window_header;
 
 GtkWidget* _last_window_content_screen = NULL;
+
+GtkWidget *_refresh_displays_button = NULL;
 
 extern GtkApplication *app;
 
@@ -25,9 +26,8 @@ void _open_about_dialog() {
 	gtk_about_dialog_set_website_label(GTK_ABOUT_DIALOG(about_dialog), "GitHub");
 	gtk_about_dialog_set_logo_icon_name(GTK_ABOUT_DIALOG(about_dialog), "video-display");
 	gtk_about_dialog_set_license_type(GTK_ABOUT_DIALOG(about_dialog), GTK_LICENSE_GPL_3_0);
-	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about_dialog), (const gchar *[]){"DDCBC Developers", NULL});
-	gtk_about_dialog_set_artists(GTK_ABOUT_DIALOG(about_dialog), (const gchar *[]){"DDCBC Developers", NULL});
-	gtk_about_dialog_set_translator_credits(GTK_ABOUT_DIALOG(about_dialog), "DDCBC Developers");
+	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about_dialog), (const gchar *[]){"Swapnil Devesh <me@sidevesh.com>", "Ahad Shabbir <shabbirahadh@gmail.com>", NULL});
+	gtk_about_dialog_set_artists(GTK_ABOUT_DIALOG(about_dialog), (const gchar *[]){"Swapnil Devesh <me@sidevesh.com>", NULL});
 	gtk_dialog_run(GTK_DIALOG(about_dialog));
 	gtk_widget_destroy(about_dialog);
 }
@@ -36,7 +36,7 @@ void initialize_application_window(GtkApplication *app) {
 	_window = gtk_application_window_new(app);
 
 	gtk_window_set_resizable(GTK_WINDOW(_window), FALSE);
-	gtk_window_set_geometry_hints(GTK_WINDOW(_window), NULL, &(GdkGeometry){.min_width = MINIMUM_WINDOW_WIDTH, .min_height = MINIMUM_WINDOW_HEIGHT}, GDK_HINT_MIN_SIZE);
+	gtk_window_set_geometry_hints(GTK_WINDOW(_window), NULL, &(GdkGeometry){.min_width = MINIMUM_WINDOW_WIDTH}, GDK_HINT_MIN_SIZE);
 	gtk_window_set_keep_above(GTK_WINDOW(_window), TRUE);
 
   _window_header = gtk_header_bar_new();
@@ -71,9 +71,9 @@ void initialize_application_window(GtkApplication *app) {
 	gtk_header_bar_pack_end(GTK_HEADER_BAR(_window_header), menu_button);
 
 	if (is_display_list_loading() == FALSE) {
-		GtkWidget *refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic", GTK_ICON_SIZE_BUTTON);
-		gtk_header_bar_pack_start(GTK_HEADER_BAR(_window_header), refresh_displays_button);
-		g_signal_connect(refresh_displays_button, "clicked", G_CALLBACK(refresh_displays), NULL);
+		_refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic", GTK_ICON_SIZE_BUTTON);
+		gtk_header_bar_pack_start(GTK_HEADER_BAR(_window_header), _refresh_displays_button);
+		g_signal_connect(_refresh_displays_button, "clicked", G_CALLBACK(refresh_displays), NULL);
 	}
 
 	GtkCssProvider *header_css_provider = gtk_css_provider_new();
@@ -89,23 +89,24 @@ void update_window_content_screen(GtkWidget *new_window_content_screen) {
     gtk_widget_destroy(_last_window_content_screen);
   }
   gtk_container_add(GTK_CONTAINER(_window), new_window_content_screen);
+	gtk_window_resize(GTK_WINDOW(_window), gtk_widget_get_allocated_width(_window), gtk_widget_get_allocated_height(new_window_content_screen));
   _last_window_content_screen = new_window_content_screen;
 
-	GtkWidget *refresh_displays_button = NULL;
+	GtkWidget *_refresh_displays_button = NULL;
 	GList *children = gtk_container_get_children(GTK_CONTAINER(_window_header));
 	if (g_list_length(children) > 1) {
-		refresh_displays_button = g_list_nth_data(children, 0);
+		_refresh_displays_button = g_list_nth_data(children, 0);
 	}
 	if (is_display_list_loading() == FALSE) {
-		if (refresh_displays_button == NULL) {
-			refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic", GTK_ICON_SIZE_BUTTON);
-			gtk_header_bar_pack_start(GTK_HEADER_BAR(_window_header), refresh_displays_button);
-			g_signal_connect(refresh_displays_button, "clicked", G_CALLBACK(refresh_displays), NULL);
+		if (_refresh_displays_button == NULL) {
+			_refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic", GTK_ICON_SIZE_BUTTON);
+			gtk_header_bar_pack_start(GTK_HEADER_BAR(_window_header), _refresh_displays_button);
+			g_signal_connect(_refresh_displays_button, "clicked", G_CALLBACK(refresh_displays), NULL);
 		}
 	} else {
-		if (refresh_displays_button != NULL) {
-			gtk_container_remove(GTK_CONTAINER(_window_header), refresh_displays_button);
-			gtk_widget_destroy(refresh_displays_button);
+		if (_refresh_displays_button != NULL) {
+			gtk_container_remove(GTK_CONTAINER(_window_header), _refresh_displays_button);
+			gtk_widget_destroy(_refresh_displays_button);
 		}
 	}
 

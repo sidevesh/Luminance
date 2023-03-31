@@ -49,7 +49,7 @@ void refresh_displays() {
 	int time_elapsed = difftime(end_loading_display_list_time, start_loading_display_list_time);
 
 	if (time_elapsed < MINIMUM_REFRESH_TIME_IN_SECONDS) {
-		g_timeout_add_seconds(MINIMUM_REFRESH_TIME_IN_SECONDS - time_elapsed, (GSourceFunc) _finish_refreshing_displays, NULL);
+		g_timeout_add_once((MINIMUM_REFRESH_TIME_IN_SECONDS - time_elapsed) * 1000, (GSourceOnceFunc) _finish_refreshing_displays, NULL);
 	} else {
 		_finish_refreshing_displays();
 	}
