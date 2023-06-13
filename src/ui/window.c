@@ -4,7 +4,7 @@
 #include "../ddcbc-api/ddcbc-api.c"
 #endif
 
-#include "./states/display_list.c"
+#include "../states/displays.c"
 
 #define MINIMUM_WINDOW_WIDTH 391
 
@@ -70,10 +70,10 @@ void initialize_application_window(GtkApplication *app) {
 	gtk_widget_show_all(menu_box);
 	gtk_header_bar_pack_end(GTK_HEADER_BAR(_window_header), menu_button);
 
-	if (is_display_list_loading() == FALSE) {
+	if (is_displays_loading() == FALSE) {
 		_refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic", GTK_ICON_SIZE_BUTTON);
 		gtk_header_bar_pack_start(GTK_HEADER_BAR(_window_header), _refresh_displays_button);
-		g_signal_connect(_refresh_displays_button, "clicked", G_CALLBACK(refresh_displays), NULL);
+		g_signal_connect(_refresh_displays_button, "clicked", G_CALLBACK(reload_displays_with_ui_updates), NULL);
 	}
 
 	GtkCssProvider *header_css_provider = gtk_css_provider_new();
@@ -97,11 +97,11 @@ void update_window_content_screen(GtkWidget *new_window_content_screen) {
 	if (g_list_length(children) > 1) {
 		_refresh_displays_button = g_list_nth_data(children, 0);
 	}
-	if (is_display_list_loading() == FALSE) {
+	if (is_displays_loading() == FALSE) {
 		if (_refresh_displays_button == NULL) {
 			_refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic", GTK_ICON_SIZE_BUTTON);
 			gtk_header_bar_pack_start(GTK_HEADER_BAR(_window_header), _refresh_displays_button);
-			g_signal_connect(_refresh_displays_button, "clicked", G_CALLBACK(refresh_displays), NULL);
+			g_signal_connect(_refresh_displays_button, "clicked", G_CALLBACK(reload_displays_with_ui_updates), NULL);
 		}
 	} else {
 		if (_refresh_displays_button != NULL) {

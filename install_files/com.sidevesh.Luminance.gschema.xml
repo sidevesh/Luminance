@@ -3,8 +3,8 @@
   <schema id="com.sidevesh.Luminance" path="/com/sidevesh/Luminance/">
     <key name="is-brightness-linked" type="b">
       <default>true</default>
-      <summary>Whether to link monitor brightness adjustments</summary>
-      <description>When true, changes to the brightness of one monitor will also affect the brightness of other monitors connected to the same computer.</description>
+      <summary>Whether to link display brightness adjustments</summary>
+      <description>When true, changes to the brightness of one display will also affect the brightness of other displays connected to the same computer.</description>
     </key>
   </schema>
 </schemalist>

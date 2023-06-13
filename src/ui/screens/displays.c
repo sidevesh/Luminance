@@ -4,7 +4,7 @@
 #include "../../../ddcbc-api/ddcbc-api.c"
 #endif
 
-#include "../../states/display_list.c"
+#include "../../states/displays.c"
 #include "../../types/display_section.c"
 
 extern display_section **display_sections;
@@ -19,13 +19,13 @@ GtkWidget* get_displays_screen() {
 
 	grid = gtk_grid_new();
 
-	display_section **sections = malloc(display_list_count());
+	display_section **sections = malloc(displays_count());
 	display_sections = sections;
-	display_sections_count = display_list_count();
+	display_sections_count = displays_count();
 
 	display_section *sibling = NULL;
 
-	for (guint index = 0; index < display_list_count(); index++) {
+	for (guint index = 0; index < displays_count(); index++) {
     ddcbc_display *display = get_display(index);
 		display_section *display_section_instance = malloc(sizeof(display_section));
 		display_section_instance->display = display;

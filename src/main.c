@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <getopt.h>
 #include <gtk/gtk.h>
 
 #ifndef BRIGHTNESS_CODE
@@ -5,7 +9,7 @@
 #endif
 
 #include "./types/display_section.c"
-#include "./states/display_list.c"
+#include "./states/displays.c"
 #include "./states/is_brightness_linked.c"
 #include "./ui/constants/main.c"
 #include "./ui/components/display_brightness_scale.c"
@@ -16,7 +20,9 @@
 #include "./ui/screens/displays.c"
 #include "./ui/screens/no_displays.c"
 #include "./ui/screens/refreshing_displays.c"
-#include "./window.c"
+#include "./ui/window.c"
+
+gboolean is_cli_mode = FALSE;
 
 display_section **display_sections;
 guint display_sections_count = 0;
@@ -107,11 +113,15 @@ void link_brightness(GtkToggleButton *link_brightness_check_button) {
 }
 
 void update_window_contents() {
+    if (is_cli_mode) {
+        return;
+    }
+
 	GtkWidget *current_screen;
 
-	if (is_display_list_loading() == TRUE) {
+	if (is_displays_loading() == TRUE) {
 		current_screen = get_refreshing_displays_screen();
-	} else if (display_list_count() == 0) {
+	} else if (displays_count() == 0) {
 		current_screen = get_no_displays_screen();
 	} else {
 		current_screen = get_displays_screen();
@@ -120,22 +130,84 @@ void update_window_contents() {
 	update_window_content_screen(current_screen);
 }
 
-static void activate(GtkApplication *app) {
+static void activate_gtk_ui(GtkApplication *app) {
 	initialize_application_window(app);
 	update_window_contents();
+    load_displays_with_ui_updates();
 }
 
+// Function to list displays and their brightness
+void list_displays_in_cli() {
+    guint count = displays_count();
+
+    for (guint index = 0; index < count; index++) {
+        ddcbc_display *display = get_display(index);
+
+        guint dispno = display->info.dispno;
+        const char *label = display->info.model_name;
+        guint16 brightness = display->last_val;
+        guint16 max_brightness = display->max_val;
+        gdouble brightness_percentage = (brightness * 100.0) / max_brightness;
+
+        printf("Display %d: Label: %s, Brightness: %.2f%%\n", dispno, label, brightness_percentage);
+    }
+}
+
+
+// Function to display command-line arguments and help information
+void display_help_in_cli() {
+    printf("Usage: com.sidevesh.Luminance [OPTIONS]\n");
+    printf("A graphical application to control display brightness.\n");
+    printf("\n");
+    printf("Options:\n");
+    printf("  -l, --list-displays  List displays and their brightness\n");
+    printf("  -h, --help           Show help information\n");
+    printf("\n");
+    printf("When no arguments are provided, the application starts in GUI mode.\n");
+}
+
+// CLI argument parsing
+void parse_cli_arguments(int argc, char **argv) {
+    struct option long_options[] = {
+        {"list-displays", no_argument, NULL, 'l'},
+        {"help", no_argument, NULL, 'h'},
+        {NULL, 0, NULL, 0}
+    };
+
+    int option;
+    int option_index;
+
+    while ((option = getopt_long(argc, argv, "lh", long_options, &option_index)) != -1) {
+        switch (option) {
+            case 'l': // --list-displays option
+                load_displays();
+                list_displays_in_cli();
+                exit(0);
+            case 'h': // --help option
+                display_help_in_cli();
+                exit(0);
+            default:
+                fprintf(stderr, "Unknown option: %s\n", argv[optind - 1]);
+                exit(1);
+        }
+    }
+}
+
+// Entry point of the program
 int main(int argc, char **argv) {
-	GtkApplication *app;
-	int status;
+    if (argc > 1) {
+        is_cli_mode = true;
+        parse_cli_arguments(argc, argv);
+    } else {
+        GtkApplication *app;
+        int status;
 
-	initialize_display_list();
+        app = gtk_application_new("com.sidevesh.Luminance", G_APPLICATION_DEFAULT_FLAGS);
+        g_signal_connect(app, "activate", G_CALLBACK(activate_gtk_ui), NULL);
+        status = g_application_run(G_APPLICATION(app), argc, argv);
+        g_object_unref(app);
+        free_displays();
 
-	app = gtk_application_new("com.sidevesh.Luminance", G_APPLICATION_DEFAULT_FLAGS);
-	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-	status = g_application_run(G_APPLICATION(app), argc, argv);
-	g_object_unref(app);
-	free_display_list();
-
-	return status;
+        return status;
+    }
 }

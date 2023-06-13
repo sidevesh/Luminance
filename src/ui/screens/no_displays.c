@@ -1,6 +1,6 @@
 #include <gtk/gtk.h>
 #include "../constants/main.c"
-#include "../../states/display_list.c"
+#include "../../states/displays.c"
 
 GtkWidget* get_no_displays_screen() {
   GtkWidget *box, *image, *title, *subtitle, *button;
@@ -48,7 +48,7 @@ GtkWidget* get_no_displays_screen() {
   gtk_widget_set_valign(button, GTK_ALIGN_CENTER);
   gtk_box_pack_start(GTK_BOX(box), button, FALSE, FALSE, 5);
 
-	g_signal_connect(button, "clicked", G_CALLBACK(refresh_displays), NULL);
+	g_signal_connect(button, "clicked", G_CALLBACK(reload_displays_with_ui_updates), NULL);
 
 	return box;
 }
