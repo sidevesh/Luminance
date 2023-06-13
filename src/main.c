@@ -22,6 +22,8 @@
 #include "./ui/screens/refreshing_displays.c"
 #include "./ui/window.c"
 
+#define LOCK_FILE_PATH "/tmp/com.sidevesh.Luminance.lock"
+
 gboolean is_cli_mode = FALSE;
 
 display_section **display_sections;
@@ -167,7 +169,7 @@ void display_help_in_cli() {
 }
 
 // CLI argument parsing
-void parse_cli_arguments(int argc, char **argv) {
+int parse_cli_arguments(int argc, char **argv) {
     struct option long_options[] = {
         {"list-displays", no_argument, NULL, 'l'},
         {"help", no_argument, NULL, 'h'},
@@ -182,32 +184,49 @@ void parse_cli_arguments(int argc, char **argv) {
             case 'l': // --list-displays option
                 load_displays();
                 list_displays_in_cli();
-                exit(0);
+                free_displays();
+                return 0;
             case 'h': // --help option
                 display_help_in_cli();
-                exit(0);
+                return 0;
             default:
                 fprintf(stderr, "Unknown option: %s\n", argv[optind - 1]);
-                exit(1);
+                return 1;
         }
     }
 }
 
 // Entry point of the program
 int main(int argc, char **argv) {
+    // Check if the lock file exists
+    if (g_file_test(LOCK_FILE_PATH, G_FILE_TEST_EXISTS)) {
+        fprintf(stderr, "Another instance of the application is already running.\n");
+        return 1;
+    }
+
+    // Create the lock file
+    FILE *lock_file = fopen(LOCK_FILE_PATH, "w");
+    if (lock_file == NULL) {
+        fprintf(stderr, "Failed to create lock file.\n");
+        return 1;
+    }
+    fclose(lock_file);
+
+    int status = 0;
+
     if (argc > 1) {
         is_cli_mode = true;
-        parse_cli_arguments(argc, argv);
+        status = parse_cli_arguments(argc, argv);
+
     } else {
         GtkApplication *app;
-        int status;
-
         app = gtk_application_new("com.sidevesh.Luminance", G_APPLICATION_DEFAULT_FLAGS);
         g_signal_connect(app, "activate", G_CALLBACK(activate_gtk_ui), NULL);
         status = g_application_run(G_APPLICATION(app), argc, argv);
         g_object_unref(app);
         free_displays();
-
-        return status;
     }
+
+    // Remove the lock file when the application exits
+    remove(LOCK_FILE_PATH);
 }
