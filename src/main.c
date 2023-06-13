@@ -17,7 +17,7 @@
 #include "./ui/components/display_label.c"
 #include "./ui/components/link_brightness_check_button.c"
 #include "./ui/components/separator.c"
-#include "./ui/screens/displays.c"
+#include "./ui/screens/show_displays.c"
 #include "./ui/screens/no_displays.c"
 #include "./ui/screens/refreshing_displays.c"
 #include "./ui/window.c"
@@ -126,7 +126,7 @@ void update_window_contents() {
 	} else if (displays_count() == 0) {
 		current_screen = get_no_displays_screen();
 	} else {
-		current_screen = get_displays_screen();
+		current_screen = get_show_displays_screen();
 	}
 
 	update_window_content_screen(current_screen);

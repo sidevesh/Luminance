@@ -14,7 +14,7 @@ extern gboolean set_brightness(GtkWidget *widget, GdkEvent *event, guint data);
 extern void update_display_brightness_scales(GtkRange *range, guint data);
 extern void link_brightness(GtkToggleButton *link_brightness_check_button);
 
-GtkWidget* get_displays_screen() {
+GtkWidget* get_show_displays_screen() {
 	GtkWidget *grid, *link_brightness_check_button;
 
 	grid = gtk_grid_new();
