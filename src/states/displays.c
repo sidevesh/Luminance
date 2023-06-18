@@ -77,7 +77,7 @@ int displays_count() {
   return _display_list->ct;
 }
 
-ddcbc_display* get_display(int index) {
+ddcbc_display* get_display(guint index) {
   return ddcbc_display_list_get(_display_list, index);
 }
 

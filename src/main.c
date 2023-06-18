@@ -115,9 +115,9 @@ void link_brightness(GtkToggleButton *link_brightness_check_button) {
 }
 
 void update_window_contents() {
-    if (is_cli_mode) {
-      return;
-    }
+  if (is_cli_mode) {
+    return;
+  }
 
 	GtkWidget *current_screen;
 
@@ -138,8 +138,17 @@ static void activate_gtk_ui(GtkApplication *app) {
   load_displays_with_ui_updates();
 }
 
-// Function to list displays and their brightness
-void list_displays_in_cli() {
+
+int ensure_displays_are_present_in_cli() {
+  if (displays_count() == 0) {
+    fprintf(stderr, "No displays found.\n");
+    free_displays();
+    return 1;
+  }
+}
+
+// Function to list all displays and their brightness
+int list_displays_in_cli() {
   guint count = displays_count();
   for (guint index = 0; index < count; index++) {
     ddcbc_display *display = get_display(index);
@@ -150,47 +159,162 @@ void list_displays_in_cli() {
     gdouble brightness_percentage = (brightness * 100.0) / max_brightness;
     printf("Display %d: Label: %s, Brightness: %.2f%%\n", display_number, label, brightness_percentage);
   }
+
+	return 0;
 }
 
+// Function to get the brightness percentage of a specified display
+int get_display_brightness_in_cli(guint display_number) {
+	guint count = displays_count();
+	for (guint index = 0; index < count; index++) {
+		ddcbc_display *display = get_display(index);
+		if (display->info.dispno == display_number) {
+			guint16 brightness = display->last_val;
+			guint16 max_brightness = display->max_val;
+			printf("%.2f%%\n", (brightness * 100.0) / max_brightness);
+			return 0;
+		}
+	}
+
+	fprintf(stderr, "Invalid display number: %d\n", display_number);
+	return 1;
+}
+
+void set_brightness_percentage(guint display_number, double brightness_percentage) {
+  guint count = displays_count();
+  for (guint index = 0; index < count; index++) {
+    ddcbc_display *display = get_display(index);
+    if (display->info.dispno == display_number) {
+      guint16 max_brightness = display->max_val;
+      guint16 brightness = (guint16)(brightness_percentage * max_brightness / 100.0);
+      DDCBC_Status rc = ddcbc_display_set_brightness(display, brightness);
+
+			if (rc == 1) {
+				fprintf(stderr,
+					"Partial sucess in setting the brightness of display no"
+					" %d to %u. Code: %d\n",
+					display->info.dispno, brightness, rc
+				);
+			} else if (rc != 0) {
+				fprintf(stderr,
+					"An error occured when setting the brightness of display no"
+					" %d to %u. Code: %d\n",
+					display->info.dispno, brightness, rc
+				);
+			}
+
+      return;
+    }
+  }
+
+	fprintf(stderr, "Invalid display number: %d\n", display_number);
+}
 
 // Function to display command-line arguments and help information
-void display_help_in_cli() {
+int display_help_in_cli() {
   printf("Usage: com.sidevesh.Luminance [OPTIONS]\n");
   printf("A graphical application to control display brightness.\n");
   printf("\n");
   printf("Options:\n");
-  printf("  -l, --list-displays  List displays and their brightness\n");
-  printf("  -h, --help           Show help information\n");
+  printf("  -l, --list-displays         List displays and their brightness\n");
+  printf("  -g, --get-percentage NUM    Get the brightness percentage of a display\n");
+  printf("  -s, --set-brightness [NUM]  Set the brightness of a display to a percentage value\n");
+  printf("      --percentage [PERCENT]  Set the brightness percentage for --set-brightness\n");
+  printf("  -h, --help                  Show help information\n");
   printf("\n");
   printf("When no arguments are provided, the application starts in GUI mode.\n");
+
+	return 0;
 }
 
 // CLI argument parsing
 int parse_cli_arguments(int argc, char **argv) {
   struct option long_options[] = {
     {"list-displays", no_argument, NULL, 'l'},
+    {"get-percentage", required_argument, NULL, 'g'},
+    {"set-brightness", optional_argument, NULL, 's'},
+    {"percentage", required_argument, NULL, 'p'},
     {"help", no_argument, NULL, 'h'},
     {NULL, 0, NULL, 0}
   };
 
-  int option;
-  int option_index;
+	 int option;
+	 int option_index;
 
-  while ((option = getopt_long(argc, argv, "lh", long_options, &option_index)) != -1) {
+	int status = 0;
+
+	int set_brightness_display_number = -1;
+	int set_brightness_percentage_value = -1;
+
+  while ((option = getopt_long(argc, argv, "lg:s::p:h", long_options, &option_index)) != -1) {
     switch (option) {
       case 'l': // --list-displays option
         load_displays();
-        list_displays_in_cli();
+				status = ensure_displays_are_present_in_cli();
+        status = list_displays_in_cli();
         free_displays();
-        return 0;
+        return status;
+      case 'g': // --get-percentage option
+        guint get_percentage_display_number = atoi(optarg);
+				load_displays();
+				status = ensure_displays_are_present_in_cli();
+				status = get_display_brightness_in_cli(get_percentage_display_number);
+				free_displays();
+				return status;
+			case 's': // --set-brightness option
+				// the below code is to handle the optional argument being provided with a space between the option and the argument value,
+				// while getopt expexts there not to be a space between the option and the argument value
+				// https://cfengine.com/blog/2021/optional-arguments-with-getopt-long/
+				if (optarg == NULL && optind < argc && argv[optind][0] != '-') {
+					optarg = argv[optind++];
+				}
+				if (optarg != NULL) {
+        	set_brightness_display_number = atoi(optarg);
+				} else {
+					set_brightness_display_number = 0;
+				}
+				break;
+      case 'p': // --percentage option
+				set_brightness_percentage_value = atoi(optarg);
+				break;
       case 'h': // --help option
-        display_help_in_cli();
-        return 0;
+        status = display_help_in_cli();
+        return status;
       default:
         fprintf(stderr, "Unknown option: %s\n", argv[optind - 1]);
-        return 1;
+				status = 1;
+        return status;
     }
   }
+
+  if (set_brightness_display_number != -1) {
+    if (set_brightness_percentage_value == -1) {
+      fprintf(stderr, "Missing percentage value for --set-brightness option.\n");
+      return 1;
+    }
+
+    load_displays();
+    if (displays_count() == 0) {
+      fprintf(stderr, "No displays found.\n");
+      free_displays();
+      return 1;
+    }
+
+    if (set_brightness_display_number > 0) {
+			set_brightness_percentage(set_brightness_display_number, set_brightness_percentage_value);
+    } else {
+			guint count = displays_count();
+      for (guint index = 0; index < count; index++) {
+        ddcbc_display *display = get_display(index);
+        set_brightness_percentage(display->info.dispno, set_brightness_percentage_value);
+      }
+    }
+
+    free_displays();
+    return 0;
+  }
+
+  return 0;
 }
 
 // Entry point of the program
