@@ -180,7 +180,7 @@ int get_display_brightness_in_cli(guint display_number) {
 	return 1;
 }
 
-void set_brightness_percentage(guint display_number, double brightness_percentage) {
+void set_brightness_percentage_in_cli(guint display_number, double brightness_percentage) {
   guint count = displays_count();
   for (guint index = 0; index < count; index++) {
     ddcbc_display *display = get_display(index);
@@ -222,12 +222,12 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
     ensure_displays_are_present_in_cli();
 
     if (display_number > 0) {
-			set_brightness_percentage(display_number, brightness_percentage);
+			set_brightness_percentage_in_cli(display_number, brightness_percentage);
     } else {
 			guint count = displays_count();
       for (guint index = 0; index < count; index++) {
         ddcbc_display *display = get_display(index);
-        set_brightness_percentage(display->info.dispno, brightness_percentage);
+        set_brightness_percentage_in_cli(display->info.dispno, brightness_percentage);
       }
     }
     free_displays();
@@ -302,13 +302,14 @@ int parse_cli_arguments(int argc, char **argv) {
       case 'p': // --percentage option
 				set_brightness_percentage_value = atoi(optarg);
 				break;
-      case 'h': // --help option
-        status = display_help_in_cli();
-        return status;
-      default:
-        fprintf(stderr, "Unknown option: %s\n", argv[optind - 1]);
-				status = 1;
-        return status;
+      default: // --help option or shown when arguments are invalid
+				if (option != 'h') {
+					display_help_in_cli();
+					status = 1;
+				} else {
+					status = display_help_in_cli();
+				}
+				return status;
     }
   }
 
