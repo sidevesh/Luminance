@@ -210,6 +210,31 @@ void set_brightness_percentage(guint display_number, double brightness_percentag
 	fprintf(stderr, "Invalid display number: %d\n", display_number);
 }
 
+// Function to set the brightness of a specified display
+int set_display_brightness_if_needed_in_cli(guint display_number, guint brightness_percentage) {
+	if (display_number != -1) {
+    if (brightness_percentage == -1) {
+      fprintf(stderr, "Missing percentage value for --set-brightness option.\n");
+			return 1;
+    }
+
+    load_displays();
+    ensure_displays_are_present_in_cli();
+
+    if (display_number > 0) {
+			set_brightness_percentage(display_number, brightness_percentage);
+    } else {
+			guint count = displays_count();
+      for (guint index = 0; index < count; index++) {
+        ddcbc_display *display = get_display(index);
+        set_brightness_percentage(display->info.dispno, brightness_percentage);
+      }
+    }
+    free_displays();
+		return 0;
+  }
+}
+
 // Function to display command-line arguments and help information
 int display_help_in_cli() {
   printf("Usage: com.sidevesh.Luminance [OPTIONS]\n");
@@ -238,13 +263,13 @@ int parse_cli_arguments(int argc, char **argv) {
     {NULL, 0, NULL, 0}
   };
 
-	 int option;
-	 int option_index;
+	int option;
+	int option_index;
+
+	guint set_brightness_display_number = -1;
+	guint set_brightness_percentage_value = -1;
 
 	int status = 0;
-
-	int set_brightness_display_number = -1;
-	int set_brightness_percentage_value = -1;
 
   while ((option = getopt_long(argc, argv, "lg:s::p:h", long_options, &option_index)) != -1) {
     switch (option) {
@@ -287,34 +312,8 @@ int parse_cli_arguments(int argc, char **argv) {
     }
   }
 
-  if (set_brightness_display_number != -1) {
-    if (set_brightness_percentage_value == -1) {
-      fprintf(stderr, "Missing percentage value for --set-brightness option.\n");
-      return 1;
-    }
-
-    load_displays();
-    if (displays_count() == 0) {
-      fprintf(stderr, "No displays found.\n");
-      free_displays();
-      return 1;
-    }
-
-    if (set_brightness_display_number > 0) {
-			set_brightness_percentage(set_brightness_display_number, set_brightness_percentage_value);
-    } else {
-			guint count = displays_count();
-      for (guint index = 0; index < count; index++) {
-        ddcbc_display *display = get_display(index);
-        set_brightness_percentage(display->info.dispno, set_brightness_percentage_value);
-      }
-    }
-
-    free_displays();
-    return 0;
-  }
-
-  return 0;
+  status = set_display_brightness_if_needed_in_cli(set_brightness_display_number, set_brightness_percentage_value);
+	return status;
 }
 
 // Entry point of the program
