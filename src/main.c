@@ -211,23 +211,66 @@ void set_brightness_percentage_in_cli(guint display_number, double brightness_pe
 }
 
 // Function to set the brightness of a specified display
-int set_display_brightness_if_needed_in_cli(guint display_number, guint brightness_percentage) {
+int set_display_brightness_if_needed_in_cli(guint display_number, guint brightness_percentage, char option) {
 	if (display_number != -1) {
     if (brightness_percentage == -1) {
-      fprintf(stderr, "Missing percentage value for --set-brightness option.\n");
+      fprintf(stderr, "Missing percentage value.\n");
 			return 1;
     }
 
     load_displays();
     ensure_displays_are_present_in_cli();
 
+		gint brightness_percentage_to_set = brightness_percentage;
+
+		if (option == 'i' || option == 'd') {
+			gdouble current_brightness_percentage = -1;
+			if (display_number > 0) {
+				guint count = displays_count();
+				for (guint index = 0; index < count; index++) {
+					ddcbc_display *display = get_display(index);
+					if (display->info.dispno == display_number) {
+						guint16 brightness = display->last_val;
+						guint16 max_brightness = display->max_val;
+						current_brightness_percentage = (brightness * 100.0) / max_brightness;
+						break;
+					}
+				}
+				if (current_brightness_percentage == -1) {
+					fprintf(stderr, "Invalid display number: %d\n", display_number);
+					return 1;
+				}
+			} else {
+				gdouble max_brightness_percentage = 0;
+				guint count = displays_count();
+				for (guint index = 0; index < count; index++) {
+					ddcbc_display *display = get_display(index);
+					guint16 brightness = display->last_val;
+					guint16 max_brightness = display->max_val;
+					gdouble brightness_percentage = (brightness * 100.0) / max_brightness;
+					max_brightness_percentage = brightness_percentage > max_brightness_percentage ? brightness_percentage : max_brightness_percentage;
+				}
+				current_brightness_percentage = max_brightness_percentage;
+			}
+			if (option == 'i') {
+				brightness_percentage_to_set = current_brightness_percentage + brightness_percentage;
+			} else if (option == 'd') {
+				brightness_percentage_to_set = current_brightness_percentage - brightness_percentage;
+			}
+			if (brightness_percentage_to_set > 100) {
+				brightness_percentage_to_set = 100;
+			} else if (brightness_percentage_to_set < 0) {
+				brightness_percentage_to_set = 0;
+			}
+		}
+
     if (display_number > 0) {
-			set_brightness_percentage_in_cli(display_number, brightness_percentage);
+			set_brightness_percentage_in_cli(display_number, brightness_percentage_to_set);
     } else {
 			guint count = displays_count();
       for (guint index = 0; index < count; index++) {
         ddcbc_display *display = get_display(index);
-        set_brightness_percentage_in_cli(display->info.dispno, brightness_percentage);
+        set_brightness_percentage_in_cli(display->info.dispno, brightness_percentage_to_set);
       }
     }
     free_displays();
@@ -241,10 +284,12 @@ int display_help_in_cli() {
   printf("A graphical application to control display brightness.\n");
   printf("\n");
   printf("Options:\n");
-  printf("  -l, --list-displays         List displays and their brightness\n");
-  printf("  -g, --get-percentage NUM    Get the brightness percentage of a display\n");
-  printf("  -s, --set-brightness [NUM]  Set the brightness of a display to a percentage value\n");
-  printf("      --percentage [PERCENT]  Set the brightness percentage for --set-brightness\n");
+  printf("  -l, --list-displays              List displays and their brightness\n");
+  printf("  -g, --get-percentage NUM         Get the brightness percentage of a display\n");
+  printf("  -s, --set-brightness [NUM]       Set the brightness of a display to a percentage value\n");
+	printf("  -i, --increase-brightness [NUM]  Increase the brightness of a display by a percentage value\n");
+	printf("  -d, --decrease-brightness [NUM]  Decrease the brightness of a display by a percentage value\n");
+  printf("  -p  --percentage [PERCENT]       Percentage value to set the brightness to in case of --set-brightness option or to increase or decrease the brightness by in case of --increase-brightness or --decrease-brightness option\n");
   printf("  -h, --help                  Show help information\n");
   printf("\n");
   printf("When no arguments are provided, the application starts in GUI mode.\n");
@@ -258,21 +303,24 @@ int parse_cli_arguments(int argc, char **argv) {
     {"list-displays", no_argument, NULL, 'l'},
     {"get-percentage", required_argument, NULL, 'g'},
     {"set-brightness", optional_argument, NULL, 's'},
+		{"increase-brightness", optional_argument, NULL, 'i'},
+		{"decrease-brightness", optional_argument, NULL, 'd'},
     {"percentage", required_argument, NULL, 'p'},
     {"help", no_argument, NULL, 'h'},
     {NULL, 0, NULL, 0}
   };
 
-	int option;
+	char option;
 	int option_index;
 
+	char set_brightness_option = -1;
 	guint set_brightness_display_number = -1;
 	guint set_brightness_percentage_value = -1;
 
 	int status = 0;
 
-  while ((option = getopt_long(argc, argv, "lg:s::p:h", long_options, &option_index)) != -1) {
-    switch (option) {
+  while ((option = getopt_long(argc, argv, "lg:s::i::d::p:h", long_options, &option_index)) != -1) {
+		switch (option) {
       case 'l': // --list-displays option
         load_displays();
 				status = ensure_displays_are_present_in_cli();
@@ -287,6 +335,9 @@ int parse_cli_arguments(int argc, char **argv) {
 				free_displays();
 				return status;
 			case 's': // --set-brightness option
+			case 'i': // --increase-brightness option
+			case 'd': // --decrease-brightness option
+				set_brightness_option = option;
 				// the below code is to handle the optional argument being provided with a space between the option and the argument value,
 				// while getopt expexts there not to be a space between the option and the argument value
 				// https://cfengine.com/blog/2021/optional-arguments-with-getopt-long/
@@ -295,6 +346,14 @@ int parse_cli_arguments(int argc, char **argv) {
 				}
 				if (optarg != NULL) {
         	set_brightness_display_number = atoi(optarg);
+					// Display number returned from ddcbc is 1-based, so 0 is invalid
+					// and we use 0 to indicate that the brightness should be set for all displays,
+					// so the user cannot input 0 as the display number
+					if (set_brightness_display_number == 0) {
+						fprintf(stderr, "Invalid display number: %s\n", optarg);
+						status = 1;
+						return status;
+					}
 				} else {
 					set_brightness_display_number = 0;
 				}
@@ -313,7 +372,7 @@ int parse_cli_arguments(int argc, char **argv) {
     }
   }
 
-  status = set_display_brightness_if_needed_in_cli(set_brightness_display_number, set_brightness_percentage_value);
+  status = set_display_brightness_if_needed_in_cli(set_brightness_display_number, set_brightness_percentage_value, set_brightness_option);
 	return status;
 }
 
