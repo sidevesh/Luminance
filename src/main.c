@@ -212,6 +212,9 @@ void set_brightness_percentage_in_cli(guint display_number, double brightness_pe
 
 // Function to set the brightness of a specified display
 int set_display_brightness_if_needed_in_cli(guint display_number, guint brightness_percentage, char option) {
+	// TODO: Make increase / decrease change each display's brightness from its current value if not linked,
+	// and if linked, change each display's brightness from the max brightness of all displays like the gui does
+	// also if linked then individual change should anyways change it for all displays
 	if (display_number != -1) {
     if (brightness_percentage == -1) {
       fprintf(stderr, "Missing percentage value.\n");
