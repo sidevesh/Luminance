@@ -25,6 +25,23 @@
 
 gboolean is_cli_mode = FALSE;
 
+gdouble brightness_percentage_to_show_after_change = -1;
+void show_gnome_osd_popup_after_change() {
+	if (brightness_percentage_to_show_after_change == -1) {
+		return;
+	}
+
+	char command[250];
+	sprintf(
+		command,
+		"gdbus call --session --dest org.gnome.Shell --object-path /dev/ramottamado/EvalGjs --method dev.ramottamado.EvalGjs.Eval \"Main.osdWindowManager.show(-1, Gio.Icon.new_for_string('display-brightness-symbolic'), null, %f, 1);\"",
+		brightness_percentage_to_show_after_change / 100.0
+	);
+	system(command);
+
+	brightness_percentage_to_show_after_change = -1;
+}
+
 void update_window_contents_in_ui() {
   if (is_cli_mode) {
     return;
@@ -119,18 +136,20 @@ void set_brightness_percentage_in_cli(guint display_number, double brightness_pe
 }
 
 // Function to set the brightness of a specified display
-int set_display_brightness_if_needed_in_cli(guint display_number, guint brightness_percentage, char option) {
+int set_display_brightness_if_needed_in_cli(guint display_number, guint brightness_percentage, char option, gboolean show_gnome_osd) {
   load_displays(NULL, NULL);
   ensure_displays_are_present_in_cli();
 
-	gdouble linked_brightness_percentage = -1;
+	gdouble linked_all_displays_brightness_percentage = -1;
+	gdouble non_linked_all_displays_brightness_percentages_average = -1;
+
 	for (guint index = 0; index < displays_count(); index++) {
 		ddcbc_display *display = get_display(index);
 		if (display_number == 0 || display->info.dispno == display_number) {
 			gdouble current_brightness_percentage = (display->last_val * 100.0) / display->max_val;
 			gdouble final_brightness_percentage = brightness_percentage;
-			if (get_is_brightness_linked() && display_number == 0 && linked_brightness_percentage != -1) {
-				final_brightness_percentage = linked_brightness_percentage;
+			if (get_is_brightness_linked() && display_number == 0 && linked_all_displays_brightness_percentage != -1) {
+				final_brightness_percentage = linked_all_displays_brightness_percentage;
 			} else {
 				if (option == 'i') {
 					final_brightness_percentage = current_brightness_percentage + brightness_percentage;
@@ -143,8 +162,16 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
 				} else if (final_brightness_percentage < 0) {
 					final_brightness_percentage = 0;
 				}
-				if (get_is_brightness_linked() && display_number == 0 && linked_brightness_percentage == -1) {
-					linked_brightness_percentage = final_brightness_percentage;
+				if (get_is_brightness_linked() && display_number == 0) {
+					if (linked_all_displays_brightness_percentage == -1) {
+						linked_all_displays_brightness_percentage = final_brightness_percentage;
+					}
+				} else {
+					if (index == 0) {
+						non_linked_all_displays_brightness_percentages_average = final_brightness_percentage;
+					} else {
+						non_linked_all_displays_brightness_percentages_average = ((non_linked_all_displays_brightness_percentages_average * index) + final_brightness_percentage) / (index + 1);
+					}
 				}
 			}
 			if (final_brightness_percentage != current_brightness_percentage) {
@@ -152,18 +179,29 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
 			}
 			if (display_number > 0) {
 				free_displays();
+				if (show_gnome_osd) {
+					brightness_percentage_to_show_after_change = non_linked_all_displays_brightness_percentages_average;
+				}
 				return 0;
 			}
 		}
-		if (display_number > 0) {
-			fprintf(stderr, "Invalid display number: %d\n", display_number);
-			free_displays();
-			return 1;
-		}
-
-		free_displays();
-		return 0;
 	}
+
+	if (display_number > 0) {
+		fprintf(stderr, "Invalid display number: %d\n", display_number);
+		free_displays();
+		return 1;
+	}
+
+	if (show_gnome_osd) {
+		if (get_is_brightness_linked() && display_number == 0) {
+			brightness_percentage_to_show_after_change = linked_all_displays_brightness_percentage;
+		} else {
+			brightness_percentage_to_show_after_change = non_linked_all_displays_brightness_percentages_average;
+		}
+	}
+	free_displays();
+	return 0;
 }
 
 // Function to display command-line arguments and help information
@@ -178,7 +216,8 @@ int display_help_in_cli() {
 	printf("  -i, --increase-brightness [NUM]  Increase the brightness of a display by a percentage value\n");
 	printf("  -d, --decrease-brightness [NUM]  Decrease the brightness of a display by a percentage value\n");
   printf("  -p  --percentage [PERCENT]       Percentage value to set the brightness to in case of --set-brightness option or to increase or decrease the brightness by in case of --increase-brightness or --decrease-brightness option\n");
-  printf("  -h, --help                  Show help information\n");
+  printf("  -o, --show-gnome-osd             Show GNOME OSD popup when brightness is changed, only works on gnome shell with https://extensions.gnome.org/extension/5952/eval-gjs/ extension installed\n");
+	printf("  -h, --help                  Show help information\n");
   printf("\n");
   printf("When no arguments are provided, the application starts in GUI mode.\n");
 
@@ -194,6 +233,7 @@ int parse_cli_arguments(int argc, char **argv) {
 		{"increase-brightness", optional_argument, NULL, 'i'},
 		{"decrease-brightness", optional_argument, NULL, 'd'},
     {"percentage", required_argument, NULL, 'p'},
+		{"show-gnome-osd", no_argument, NULL, 'o'},
     {"help", no_argument, NULL, 'h'},
     {NULL, 0, NULL, 0}
   };
@@ -204,10 +244,11 @@ int parse_cli_arguments(int argc, char **argv) {
 	char set_brightness_option = -1;
 	guint set_brightness_display_number = -1;
 	guint set_brightness_percentage_value = -1;
+	gboolean show_gnome_osd = FALSE;
 
 	int status = 0;
 
-  while ((option = getopt_long(argc, argv, "lg:s::i::d::p:h", long_options, &option_index)) != -1) {
+  while ((option = getopt_long(argc, argv, "lg:s::i::d::p:oh", long_options, &option_index)) != -1) {
 		switch (option) {
       case 'l': // --list-displays option
         load_displays(NULL, NULL);
@@ -252,6 +293,9 @@ int parse_cli_arguments(int argc, char **argv) {
       case 'p': // --percentage option
 				set_brightness_percentage_value = atoi(optarg);
 				break;
+			case 'o': // --show-gnome-osd option
+			  show_gnome_osd = TRUE;
+			  break;
       default: // --help option or shown when arguments are invalid
 				if (option != 'h') {
 					display_help_in_cli();
@@ -282,7 +326,16 @@ int parse_cli_arguments(int argc, char **argv) {
 		return status;
 	}
 
-  status = set_display_brightness_if_needed_in_cli(set_brightness_display_number, set_brightness_percentage_value, set_brightness_option);
+  status = set_display_brightness_if_needed_in_cli(
+		set_brightness_display_number,
+		set_brightness_percentage_value,
+		set_brightness_option,
+		show_gnome_osd
+	);
+	if (status == 0 && show_gnome_osd) {
+		show_gnome_osd_popup_after_change();
+	}
+
 	return status;
 }
 
