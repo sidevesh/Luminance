@@ -38,16 +38,18 @@ gboolean set_brightness(GtkWidget *widget, GdkEvent *event, guint data) {
 	guint16 new_value = gtk_range_get_value(GTK_RANGE(widget));
 	DDCBC_Status rc = ddcbc_display_set_brightness(display, new_value);
 
-	// If the link checkbox is checked, set all other displays to the same value:
-	// TODO: It might be the case that the new value will exceed the max of other
-	// displays.
 	if (get_is_brightness_linked()) {
 		for (guint index = 0; index < display_sections_count; index++) {
 			GtkWidget *scale = display_sections[index]->scale;
-			gtk_range_set_value(GTK_RANGE(scale), new_value);
+			ddcbc_display *linked_display = display_sections[index]->display;
 
-			ddcbc_display *display = display_sections[index]->display;
-			ddcbc_display_set_brightness(display, new_value);
+			gdouble linked_display_new_value = (1.0 * new_value / display->max_val) * linked_display->max_val;
+
+			if (linked_display->info.dispno == display->info.dispno) {
+				continue;
+			}
+			gtk_range_set_value(GTK_RANGE(scale), linked_display_new_value);
+			ddcbc_display_set_brightness(linked_display, linked_display_new_value);
 		}
 	}
 
@@ -149,8 +151,7 @@ int ensure_displays_are_present_in_cli() {
 
 // Function to list all displays and their brightness
 int list_displays_in_cli() {
-  guint count = displays_count();
-  for (guint index = 0; index < count; index++) {
+  for (guint index = 0; index < displays_count(); index++) {
     ddcbc_display *display = get_display(index);
     guint display_number = display->info.dispno;
     const char *label = display->info.model_name;
@@ -165,8 +166,7 @@ int list_displays_in_cli() {
 
 // Function to get the brightness percentage of a specified display
 int get_display_brightness_in_cli(guint display_number) {
-	guint count = displays_count();
-	for (guint index = 0; index < count; index++) {
+	for (guint index = 0; index < displays_count(); index++) {
 		ddcbc_display *display = get_display(index);
 		if (display->info.dispno == display_number) {
 			guint16 brightness = display->last_val;
@@ -181,8 +181,7 @@ int get_display_brightness_in_cli(guint display_number) {
 }
 
 void set_brightness_percentage_in_cli(guint display_number, double brightness_percentage) {
-  guint count = displays_count();
-  for (guint index = 0; index < count; index++) {
+  for (guint index = 0; index < displays_count(); index++) {
     ddcbc_display *display = get_display(index);
     if (display->info.dispno == display_number) {
       guint16 max_brightness = display->max_val;
@@ -212,73 +211,50 @@ void set_brightness_percentage_in_cli(guint display_number, double brightness_pe
 
 // Function to set the brightness of a specified display
 int set_display_brightness_if_needed_in_cli(guint display_number, guint brightness_percentage, char option) {
-	// TODO: Make increase / decrease change each display's brightness from its current value if not linked,
-	// and if linked, change each display's brightness from the max brightness of all displays like the gui does
-	// also if linked then individual change should anyways change it for all displays
-	if (display_number != -1) {
-    if (brightness_percentage == -1) {
-      fprintf(stderr, "Missing percentage value.\n");
-			return 1;
-    }
+  load_displays();
+  ensure_displays_are_present_in_cli();
 
-    load_displays();
-    ensure_displays_are_present_in_cli();
-
-		gint brightness_percentage_to_set = brightness_percentage;
-
-		if (option == 'i' || option == 'd') {
-			gdouble current_brightness_percentage = -1;
-			if (display_number > 0) {
-				guint count = displays_count();
-				for (guint index = 0; index < count; index++) {
-					ddcbc_display *display = get_display(index);
-					if (display->info.dispno == display_number) {
-						guint16 brightness = display->last_val;
-						guint16 max_brightness = display->max_val;
-						current_brightness_percentage = (brightness * 100.0) / max_brightness;
-						break;
-					}
-				}
-				if (current_brightness_percentage == -1) {
-					fprintf(stderr, "Invalid display number: %d\n", display_number);
-					return 1;
-				}
+	gdouble linked_brightness_percentage = -1;
+	for (guint index = 0; index < displays_count(); index++) {
+		ddcbc_display *display = get_display(index);
+		if (display_number == 0 || display->info.dispno == display_number) {
+			gdouble current_brightness_percentage = (display->last_val * 100.0) / display->max_val;
+			gdouble final_brightness_percentage = brightness_percentage;
+			if (get_is_brightness_linked() && display_number == 0 && linked_brightness_percentage != -1) {
+				final_brightness_percentage = linked_brightness_percentage;
 			} else {
-				gdouble max_brightness_percentage = 0;
-				guint count = displays_count();
-				for (guint index = 0; index < count; index++) {
-					ddcbc_display *display = get_display(index);
-					guint16 brightness = display->last_val;
-					guint16 max_brightness = display->max_val;
-					gdouble brightness_percentage = (brightness * 100.0) / max_brightness;
-					max_brightness_percentage = brightness_percentage > max_brightness_percentage ? brightness_percentage : max_brightness_percentage;
+				if (option == 'i') {
+					final_brightness_percentage = current_brightness_percentage + brightness_percentage;
 				}
-				current_brightness_percentage = max_brightness_percentage;
+				if (option == 'd') {
+					final_brightness_percentage = current_brightness_percentage - brightness_percentage;
+				}
+				if (final_brightness_percentage > 100) {
+					final_brightness_percentage = 100;
+				} else if (final_brightness_percentage < 0) {
+					final_brightness_percentage = 0;
+				}
+				if (get_is_brightness_linked() && display_number == 0 && linked_brightness_percentage == -1) {
+					linked_brightness_percentage = final_brightness_percentage;
+				}
 			}
-			if (option == 'i') {
-				brightness_percentage_to_set = current_brightness_percentage + brightness_percentage;
-			} else if (option == 'd') {
-				brightness_percentage_to_set = current_brightness_percentage - brightness_percentage;
+			if (final_brightness_percentage != current_brightness_percentage) {
+				set_brightness_percentage_in_cli(display->info.dispno, final_brightness_percentage);
 			}
-			if (brightness_percentage_to_set > 100) {
-				brightness_percentage_to_set = 100;
-			} else if (brightness_percentage_to_set < 0) {
-				brightness_percentage_to_set = 0;
+			if (display_number > 0) {
+				free_displays();
+				return 0;
 			}
 		}
+		if (display_number > 0) {
+			fprintf(stderr, "Invalid display number: %d\n", display_number);
+			free_displays();
+			return 1;
+		}
 
-    if (display_number > 0) {
-			set_brightness_percentage_in_cli(display_number, brightness_percentage_to_set);
-    } else {
-			guint count = displays_count();
-      for (guint index = 0; index < count; index++) {
-        ddcbc_display *display = get_display(index);
-        set_brightness_percentage_in_cli(display->info.dispno, brightness_percentage_to_set);
-      }
-    }
-    free_displays();
+		free_displays();
 		return 0;
-  }
+	}
 }
 
 // Function to display command-line arguments and help information
@@ -332,6 +308,14 @@ int parse_cli_arguments(int argc, char **argv) {
         return status;
       case 'g': // --get-percentage option
         guint get_percentage_display_number = atoi(optarg);
+				// Display number returned from ddcbc is 1-based, so 0 is invalid
+				// and we use 0 to indicate that the brightness should be set for all displays,
+				// so the user cannot input 0 as the display number
+				if (get_percentage_display_number == 0) {
+					fprintf(stderr, "Invalid display number: %d\n", get_percentage_display_number);
+					status = 1;
+					return status;
+				}
 				load_displays();
 				status = ensure_displays_are_present_in_cli();
 				status = get_display_brightness_in_cli(get_percentage_display_number);
@@ -349,14 +333,6 @@ int parse_cli_arguments(int argc, char **argv) {
 				}
 				if (optarg != NULL) {
         	set_brightness_display_number = atoi(optarg);
-					// Display number returned from ddcbc is 1-based, so 0 is invalid
-					// and we use 0 to indicate that the brightness should be set for all displays,
-					// so the user cannot input 0 as the display number
-					if (set_brightness_display_number == 0) {
-						fprintf(stderr, "Invalid display number: %s\n", optarg);
-						status = 1;
-						return status;
-					}
 				} else {
 					set_brightness_display_number = 0;
 				}
@@ -374,6 +350,24 @@ int parse_cli_arguments(int argc, char **argv) {
 				return status;
     }
   }
+
+	// Same reason as get_percentage_display_number's check for zero above
+	if (set_brightness_display_number == 0) {
+		fprintf(stderr, "Invalid display number: %d\n", set_brightness_display_number);
+		status = 1;
+		return status;
+	}
+
+	if (set_brightness_display_number == -1) {
+		display_help_in_cli();
+		status = 1;
+		return status;
+	}
+	if (set_brightness_percentage_value == -1) {
+		display_help_in_cli();
+		status = 1;
+		return status;
+	}
 
   status = set_display_brightness_if_needed_in_cli(set_brightness_display_number, set_brightness_percentage_value, set_brightness_option);
 	return status;
