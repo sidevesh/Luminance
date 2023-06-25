@@ -2,6 +2,12 @@
 #include "../constants/main.c"
 #include "../../states/displays.c"
 
+extern void update_window_contents_in_ui();
+
+void _on_no_displays_screen_refresh_button_clicked(GtkWidget *widget, gpointer data) {
+	reload_displays(update_window_contents_in_ui, update_window_contents_in_ui);
+}
+
 GtkWidget* get_no_displays_screen() {
   GtkWidget *box, *image, *title, *subtitle, *button;
 	GtkStyleContext *image_style_context, *button_style_context;
@@ -48,7 +54,7 @@ GtkWidget* get_no_displays_screen() {
   gtk_widget_set_valign(button, GTK_ALIGN_CENTER);
   gtk_box_pack_start(GTK_BOX(box), button, FALSE, FALSE, 5);
 
-	g_signal_connect(button, "clicked", G_CALLBACK(reload_displays_with_ui_updates), NULL);
+	g_signal_connect(button, "clicked", G_CALLBACK(_on_no_displays_screen_refresh_button_clicked), NULL);
 
 	return box;
 }

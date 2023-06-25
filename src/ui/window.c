@@ -17,6 +17,12 @@ GtkWidget *_refresh_displays_button = NULL;
 
 extern GtkApplication *app;
 
+extern void update_window_contents_in_ui();
+
+void _on_window_refresh_button_clicked(GtkWidget *widget, gpointer data) {
+	reload_displays(update_window_contents_in_ui, update_window_contents_in_ui);
+}
+
 void _open_about_dialog() {
 	GtkWidget *about_dialog = gtk_about_dialog_new();
 	gtk_about_dialog_set_program_name(GTK_ABOUT_DIALOG(about_dialog), "Luminance");
@@ -73,7 +79,7 @@ void initialize_application_window(GtkApplication *app) {
 	if (is_displays_loading() == FALSE) {
 		_refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic", GTK_ICON_SIZE_BUTTON);
 		gtk_header_bar_pack_start(GTK_HEADER_BAR(_window_header), _refresh_displays_button);
-		g_signal_connect(_refresh_displays_button, "clicked", G_CALLBACK(reload_displays_with_ui_updates), NULL);
+		g_signal_connect(_refresh_displays_button, "clicked", G_CALLBACK(_on_window_refresh_button_clicked), NULL);
 	}
 
 	GtkCssProvider *header_css_provider = gtk_css_provider_new();
@@ -101,7 +107,7 @@ void update_window_content_screen(GtkWidget *new_window_content_screen) {
 		if (_refresh_displays_button == NULL) {
 			_refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic", GTK_ICON_SIZE_BUTTON);
 			gtk_header_bar_pack_start(GTK_HEADER_BAR(_window_header), _refresh_displays_button);
-			g_signal_connect(_refresh_displays_button, "clicked", G_CALLBACK(reload_displays_with_ui_updates), NULL);
+			g_signal_connect(_refresh_displays_button, "clicked", G_CALLBACK(_on_window_refresh_button_clicked), NULL);
 		}
 	} else {
 		if (_refresh_displays_button != NULL) {

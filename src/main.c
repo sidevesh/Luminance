@@ -29,7 +29,7 @@ gboolean is_cli_mode = FALSE;
 display_section **display_sections;
 guint display_sections_count = 0;
 
-gboolean set_brightness(GtkWidget *widget, GdkEvent *event, guint data) {
+gboolean set_brightness_in_ui(GtkWidget *widget, GdkEvent *event, guint data) {
 	guint index_of_display_section = GPOINTER_TO_UINT(data);
 
 	display_section *display_section = display_sections[index_of_display_section];
@@ -70,7 +70,7 @@ gboolean set_brightness(GtkWidget *widget, GdkEvent *event, guint data) {
 	return FALSE;
 }
 
-void update_display_brightness_scales(GtkRange *range, guint data) {
+void update_display_brightness_scales_in_ui(GtkRange *range, guint data) {
 	guint index_of_display_section = GPOINTER_TO_UINT(data);
 
 	guint new_value = gtk_range_get_value(range);
@@ -81,7 +81,7 @@ void update_display_brightness_scales(GtkRange *range, guint data) {
 	}
 }
 
-void link_brightness(GtkToggleButton *link_brightness_check_button) {
+void link_brightness_in_ui(GtkToggleButton *link_brightness_check_button) {
 	gboolean is_brightness_linked = gtk_toggle_button_get_active(link_brightness_check_button);
 	set_is_brightness_linked(is_brightness_linked);
 
@@ -116,7 +116,7 @@ void link_brightness(GtkToggleButton *link_brightness_check_button) {
 	}
 }
 
-void update_window_contents() {
+void update_window_contents_in_ui() {
   if (is_cli_mode) {
     return;
   }
@@ -136,8 +136,8 @@ void update_window_contents() {
 
 static void activate_gtk_ui(GtkApplication *app) {
 	initialize_application_window(app);
-	update_window_contents();
-  load_displays_with_ui_updates();
+	update_window_contents_in_ui();
+  load_displays(update_window_contents_in_ui, update_window_contents_in_ui);
 }
 
 
@@ -211,7 +211,7 @@ void set_brightness_percentage_in_cli(guint display_number, double brightness_pe
 
 // Function to set the brightness of a specified display
 int set_display_brightness_if_needed_in_cli(guint display_number, guint brightness_percentage, char option) {
-  load_displays();
+  load_displays(NULL, NULL);
   ensure_displays_are_present_in_cli();
 
 	gdouble linked_brightness_percentage = -1;
@@ -301,7 +301,7 @@ int parse_cli_arguments(int argc, char **argv) {
   while ((option = getopt_long(argc, argv, "lg:s::i::d::p:h", long_options, &option_index)) != -1) {
 		switch (option) {
       case 'l': // --list-displays option
-        load_displays();
+        load_displays(NULL, NULL);
 				status = ensure_displays_are_present_in_cli();
         status = list_displays_in_cli();
         free_displays();
@@ -316,7 +316,7 @@ int parse_cli_arguments(int argc, char **argv) {
 					status = 1;
 					return status;
 				}
-				load_displays();
+				load_displays(NULL, NULL);
 				status = ensure_displays_are_present_in_cli();
 				status = get_display_brightness_in_cli(get_percentage_display_number);
 				free_displays();
@@ -401,6 +401,8 @@ int main(int argc, char **argv) {
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
     free_displays();
+
+		return status;
   }
 
   // Remove the lock file when the application exits

@@ -10,9 +10,9 @@
 extern display_section **display_sections;
 extern guint display_sections_count;
 
-extern gboolean set_brightness(GtkWidget *widget, GdkEvent *event, guint data);
-extern void update_display_brightness_scales(GtkRange *range, guint data);
-extern void link_brightness(GtkToggleButton *link_brightness_check_button);
+extern gboolean set_brightness_in_ui(GtkWidget *widget, GdkEvent *event, guint data);
+extern void update_display_brightness_scales_in_ui(GtkRange *range, guint data);
+extern void link_brightness_in_ui(GtkToggleButton *link_brightness_check_button);
 
 GtkWidget* get_show_displays_screen() {
 	GtkWidget *grid, *link_brightness_check_button;
@@ -31,9 +31,9 @@ GtkWidget* get_show_displays_screen() {
 		display_section_instance->display = display;
 		display_section_instance->label = get_display_label(display->info.model_name);
 		display_section_instance->scale = get_display_brightness_scale(display->last_val, display->max_val);
-		g_signal_connect(display_section_instance->scale, "button-release-event", G_CALLBACK(set_brightness), GUINT_TO_POINTER(index));
-		g_signal_connect(display_section_instance->scale, "scroll-event", G_CALLBACK(set_brightness), GUINT_TO_POINTER(index));
-		g_signal_connect(display_section_instance->scale, "value-changed", G_CALLBACK(update_display_brightness_scales), GUINT_TO_POINTER(index));
+		g_signal_connect(display_section_instance->scale, "button-release-event", G_CALLBACK(set_brightness_in_ui), GUINT_TO_POINTER(index));
+		g_signal_connect(display_section_instance->scale, "scroll-event", G_CALLBACK(set_brightness_in_ui), GUINT_TO_POINTER(index));
+		g_signal_connect(display_section_instance->scale, "value-changed", G_CALLBACK(update_display_brightness_scales_in_ui), GUINT_TO_POINTER(index));
 		display_section_instance->separator_left_column = get_separator();
 		display_section_instance->separator_right_column = get_separator();
 		display_section_instance->icon = get_display_icon();
@@ -52,7 +52,7 @@ GtkWidget* get_show_displays_screen() {
 	}
 
 	link_brightness_check_button = get_link_brightness_check_button(get_is_brightness_linked());
-	g_signal_connect(link_brightness_check_button, "toggled", G_CALLBACK(link_brightness), NULL);
+	g_signal_connect(link_brightness_check_button, "toggled", G_CALLBACK(link_brightness_in_ui), NULL);
 	gtk_grid_attach_next_to(GTK_GRID(grid), link_brightness_check_button, sibling->separator_right_column, GTK_POS_BOTTOM, 1, 1);
 
 	return grid;

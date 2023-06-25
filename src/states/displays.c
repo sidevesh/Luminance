@@ -11,11 +11,9 @@ gboolean _is_displays_loading = TRUE;
 ddcbc_display_list *_display_list;
 ddcbc_display_list _display_list_instance;
 int _last_displays_load_time = 0;
-
-extern void update_window_contents();
+void (*_on_refresh_completed_callback)() = NULL;
 
 void _initialize_displays(gboolean first_time_loading) {
-	// save current epoch time before loading display list
 	time_t start_loading_displays_time;
 	time(&start_loading_displays_time);
 
@@ -31,38 +29,41 @@ void _initialize_displays(gboolean first_time_loading) {
 	_last_displays_load_time = difftime(end_loading_displays_time, start_loading_displays_time);
 }
 
-void _start_refreshing_displays_with_ui_updates() {
-	_is_displays_loading = TRUE;
-	update_window_contents();
-}
-
-void _finish_refreshing_displays_with_ui_updates() {
+void _on_refresh_displays_completed_callback_wrapper() {
 	_is_displays_loading = FALSE;
-	update_window_contents();
+	_on_refresh_completed_callback();
+	_on_refresh_completed_callback = NULL;
 }
 
-// TODO: Make this not depend on the UI and rather only handle the display list
-void _refresh_displays_with_ui_updates(gboolean first_time_loading) {
+void _refresh_displays_with_callbacks(gboolean first_time_loading, void (*on_refresh_started_callback)(), void (*on_refresh_completed_callback)()) {
 	if (!first_time_loading) {
-		_start_refreshing_displays_with_ui_updates();
+		_is_displays_loading = TRUE;
+		if (on_refresh_started_callback != NULL) {
+			on_refresh_started_callback();
+		}
 	}
 
 	_initialize_displays(first_time_loading);
 
-	// if the time it took to load the display list is less than a minimum amount of time, wait for the remaining time
-	if (_last_displays_load_time < MINIMUM_REFRESH_TIME_IN_SECONDS) {
-		g_timeout_add_once((MINIMUM_REFRESH_TIME_IN_SECONDS - _last_displays_load_time) * 1000, (GSourceOnceFunc) _finish_refreshing_displays_with_ui_updates, NULL);
+	if (on_refresh_completed_callback != NULL) {
+		_on_refresh_completed_callback = on_refresh_completed_callback;
+		// if the time it took to load the display list is less than a minimum amount of time, wait for the remaining time
+		if (_last_displays_load_time < MINIMUM_REFRESH_TIME_IN_SECONDS) {
+			g_timeout_add_once((MINIMUM_REFRESH_TIME_IN_SECONDS - _last_displays_load_time) * 1000, (GSourceOnceFunc) _on_refresh_displays_completed_callback_wrapper, NULL);
+		} else {
+			_on_refresh_displays_completed_callback_wrapper();
+		}
 	} else {
-		_finish_refreshing_displays_with_ui_updates();
+		_is_displays_loading = FALSE;
 	}
 }
 
-void load_displays() {
-	_initialize_displays(TRUE);
+void load_displays(void (*on_load_started_callback)(), void (*on_load_completed_callback)()) {
+  _refresh_displays_with_callbacks(TRUE, on_load_started_callback, on_load_completed_callback);
 }
 
-void reload_displays() {
-	_initialize_displays(FALSE);
+void reload_displays(void (*on_reload_started_callback)(), void (*on_reload_completed_callback)()) {
+  _refresh_displays_with_callbacks(FALSE, on_reload_started_callback, on_reload_completed_callback);
 }
 
 void free_displays() {
@@ -83,14 +84,6 @@ ddcbc_display* get_display(guint index) {
 
 int last_displays_load_time() {
 	return _last_displays_load_time;
-}
-
-void load_displays_with_ui_updates() {
-  _refresh_displays_with_ui_updates(TRUE);
-}
-
-void reload_displays_with_ui_updates() {
-  _refresh_displays_with_ui_updates(FALSE);
 }
 
 #endif
