@@ -46,7 +46,7 @@ cd Luminance
 
 To install this binary for all users execute 'install.sh' as root:
 ```
-sudo ./install.sh
+sudo ./install_files/install.sh
 ```
 
 You should now be able to find Luminance in your application menu under utilities.
