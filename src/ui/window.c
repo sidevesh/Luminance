@@ -1,12 +1,13 @@
 #include <gtk/gtk.h>
 
+#include "../constants/main.c"
+#include "./constants/main.c"
+
 #ifndef BRIGHTNESS_CODE
 #include "../ddcbc-api/ddcbc-api.c"
 #endif
 
 #include "../states/displays.c"
-
-#define MINIMUM_WINDOW_WIDTH 391
 
 GtkWidget *_window;
 GtkWidget *_window_header;
@@ -25,15 +26,21 @@ void _on_window_refresh_button_clicked(GtkWidget *widget, gpointer data) {
 
 void _open_about_dialog() {
 	GtkWidget *about_dialog = gtk_about_dialog_new();
-	gtk_about_dialog_set_program_name(GTK_ABOUT_DIALOG(about_dialog), "Luminance");
-	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about_dialog), "1.0.0");
-	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(about_dialog), "A simple GTK application to control brightness of external displays supporting DDC/CI");
-	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_dialog), "https://github.com/sidevesh/Luminance");
-	gtk_about_dialog_set_website_label(GTK_ABOUT_DIALOG(about_dialog), "GitHub");
+	gtk_about_dialog_set_program_name(GTK_ABOUT_DIALOG(about_dialog), APP_INFO_DISPLAY_NAME);
+	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about_dialog), APP_INFO_VERSION_NUMBER);
+	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(about_dialog), APP_INFO_DESCRIPTION);
+	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_dialog), APP_INFO_SOURCE_REPOSITORY_TITLE);
+	gtk_about_dialog_set_website_label(GTK_ABOUT_DIALOG(about_dialog), APP_INFO_SOURCE_REPOSITORY_LINK);
+	gtk_about_dialog_set_license_type(GTK_ABOUT_DIALOG(about_dialog), APP_INFO_LICENSE);
 	gtk_about_dialog_set_logo_icon_name(GTK_ABOUT_DIALOG(about_dialog), "video-display");
-	gtk_about_dialog_set_license_type(GTK_ABOUT_DIALOG(about_dialog), GTK_LICENSE_GPL_3_0);
-	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about_dialog), (const gchar *[]){"Swapnil Devesh <me@sidevesh.com>", "Ahad Shabbir <shabbirahadh@gmail.com>", NULL});
-	gtk_about_dialog_set_artists(GTK_ABOUT_DIALOG(about_dialog), (const gchar *[]){"Swapnil Devesh <me@sidevesh.com>", NULL});
+	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about_dialog), (const gchar *[]){
+		APP_INFO_PROJECT_AUTHORS,
+		NULL
+	});
+	gtk_about_dialog_set_artists(GTK_ABOUT_DIALOG(about_dialog), (const gchar *[]){
+		APP_INFO_PROJECT_ARTISTS,
+		NULL
+	});
 	gtk_dialog_run(GTK_DIALOG(about_dialog));
 	gtk_widget_destroy(about_dialog);
 }

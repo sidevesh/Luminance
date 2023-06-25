@@ -8,6 +8,7 @@
 #include "../ddcbc-api/ddcbc-api.c"
 #endif
 
+#include "./constants/main.c"
 #include "./types/display_section.c"
 #include "./states/displays.c"
 #include "./states/is_brightness_linked.c"
@@ -22,99 +23,7 @@
 #include "./ui/screens/refreshing_displays.c"
 #include "./ui/window.c"
 
-#define LOCK_FILE_PATH "/tmp/com.sidevesh.Luminance.lock"
-
 gboolean is_cli_mode = FALSE;
-
-display_section **display_sections;
-guint display_sections_count = 0;
-
-gboolean set_brightness_in_ui(GtkWidget *widget, GdkEvent *event, guint data) {
-	guint index_of_display_section = GPOINTER_TO_UINT(data);
-
-	display_section *display_section = display_sections[index_of_display_section];
-	ddcbc_display *display = display_section->display;
-
-	guint16 new_value = gtk_range_get_value(GTK_RANGE(widget));
-	DDCBC_Status rc = ddcbc_display_set_brightness(display, new_value);
-
-	if (get_is_brightness_linked()) {
-		for (guint index = 0; index < display_sections_count; index++) {
-			GtkWidget *scale = display_sections[index]->scale;
-			ddcbc_display *linked_display = display_sections[index]->display;
-
-			gdouble linked_display_new_value = (1.0 * new_value / display->max_val) * linked_display->max_val;
-
-			if (linked_display->info.dispno == display->info.dispno) {
-				continue;
-			}
-			gtk_range_set_value(GTK_RANGE(scale), linked_display_new_value);
-			ddcbc_display_set_brightness(linked_display, linked_display_new_value);
-		}
-	}
-
-	if (rc == 1) {
-		g_printerr(
-			"Partial sucess in setting the brightness of display no"
-			" %d to %u. Code: %d\n",
-			display->info.dispno, new_value, rc
-		);
-	} else if (rc != 0) {
-		g_printerr(
-			"An error occured when setting the brightness of display no"
-			" %d to %u. Code: %d\n",
-			display->info.dispno, new_value, rc
-		);
-	}
-
-	return FALSE;
-}
-
-void update_display_brightness_scales_in_ui(GtkRange *range, guint data) {
-	guint index_of_display_section = GPOINTER_TO_UINT(data);
-
-	guint new_value = gtk_range_get_value(range);
-	for (guint index = 0; index < display_sections_count; index++) {
-		if (get_is_brightness_linked() || index == index_of_display_section) {
-			gtk_range_set_value(GTK_RANGE(display_sections[index]->scale), new_value);
-		}
-	}
-}
-
-void link_brightness_in_ui(GtkToggleButton *link_brightness_check_button) {
-	gboolean is_brightness_linked = gtk_toggle_button_get_active(link_brightness_check_button);
-	set_is_brightness_linked(is_brightness_linked);
-
-	if (!is_brightness_linked) {
-		return;
-	}
-
-	guint max_scale = 0;
-	for (guint index = 0; index < display_sections_count; index++) {
-		guint value = gtk_range_get_value(GTK_RANGE(display_sections[index]->scale));
-		max_scale = value > max_scale ? value : max_scale;
-	}
-
-	for (guint index = 0; index < display_sections_count; index++) {
-		gtk_range_set_value(GTK_RANGE(display_sections[index]->scale), max_scale);
-		ddcbc_display *display = display_sections[index]->display;
-		DDCBC_Status rc = ddcbc_display_set_brightness(display, max_scale);
-		
-		if (rc == 1) {
-			g_printerr(
-				"Partial success in setting the brightness of display no"
-				" %d to %u while linking displays. Code: %d\n",
-				display->info.dispno, max_scale, rc
-			);	
-		} else if (rc != 0) {
-			g_printerr(
-				"An error occured when setting the brightness of display no"
-				" %d to %u while linking displays. Code: %d\n",
-				display->info.dispno, max_scale, rc
-			);	
-		}
-	}
-}
 
 void update_window_contents_in_ui() {
   if (is_cli_mode) {
@@ -259,7 +168,7 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
 
 // Function to display command-line arguments and help information
 int display_help_in_cli() {
-  printf("Usage: com.sidevesh.Luminance [OPTIONS]\n");
+  printf("Usage: %s [OPTIONS]\n", APP_INFO_PACKAGE_NAME);
   printf("A graphical application to control display brightness.\n");
   printf("\n");
   printf("Options:\n");
@@ -396,15 +305,15 @@ int main(int argc, char **argv) {
     status = parse_cli_arguments(argc, argv);
   } else {
     GtkApplication *app;
-    app = gtk_application_new("com.sidevesh.Luminance", G_APPLICATION_DEFAULT_FLAGS);
+    app = gtk_application_new(APP_INFO_PACKAGE_NAME, G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate_gtk_ui), NULL);
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
     free_displays();
-
-		return status;
   }
 
   // Remove the lock file when the application exits
   remove(LOCK_FILE_PATH);
+
+	return status;
 }

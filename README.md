@@ -39,9 +39,9 @@ cd Luminance
 ./build.sh
 ```
 
-5. This should result in a `com.sidevesh.Luminance` binary that you can execute to contol the brightness:
+5. This should result in a binary that you can execute to contol the brightness:
 ```
-./com.sidevesh.Luminance
+./build/app
 ```
 
 To install this binary for all users execute 'install.sh' as root:

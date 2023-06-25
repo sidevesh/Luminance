@@ -1,11 +1,11 @@
+#include "../constants/main.c"
+
 #ifndef BRIGHTNESS_CODE
 #include "../../ddcbc-api/ddcbc-api.c"
 #endif
 
 #ifndef DISPLAYS_STATE
 #define DISPLAYS_STATE
-
-#define MINIMUM_REFRESH_TIME_IN_SECONDS 2
 
 gboolean _is_displays_loading = TRUE;
 ddcbc_display_list *_display_list;

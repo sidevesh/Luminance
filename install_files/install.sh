@@ -8,10 +8,10 @@ then
     exit
 fi
 
-echo "Building com.sidevesh.Luminance..."
+echo "Building app..."
 ./build.sh
-echo "Copying com.sidevesh.Luminance to /usr/bin..."
-cp ./build/com.sidevesh.Luminance /usr/bin/com.sidevesh.Luminance
+echo "Copying app to /usr/bin..."
+cp ./build/app /usr/bin/com.sidevesh.Luminance
 
 echo "Copying desktop file to /usr/share/applications..."
 cp ./install_files/com.sidevesh.Luminance.desktop /usr/share/applications/com.sidevesh.Luminance.desktop
