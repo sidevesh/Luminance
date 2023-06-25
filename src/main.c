@@ -31,10 +31,10 @@ void show_gnome_osd_popup_after_change() {
 		return;
 	}
 
-	char command[250];
+	char command[300];
 	sprintf(
 		command,
-		"gdbus call --session --dest org.gnome.Shell --object-path /dev/ramottamado/EvalGjs --method dev.ramottamado.EvalGjs.Eval \"Main.osdWindowManager.show(-1, Gio.Icon.new_for_string('display-brightness-symbolic'), null, %f, 1);\"",
+		"gdbus call --session --dest org.gnome.Shell --object-path /dev/ramottamado/EvalGjs --method dev.ramottamado.EvalGjs.Eval \"Main.osdWindowManager.show(-1, Gio.Icon.new_for_string('display-brightness-symbolic'), null, %f, 1);\" > /dev/null",
 		brightness_percentage_to_show_after_change / 100.0
 	);
 	system(command);
