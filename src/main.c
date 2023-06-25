@@ -242,6 +242,9 @@ int parse_cli_arguments(int argc, char **argv) {
 				}
 				if (optarg != NULL) {
         	set_brightness_display_number = atoi(optarg);
+					if (set_brightness_display_number == 0) {
+						set_brightness_display_number = 99;
+					}
 				} else {
 					set_brightness_display_number = 0;
 				}
@@ -260,9 +263,10 @@ int parse_cli_arguments(int argc, char **argv) {
     }
   }
 
-	// Same reason as get_percentage_display_number's check for zero above
-	if (set_brightness_display_number == 0) {
-		fprintf(stderr, "Invalid display number: %d\n", set_brightness_display_number);
+	// Same reason as get_percentage_display_number's check for zero above,
+	// except we set the set_brightness_display_number to 99 to indicate the case of user submitting 0 as value
+	if (set_brightness_display_number == 99) {
+		fprintf(stderr, "Invalid display number: 0\n");
 		status = 1;
 		return status;
 	}
