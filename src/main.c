@@ -9,6 +9,7 @@
 #endif
 
 #include "./constants/main.c"
+#include "./osd/main.c"
 #include "./types/display_section.c"
 #include "./states/displays.c"
 #include "./states/is_brightness_linked.c"
@@ -24,23 +25,6 @@
 #include "./ui/window.c"
 
 gboolean is_cli_mode = FALSE;
-
-gdouble brightness_percentage_to_show_after_change = -1;
-void show_gnome_osd_popup_after_change() {
-	if (brightness_percentage_to_show_after_change == -1) {
-		return;
-	}
-
-	char command[300];
-	sprintf(
-		command,
-		"gdbus call --session --dest org.gnome.Shell --object-path /dev/ramottamado/EvalGjs --method dev.ramottamado.EvalGjs.Eval \"Main.osdWindowManager.show(-1, Gio.Icon.new_for_string('display-brightness-symbolic'), null, %f, 1);\" > /dev/null",
-		brightness_percentage_to_show_after_change / 100.0
-	);
-	system(command);
-
-	brightness_percentage_to_show_after_change = -1;
-}
 
 void update_window_contents_in_ui() {
   if (is_cli_mode) {
@@ -80,7 +64,7 @@ int list_displays_in_cli() {
   for (guint index = 0; index < displays_count(); index++) {
     ddcbc_display *display = get_display(index);
     guint display_number = display->info.dispno;
-    const char *label = display->info.model_name;
+    const gchar *label = display->info.model_name;
     guint16 brightness = display->last_val;
     guint16 max_brightness = display->max_val;
     gdouble brightness_percentage = (brightness * 100.0) / max_brightness;
@@ -136,7 +120,7 @@ void set_brightness_percentage_in_cli(guint display_number, double brightness_pe
 }
 
 // Function to set the brightness of a specified display
-int set_display_brightness_if_needed_in_cli(guint display_number, guint brightness_percentage, char option, gboolean show_gnome_osd) {
+int set_display_brightness_if_needed_in_cli(guint display_number, guint brightness_percentage, gchar option, gchar show_osd) {
   load_displays(NULL, NULL);
   ensure_displays_are_present_in_cli();
 
@@ -179,8 +163,8 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
 			}
 			if (display_number > 0) {
 				free_displays();
-				if (show_gnome_osd) {
-					brightness_percentage_to_show_after_change = non_linked_all_displays_brightness_percentages_average;
+				if (show_osd != 0) {
+					set_osd_brightness_percentage_to_show(non_linked_all_displays_brightness_percentages_average);
 				}
 				return 0;
 			}
@@ -193,11 +177,11 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
 		return 1;
 	}
 
-	if (show_gnome_osd) {
+	if (show_osd != 0) {
 		if (get_is_brightness_linked() && display_number == 0) {
-			brightness_percentage_to_show_after_change = linked_all_displays_brightness_percentage;
+			set_osd_brightness_percentage_to_show(linked_all_displays_brightness_percentage);
 		} else {
-			brightness_percentage_to_show_after_change = non_linked_all_displays_brightness_percentages_average;
+			set_osd_brightness_percentage_to_show(non_linked_all_displays_brightness_percentages_average);
 		}
 	}
 	free_displays();
@@ -216,8 +200,9 @@ int display_help_in_cli() {
 	printf("  -i, --increase-brightness [NUM]  Increase the brightness of a display by a percentage value\n");
 	printf("  -d, --decrease-brightness [NUM]  Decrease the brightness of a display by a percentage value\n");
   printf("  -p  --percentage [PERCENT]       Percentage value to set the brightness to in case of --set-brightness option or to increase or decrease the brightness by in case of --increase-brightness or --decrease-brightness option\n");
-  printf("  -o, --show-gnome-osd             Show GNOME OSD popup when brightness is changed, only works on gnome shell with https://extensions.gnome.org/extension/5952/eval-gjs/ extension installed\n");
-	printf("  -h, --help                  Show help information\n");
+  printf("  -o, --show-osd                   Show OSD popup when brightness is changed for specified environment:\n");
+	printf("                                   g: GNOME, experimental, only works with https://extensions.gnome.org/extension/5952/eval-gjs/ extension installed\n");
+	printf("  -h, --help                       Show help information\n");
   printf("\n");
   printf("When no arguments are provided, the application starts in GUI mode.\n");
 
@@ -233,22 +218,22 @@ int parse_cli_arguments(int argc, char **argv) {
 		{"increase-brightness", optional_argument, NULL, 'i'},
 		{"decrease-brightness", optional_argument, NULL, 'd'},
     {"percentage", required_argument, NULL, 'p'},
-		{"show-gnome-osd", no_argument, NULL, 'o'},
+		{"show-osd", required_argument, NULL, 'o'},
     {"help", no_argument, NULL, 'h'},
     {NULL, 0, NULL, 0}
   };
 
-	char option;
+	gchar option;
 	int option_index;
 
-	char set_brightness_option = -1;
+	gchar set_brightness_option = -1;
 	guint set_brightness_display_number = -1;
 	guint set_brightness_percentage_value = -1;
-	gboolean show_gnome_osd = FALSE;
+	gchar show_osd = 0;
 
 	int status = 0;
 
-  while ((option = getopt_long(argc, argv, "lg:s::i::d::p:oh", long_options, &option_index)) != -1) {
+  while ((option = getopt_long(argc, argv, "lg:s::i::d::p:o:h", long_options, &option_index)) != -1) {
 		switch (option) {
       case 'l': // --list-displays option
         load_displays(NULL, NULL);
@@ -293,8 +278,12 @@ int parse_cli_arguments(int argc, char **argv) {
       case 'p': // --percentage option
 				set_brightness_percentage_value = atoi(optarg);
 				break;
-			case 'o': // --show-gnome-osd option
-			  show_gnome_osd = TRUE;
+			case 'o': // --show-osd option
+				if (optarg != NULL) {
+					show_osd = optarg[0];
+				} else {
+					show_osd = 0;
+				}
 			  break;
       default: // --help option or shown when arguments are invalid
 				if (option != 'h') {
@@ -326,14 +315,22 @@ int parse_cli_arguments(int argc, char **argv) {
 		return status;
 	}
 
+	if (show_osd != 0) {
+		if (is_osd_provider_supported(show_osd) == FALSE) {
+			fprintf(stderr, "Invalid OSD provider: %c\n", show_osd);
+			status = 1;
+			return status;
+		}
+	}
+
   status = set_display_brightness_if_needed_in_cli(
 		set_brightness_display_number,
 		set_brightness_percentage_value,
 		set_brightness_option,
-		show_gnome_osd
+		show_osd
 	);
-	if (status == 0 && show_gnome_osd) {
-		show_gnome_osd_popup_after_change();
+	if (status == 0 && show_osd != 0) {
+		show_osd_after_brightness_change(show_osd);
 	}
 
 	return status;
