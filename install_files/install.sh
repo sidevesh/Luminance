@@ -20,4 +20,7 @@ echo "Installing GSettings schema..."
 cp ./install_files/com.sidevesh.Luminance.gschema.xml /usr/share/glib-2.0/schemas/
 glib-compile-schemas /usr/share/glib-2.0/schemas/
 
+echo "Installing udev rules..."
+cp ./install_files/44-backlight-permissions.rules /usr/lib/udev/rules.d/44-backlight-permissions.rules
+
 echo "Installed successfully"
