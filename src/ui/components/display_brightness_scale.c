@@ -1,7 +1,7 @@
 #include <gtk/gtk.h>
 #include "../constants/main.c"
 
-GtkWidget* get_display_brightness_scale(guint16 last_value, guint16 max_value) {
+GtkWidget* get_display_brightness_scale(gdouble last_value, gdouble max_value) {
 	GtkWidget *scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, max_value, 1);
 	gtk_range_set_value(GTK_RANGE(scale), last_value);
 	gtk_scale_set_value_pos(GTK_SCALE(scale), GTK_POS_RIGHT);

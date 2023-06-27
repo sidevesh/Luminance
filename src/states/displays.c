@@ -39,6 +39,26 @@ void _initialize_displays(gboolean first_time_loading) {
   time_t start_loading_displays_time;
   time(&start_loading_displays_time);
 
+  guint internal_backlight_count = 0;
+  DIR* dir = opendir("/sys/class/backlight");
+  if (dir != NULL) {
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL && internal_backlight_count < MAX_INTERNAL_BACKLIGHT_DISPLAYS) {
+			if (
+        strcmp(entry->d_name, ".") != 0 &&
+        strcmp(entry->d_name, "..") != 0
+      ) {
+        _internal_backlight_display_directories[internal_backlight_count] = strdup(entry->d_name);
+        // insert the internal backlight display into the display_indexes array
+				display_indexes[internal_backlight_count].type = DISPLAY_TYPE_INTERNAL_BACKLIGHT;
+				display_indexes[internal_backlight_count].index = internal_backlight_count;
+        internal_backlight_count++;
+      }
+    }
+    _internal_backlight_display_directories_count = internal_backlight_count;
+    closedir(dir);
+  }
+
   if (!first_time_loading) {
     ddcbc_display_list_free(_display_list);
   }
@@ -46,24 +66,13 @@ void _initialize_displays(gboolean first_time_loading) {
   _display_list_instance = ddcbc_display_list_init(FALSE);
   _display_list = &_display_list_instance;
 
-  // Populate internal backlight display directories
-  guint internal_backlight_count = 0;
-  DIR* dir = opendir("/sys/class/backlight");
-  if (dir != NULL) {
-    struct dirent* entry;
-    while ((entry = readdir(dir)) != NULL && internal_backlight_count < MAX_INTERNAL_BACKLIGHT_DISPLAYS) {
-			if (
-				entry->d_type == DT_DIR &&
-				strcmp(entry->d_name, ".") != 0 &&
-				strcmp(entry->d_name, "..") != 0
-			) {
-        _internal_backlight_display_directories[internal_backlight_count] = strdup(entry->d_name);
-        internal_backlight_count++;
-      }
-    }
-		_internal_backlight_display_directories_count = internal_backlight_count;
-    closedir(dir);
-  }
+	// insert all DDC displays into the display_indexes array
+	guint ddc_display_count = 0;
+	for (guint index = 0; index < _display_list->ct; index++) {
+		display_indexes[internal_backlight_count + ddc_display_count].type = DISPLAY_TYPE_DDC;
+		display_indexes[internal_backlight_count + ddc_display_count].index = index;
+		ddc_display_count++;
+	}
 
   time_t end_loading_displays_time;
   time(&end_loading_displays_time);
@@ -106,6 +115,25 @@ ddcbc_display* _get_ddcbc_display(guint index) {
   return ddcbc_display_list_get(_display_list, display_index.index);
 }
 
+guint16 _get_display_max_brightness_value(guint index) {
+  GlobalDisplayIndex display_index = display_indexes[index];
+  if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
+    gchar max_brightness_file_path[256];
+    snprintf(max_brightness_file_path, sizeof(max_brightness_file_path), "/sys/class/backlight/%s/max_brightness", _internal_backlight_display_directories[display_index.index]);
+
+    FILE* file = fopen(max_brightness_file_path, "r");
+    if (file != NULL) {
+        guint max_brightness;
+        fscanf(file, "%u", &max_brightness);
+        fclose(file);
+        return max_brightness;
+    }
+  } else {
+    ddcbc_display* display = _get_ddcbc_display(index);
+    return display->max_val;
+  }
+}
+
 void load_displays(void (*on_load_started_callback)(), void (*on_load_completed_callback)()) {
   _refresh_displays_with_callbacks(TRUE, on_load_started_callback, on_load_completed_callback);
 }
@@ -133,15 +161,21 @@ int last_displays_load_time() {
 char* get_display_name(guint index) {
   GlobalDisplayIndex display_index = display_indexes[index];
   if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
-    return "Built-in display %d", display_index.index + 1;
+		if (_internal_backlight_display_directories_count == 1) {
+			return "Built-in display";
+		}
+		gchar *display_name = malloc(256);
+		snprintf(display_name, 256, "Built-in display %d", display_index.index + 1);
+		return display_name;
   } else {
     ddcbc_display* display = _get_ddcbc_display(index);
     return display->info.model_name;
   }
 }
 
-int get_display_brightness(guint index) {
+gdouble get_display_brightness_percentage(guint index) {
   GlobalDisplayIndex display_index = display_indexes[index];
+	guint16 max_brightness_value = _get_display_max_brightness_value(index);
   if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
     gchar brightness_file_path[256];
     snprintf(brightness_file_path, sizeof(brightness_file_path), "/sys/class/backlight/%s/brightness", _internal_backlight_display_directories[display_index.index]);
@@ -149,58 +183,41 @@ int get_display_brightness(guint index) {
     FILE* file = fopen(brightness_file_path, "r");
     if (file != NULL) {
       guint brightness;
-      fscanf(file, "%u", &brightness);
+			fscanf(file, "%u", &brightness);
       fclose(file);
-      return brightness;
+      return brightness * 100.0 / max_brightness_value;
     }
   } else {
     ddcbc_display* display = _get_ddcbc_display(index);
-    return display->last_val;
+    return display->last_val * 100.0 / max_brightness_value;
   }
 }
 
-int get_display_max_brightness(guint index) {
+void set_display_brightness_percentage(guint index, gdouble brightness_percentage) {
   GlobalDisplayIndex display_index = display_indexes[index];
-  if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
-    gchar max_brightness_file_path[256];
-    snprintf(max_brightness_file_path, sizeof(max_brightness_file_path), "/sys/class/backlight/%s/max_brightness", _internal_backlight_display_directories[display_index.index]);
-
-    FILE* file = fopen(max_brightness_file_path, "r");
-    if (file != NULL) {
-        guint max_brightness;
-        fscanf(file, "%u", &max_brightness);
-        fclose(file);
-        return max_brightness;
-    }
-  } else {
-    ddcbc_display* display = _get_ddcbc_display(index);
-    return display->max_val;
-  }
-}
-
-void set_display_brightness(guint index, guint16 brightness) {
-  GlobalDisplayIndex display_index = display_indexes[index];
+	guint16 max_brightness_value = _get_display_max_brightness_value(index);
+	guint16 brightness_value = (guint16)(brightness_percentage * max_brightness_value / 100);
   if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
     gchar brightness_file_path[256];
     snprintf(brightness_file_path, sizeof(brightness_file_path), "/sys/class/backlight/%s/brightness", _internal_backlight_display_directories[display_index.index]);
 
     FILE* file = fopen(brightness_file_path, "w");
     if (file != NULL) {
-      fprintf(file, "%u", brightness);
+      fprintf(file, "%u", brightness_value);
       fclose(file);
     } else {
       fprintf(stderr, "Error opening brightness file for writing: %s\n", brightness_file_path);
     }
   } else {
     ddcbc_display* display = _get_ddcbc_display(index);
-    DDCBC_Status rc = ddcbc_display_set_brightness(display, brightness);
+    DDCBC_Status rc = ddcbc_display_set_brightness(display, brightness_value);
 
     if (rc == 1) {
       fprintf(stderr, "Partial success in setting the brightness of display no %d to %u. Code: %d\n",
-        display->info.dispno, brightness, rc);
+        display->info.dispno, brightness_value, rc);
     } else if (rc != 0) {
       fprintf(stderr, "An error occurred when setting the brightness of display no %d to %u. Code: %d\n",
-        display->info.dispno, brightness, rc);
+        display->info.dispno, brightness_value, rc);
     }
   }
 }

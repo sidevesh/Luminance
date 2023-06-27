@@ -1,5 +1,5 @@
 # Luminance
-A simple GTK application to control brightness of external displays supporting DDC/CI
+A simple GTK application to control brightness of displays including external displays supporting DDC/CI
 
 ## Dependencies
 - ddcutil library package (typically libddcutil or libddcutil-dev if not already installed with ddcutil)

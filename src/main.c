@@ -57,10 +57,8 @@ int ensure_displays_are_present_in_cli() {
 // Function to list all displays and their brightness
 int list_displays_in_cli() {
   for (guint index = 0; index < displays_count(); index++) {
-    const gchar *label = get_display_name(index);
-    guint16 brightness = get_display_brightness(index);
-    guint16 max_brightness = get_display_max_brightness(index);
-    gdouble brightness_percentage = (brightness * 100.0) / max_brightness;
+    gchar *label = get_display_name(index);
+    gdouble brightness_percentage = get_display_brightness_percentage(index);
     printf("Display %d: Label: %s, Brightness: %.2f%%\n", index + 1, label, brightness_percentage);
   }
 
@@ -71,9 +69,8 @@ int list_displays_in_cli() {
 int get_display_brightness_in_cli(guint display_number) {
 	for (guint index = 0; index < displays_count(); index++) {
 		if ((index + 1) == display_number) {
-			guint16 brightness = get_display_brightness(index);
-			guint16 max_brightness = get_display_max_brightness(index);
-			printf("%.2f%%\n", (brightness * 100.0) / max_brightness);
+			gdouble brightness_percentage = get_display_brightness_percentage(index);
+			printf("%.2f%%\n", brightness_percentage);
 			return 0;
 		}
 	}
@@ -85,9 +82,7 @@ int get_display_brightness_in_cli(guint display_number) {
 void set_brightness_percentage_in_cli(guint display_index, double brightness_percentage) {
   for (guint index = 0; index < displays_count(); index++) {
     if (index == display_index) {
-      guint16 max_brightness = get_display_max_brightness(index);
-      guint16 brightness = (guint16)(brightness_percentage * max_brightness / 100.0);
-      set_display_brightness(index, brightness);
+      set_display_brightness_percentage(index, brightness_percentage);
       return;
     }
   }
@@ -105,7 +100,7 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
 
 	for (guint index = 0; index < displays_count(); index++) {
 		if (display_number == 0 || (index + 1) == display_number) {
-			gdouble current_brightness_percentage = (get_display_brightness(index) * 100.0) / get_display_max_brightness(index);
+			gdouble current_brightness_percentage = get_display_brightness_percentage(index);
 			gdouble final_brightness_percentage = brightness_percentage;
 			if (get_is_brightness_linked() && display_number == 0 && linked_all_displays_brightness_percentage != -1) {
 				final_brightness_percentage = linked_all_displays_brightness_percentage;
