@@ -58,6 +58,10 @@ void _refresh_displays_with_callbacks(gboolean first_time_loading, void (*on_ref
 	}
 }
 
+ddcbc_display* _get_display(guint index) {
+  return ddcbc_display_list_get(_display_list, index);
+}
+
 void load_displays(void (*on_load_started_callback)(), void (*on_load_completed_callback)()) {
   _refresh_displays_with_callbacks(TRUE, on_load_started_callback, on_load_completed_callback);
 }
@@ -78,12 +82,47 @@ int displays_count() {
   return _display_list->ct;
 }
 
-ddcbc_display* get_display(guint index) {
-  return ddcbc_display_list_get(_display_list, index);
-}
-
 int last_displays_load_time() {
 	return _last_displays_load_time;
+}
+
+int get_display_number(guint index) {
+  ddcbc_display* display = _get_display(index);
+  return display->info.dispno;
+}
+
+char* get_display_name(guint index) {
+  ddcbc_display* display = _get_display(index);
+  return display->info.model_name;
+}
+
+int get_display_brightness(guint index) {
+  ddcbc_display* display = _get_display(index);
+  return display->last_val;
+}
+
+int get_display_max_brightness(guint index) {
+  ddcbc_display* display = _get_display(index);
+  return display->max_val;
+}
+
+void set_display_brightness(guint index, guint16 brightness) {
+  ddcbc_display* display = _get_display(index);
+  DDCBC_Status rc = ddcbc_display_set_brightness(display, brightness);
+
+	if (rc == 1) {
+		fprintf(stderr,
+			"Partial sucess in setting the brightness of display no"
+			" %d to %u. Code: %d\n",
+			display->info.dispno, brightness, rc
+		);
+	} else if (rc != 0) {
+		fprintf(stderr,
+			"An error occured when setting the brightness of display no"
+			" %d to %u. Code: %d\n",
+			display->info.dispno, brightness, rc
+		);
+	}
 }
 
 #endif

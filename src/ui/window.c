@@ -3,10 +3,6 @@
 #include "../constants/main.c"
 #include "./constants/main.c"
 
-#ifndef BRIGHTNESS_CODE
-#include "../ddcbc-api/ddcbc-api.c"
-#endif
-
 #include "../states/displays.c"
 
 GtkWidget *_window;
