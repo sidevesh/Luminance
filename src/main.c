@@ -57,12 +57,11 @@ int ensure_displays_are_present_in_cli() {
 // Function to list all displays and their brightness
 int list_displays_in_cli() {
   for (guint index = 0; index < displays_count(); index++) {
-    guint display_number = get_display_number(index);
     const gchar *label = get_display_name(index);
     guint16 brightness = get_display_brightness(index);
     guint16 max_brightness = get_display_max_brightness(index);
     gdouble brightness_percentage = (brightness * 100.0) / max_brightness;
-    printf("Display %d: Label: %s, Brightness: %.2f%%\n", display_number, label, brightness_percentage);
+    printf("Display %d: Label: %s, Brightness: %.2f%%\n", index + 1, label, brightness_percentage);
   }
 
 	return 0;
@@ -71,7 +70,7 @@ int list_displays_in_cli() {
 // Function to get the brightness percentage of a specified display
 int get_display_brightness_in_cli(guint display_number) {
 	for (guint index = 0; index < displays_count(); index++) {
-		if (get_display_number(index) == display_number) {
+		if ((index + 1) == display_number) {
 			guint16 brightness = get_display_brightness(index);
 			guint16 max_brightness = get_display_max_brightness(index);
 			printf("%.2f%%\n", (brightness * 100.0) / max_brightness);
@@ -83,9 +82,9 @@ int get_display_brightness_in_cli(guint display_number) {
 	return 1;
 }
 
-void set_brightness_percentage_in_cli(guint display_number, double brightness_percentage) {
+void set_brightness_percentage_in_cli(guint display_index, double brightness_percentage) {
   for (guint index = 0; index < displays_count(); index++) {
-    if (get_display_number(index) == display_number) {
+    if (index == display_index) {
       guint16 max_brightness = get_display_max_brightness(index);
       guint16 brightness = (guint16)(brightness_percentage * max_brightness / 100.0);
       set_display_brightness(index, brightness);
@@ -93,7 +92,7 @@ void set_brightness_percentage_in_cli(guint display_number, double brightness_pe
     }
   }
 
-	fprintf(stderr, "Invalid display number: %d\n", display_number);
+	fprintf(stderr, "Invalid display number: %d\n", display_index + 1);
 }
 
 // Function to set the brightness of a specified display
@@ -105,7 +104,7 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
 	gdouble non_linked_all_displays_brightness_percentages_average = -1;
 
 	for (guint index = 0; index < displays_count(); index++) {
-		if (display_number == 0 || get_display_number(index) == display_number) {
+		if (display_number == 0 || (index + 1) == display_number) {
 			gdouble current_brightness_percentage = (get_display_brightness(index) * 100.0) / get_display_max_brightness(index);
 			gdouble final_brightness_percentage = brightness_percentage;
 			if (get_is_brightness_linked() && display_number == 0 && linked_all_displays_brightness_percentage != -1) {
@@ -135,7 +134,7 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
 				}
 			}
 			if (final_brightness_percentage != current_brightness_percentage) {
-				set_brightness_percentage_in_cli(get_display_number(index), final_brightness_percentage);
+				set_brightness_percentage_in_cli(index, final_brightness_percentage);
 			}
 			if (display_number > 0) {
 				free_displays();

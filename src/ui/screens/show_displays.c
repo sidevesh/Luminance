@@ -27,7 +27,7 @@ gboolean _set_brightness(GtkWidget *widget, GdkEvent *event, guint data) {
 			GtkWidget *scale = _display_sections[index]->scale;
 			gdouble linked_display_new_value = (1.0 * new_value / get_display_max_brightness(display_section->display_index)) * get_display_max_brightness(_display_sections[index]->display_index);
 
-			if (get_display_number(_display_sections[index]->display_index) == get_display_number(display_section->display_index)) {
+			if (_display_sections[index]->display_index == display_section->display_index) {
 				continue;
 			}
 			gtk_range_set_value(GTK_RANGE(scale), linked_display_new_value);
