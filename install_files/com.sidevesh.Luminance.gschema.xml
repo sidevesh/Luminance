@@ -6,5 +6,10 @@
       <summary>Whether to link display brightness adjustments</summary>
       <description>When true, changes to the brightness of one display will also affect the brightness of other displays connected to the same computer.</description>
     </key>
+    <key name="should-hide-internal-if-lid-closed" type="b">
+      <default>false</default>
+      <summary>Whether to hide the internal display when the lid is closed</summary>
+      <description>When true, the internal display will be hidden when the lid is closed. This is useful for laptops that are connected to external displays.</description>
+    </key>
   </schema>
 </schemalist>

@@ -325,7 +325,7 @@ int main(int argc, char **argv) {
   int status = 0;
 
   if (argc > 1) {
-    is_cli_mode = true;
+    is_cli_mode = TRUE;
     status = parse_cli_arguments(argc, argv);
   } else {
     GtkApplication *app;

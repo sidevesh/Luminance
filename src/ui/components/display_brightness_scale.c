@@ -5,7 +5,7 @@ GtkWidget* get_display_brightness_scale(gdouble last_value, gdouble max_value) {
 	GtkWidget *scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, max_value, 1);
 	gtk_range_set_value(GTK_RANGE(scale), last_value);
 	gtk_scale_set_value_pos(GTK_SCALE(scale), GTK_POS_RIGHT);
-	gtk_widget_set_hexpand(scale, FALSE);
+	gtk_widget_set_hexpand(scale, TRUE);
 	gtk_widget_set_valign(scale, GTK_ALIGN_START);
 	gtk_widget_set_halign(scale, 0.0);
 	gtk_widget_set_margin_start(scale, MARGIN_UNIT / 4);

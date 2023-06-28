@@ -48,8 +48,8 @@ void _update_display_brightness_scales(GtkRange *range, guint data) {
 	}
 }
 
-void _link_brightness(GtkToggleButton *link_brightness_check_button) {
-	gboolean is_brightness_linked = gtk_toggle_button_get_active(link_brightness_check_button);
+void _link_brightness(GtkToggleButton *link_brightness_checkbox) {
+	gboolean is_brightness_linked = gtk_toggle_button_get_active(link_brightness_checkbox);
 	set_is_brightness_linked(is_brightness_linked);
 
 	if (!is_brightness_linked) {
@@ -69,7 +69,7 @@ void _link_brightness(GtkToggleButton *link_brightness_check_button) {
 }
 
 GtkWidget* get_show_displays_screen() {
-	GtkWidget *grid, *link_brightness_check_button;
+	GtkWidget *grid, *link_brightness_checkbox;
 
 	grid = gtk_grid_new();
 
@@ -104,9 +104,9 @@ GtkWidget* get_show_displays_screen() {
 		sibling = sections[index];
 	}
 
-	link_brightness_check_button = get_link_brightness_check_button(get_is_brightness_linked());
-	g_signal_connect(link_brightness_check_button, "toggled", G_CALLBACK(_link_brightness), NULL);
-	gtk_grid_attach_next_to(GTK_GRID(grid), link_brightness_check_button, sibling->separator_right_column, GTK_POS_BOTTOM, 1, 1);
+	link_brightness_checkbox = get_link_brightness_checkbox(get_is_brightness_linked());
+	g_signal_connect(link_brightness_checkbox, "toggled", G_CALLBACK(_link_brightness), NULL);
+	gtk_grid_attach_next_to(GTK_GRID(grid), link_brightness_checkbox, sibling->separator_right_column, GTK_POS_BOTTOM, 1, 1);
 
 	return grid;
 }

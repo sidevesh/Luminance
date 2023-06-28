@@ -4,6 +4,8 @@
 #include "../../ddcbc-api/ddcbc-api.c"
 #endif
 
+#include "./should_hide_internal_if_lid_closed.c"
+
 #ifndef DISPLAYS_STATE
 #define DISPLAYS_STATE
 
@@ -25,7 +27,8 @@ typedef struct {
 } GlobalDisplayIndex;
 
 // Declare the display indexes array
-GlobalDisplayIndex display_indexes[MAX_DISPLAYS];
+GlobalDisplayIndex _display_indexes[MAX_DISPLAYS];
+guint _display_indexes_count = 0;
 gchar* _internal_backlight_display_directories[MAX_INTERNAL_BACKLIGHT_DISPLAYS];
 guint _internal_backlight_display_directories_count = 0;
 
@@ -39,24 +42,44 @@ void _initialize_displays(gboolean first_time_loading) {
   time_t start_loading_displays_time;
   time(&start_loading_displays_time);
 
+  guint total_displays_count = 0;
   guint internal_backlight_count = 0;
-  DIR* dir = opendir("/sys/class/backlight");
-  if (dir != NULL) {
-    struct dirent* entry;
-    while ((entry = readdir(dir)) != NULL && internal_backlight_count < MAX_INTERNAL_BACKLIGHT_DISPLAYS) {
-			if (
-        strcmp(entry->d_name, ".") != 0 &&
-        strcmp(entry->d_name, "..") != 0
-      ) {
-        _internal_backlight_display_directories[internal_backlight_count] = strdup(entry->d_name);
-        // insert the internal backlight display into the display_indexes array
-				display_indexes[internal_backlight_count].type = DISPLAY_TYPE_INTERNAL_BACKLIGHT;
-				display_indexes[internal_backlight_count].index = internal_backlight_count;
-        internal_backlight_count++;
+
+  gboolean load_internal_backlight = TRUE;
+
+  if (get_should_hide_internal_if_lid_closed()) {
+    FILE* lid_state_file = fopen("/proc/acpi/button/lid/LID0/state", "r");
+    if (lid_state_file != NULL) {
+      char state[10];
+      if (fscanf(lid_state_file, "state: %9s", state) == 1) {
+        if (strcmp(state, "open") != 0) {
+          load_internal_backlight = FALSE;
+        }
       }
+      fclose(lid_state_file);
     }
-    _internal_backlight_display_directories_count = internal_backlight_count;
-    closedir(dir);
+  }
+
+  if (load_internal_backlight) {
+    DIR* dir = opendir("/sys/class/backlight");
+    if (dir != NULL) {
+      struct dirent* entry;
+      while ((entry = readdir(dir)) != NULL && internal_backlight_count < MAX_INTERNAL_BACKLIGHT_DISPLAYS) {
+        if (
+          strcmp(entry->d_name, ".") != 0 &&
+          strcmp(entry->d_name, "..") != 0
+        ) {
+          _internal_backlight_display_directories[internal_backlight_count] = strdup(entry->d_name);
+          // insert the internal backlight display into the _display_indexes array
+          _display_indexes[internal_backlight_count].type = DISPLAY_TYPE_INTERNAL_BACKLIGHT;
+          _display_indexes[internal_backlight_count].index = internal_backlight_count;
+          internal_backlight_count++;
+          total_displays_count++;
+        }
+      }
+      _internal_backlight_display_directories_count = internal_backlight_count;
+      closedir(dir);
+    }
   }
 
   if (!first_time_loading) {
@@ -66,13 +89,16 @@ void _initialize_displays(gboolean first_time_loading) {
   _display_list_instance = ddcbc_display_list_init(FALSE);
   _display_list = &_display_list_instance;
 
-	// insert all DDC displays into the display_indexes array
+	// insert all DDC displays into the _display_indexes array
 	guint ddc_display_count = 0;
 	for (guint index = 0; index < _display_list->ct; index++) {
-		display_indexes[internal_backlight_count + ddc_display_count].type = DISPLAY_TYPE_DDC;
-		display_indexes[internal_backlight_count + ddc_display_count].index = index;
+		_display_indexes[internal_backlight_count + ddc_display_count].type = DISPLAY_TYPE_DDC;
+		_display_indexes[internal_backlight_count + ddc_display_count].index = index;
 		ddc_display_count++;
+    total_displays_count++;
 	}
+
+  _display_indexes_count = total_displays_count;
 
   time_t end_loading_displays_time;
   time(&end_loading_displays_time);
@@ -111,12 +137,12 @@ void _refresh_displays_with_callbacks(gboolean first_time_loading, void (*on_ref
 }
 
 ddcbc_display* _get_ddcbc_display(guint index) {
-  GlobalDisplayIndex display_index = display_indexes[index];
+  GlobalDisplayIndex display_index = _display_indexes[index];
   return ddcbc_display_list_get(_display_list, display_index.index);
 }
 
 guint16 _get_display_max_brightness_value(guint index) {
-  GlobalDisplayIndex display_index = display_indexes[index];
+  GlobalDisplayIndex display_index = _display_indexes[index];
   if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
     gchar max_brightness_file_path[256];
     snprintf(max_brightness_file_path, sizeof(max_brightness_file_path), "/sys/class/backlight/%s/max_brightness", _internal_backlight_display_directories[display_index.index]);
@@ -151,7 +177,7 @@ gboolean is_displays_loading() {
 }
 
 int displays_count() {
-  return _display_list->ct + _internal_backlight_display_directories_count;
+  return _display_indexes_count;
 }
 
 int last_displays_load_time() {
@@ -159,7 +185,7 @@ int last_displays_load_time() {
 }
 
 char* get_display_name(guint index) {
-  GlobalDisplayIndex display_index = display_indexes[index];
+  GlobalDisplayIndex display_index = _display_indexes[index];
   if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
 		if (_internal_backlight_display_directories_count == 1) {
 			return "Built-in display";
@@ -174,7 +200,7 @@ char* get_display_name(guint index) {
 }
 
 gdouble get_display_brightness_percentage(guint index) {
-  GlobalDisplayIndex display_index = display_indexes[index];
+  GlobalDisplayIndex display_index = _display_indexes[index];
 	guint16 max_brightness_value = _get_display_max_brightness_value(index);
   if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
     gchar brightness_file_path[256];
@@ -194,7 +220,7 @@ gdouble get_display_brightness_percentage(guint index) {
 }
 
 void set_display_brightness_percentage(guint index, gdouble brightness_percentage) {
-  GlobalDisplayIndex display_index = display_indexes[index];
+  GlobalDisplayIndex display_index = _display_indexes[index];
 	guint16 max_brightness_value = _get_display_max_brightness_value(index);
 	guint16 brightness_value = (guint16)(brightness_percentage * max_brightness_value / 100);
   if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {

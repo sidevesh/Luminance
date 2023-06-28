@@ -3,5 +3,5 @@
 #endif
 
 #ifndef MINIMUM_WINDOW_WIDTH
-#define MINIMUM_WINDOW_WIDTH 391
+#define MINIMUM_WINDOW_WIDTH 400
 #endif
