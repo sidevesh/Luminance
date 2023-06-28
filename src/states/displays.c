@@ -4,6 +4,7 @@
 #include "../../ddcbc-api/ddcbc-api.c"
 #endif
 
+#include "./laptop_lid.c"
 #include "./should_hide_internal_if_lid_closed.c"
 
 #ifndef DISPLAYS_STATE
@@ -45,22 +46,7 @@ void _initialize_displays(gboolean first_time_loading) {
   guint total_displays_count = 0;
   guint internal_backlight_count = 0;
 
-  gboolean load_internal_backlight = TRUE;
-
-  if (get_should_hide_internal_if_lid_closed()) {
-    FILE* lid_state_file = fopen("/proc/acpi/button/lid/LID0/state", "r");
-    if (lid_state_file != NULL) {
-      char state[10];
-      if (fscanf(lid_state_file, "state: %9s", state) == 1) {
-        if (strcmp(state, "open") != 0) {
-          load_internal_backlight = FALSE;
-        }
-      }
-      fclose(lid_state_file);
-    }
-  }
-
-  if (load_internal_backlight) {
+  if (get_has_lid() == FALSE || get_should_hide_internal_if_lid_closed() == FALSE || is_lid_open() == TRUE) {
     DIR* dir = opendir("/sys/class/backlight");
     if (dir != NULL) {
       struct dirent* entry;

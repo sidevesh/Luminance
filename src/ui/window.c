@@ -4,6 +4,7 @@
 #include "./constants/main.c"
 
 #include "../states/displays.c"
+#include "../states/laptop_lid.c"
 #include "../states/should_hide_internal_if_lid_closed.c"
 
 GtkWidget *_window;
@@ -72,27 +73,26 @@ void initialize_application_window(GtkApplication *app) {
 	gtk_css_provider_load_from_data(menu_button_css_provider, "button.flat {min-width: 150px;font-weight: normal;}", -1, NULL);
 	gtk_style_context_add_provider(gtk_widget_get_style_context(menu_box), GTK_STYLE_PROVIDER(menu_button_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
+	if (get_has_lid()) {
+		GtkWidget *should_hide_internal_if_lid_closed_checkbox = gtk_check_button_new_with_label("Hide built-in displays when lid is closed");
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(should_hide_internal_if_lid_closed_checkbox), get_should_hide_internal_if_lid_closed());
 
-	GtkWidget *should_hide_internal_if_lid_closed_checkbox = gtk_check_button_new_with_label("Hide built-in displays when lid is closed");
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(should_hide_internal_if_lid_closed_checkbox), get_should_hide_internal_if_lid_closed());
+		GtkStyleContext *should_hide_internal_if_lid_closed_checkbox_style_context = gtk_widget_get_style_context(should_hide_internal_if_lid_closed_checkbox);
+		gtk_style_context_add_class(should_hide_internal_if_lid_closed_checkbox_style_context, "flat");
+		gtk_style_context_add_provider(gtk_widget_get_style_context(should_hide_internal_if_lid_closed_checkbox), GTK_STYLE_PROVIDER(menu_button_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-	GtkStyleContext *should_hide_internal_if_lid_closed_checkbox_style_context = gtk_widget_get_style_context(should_hide_internal_if_lid_closed_checkbox);
-	gtk_style_context_add_class(should_hide_internal_if_lid_closed_checkbox_style_context, "flat");
-	gtk_style_context_add_provider(gtk_widget_get_style_context(should_hide_internal_if_lid_closed_checkbox), GTK_STYLE_PROVIDER(menu_button_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+		GtkCssProvider *should_hide_internal_if_lid_closed_checkbox_css_provider = gtk_css_provider_new();
+		gtk_css_provider_load_from_data(should_hide_internal_if_lid_closed_checkbox_css_provider, "checkbutton.flat {padding: 5px;}", -1, NULL);
+		gtk_style_context_add_provider(gtk_widget_get_style_context(should_hide_internal_if_lid_closed_checkbox), GTK_STYLE_PROVIDER(should_hide_internal_if_lid_closed_checkbox_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-	GtkCssProvider *should_hide_internal_if_lid_closed_checkbox_css_provider = gtk_css_provider_new();
-	gtk_css_provider_load_from_data(should_hide_internal_if_lid_closed_checkbox_css_provider, "checkbutton.flat {padding: 5px;}", -1, NULL);
-	gtk_style_context_add_provider(gtk_widget_get_style_context(should_hide_internal_if_lid_closed_checkbox), GTK_STYLE_PROVIDER(should_hide_internal_if_lid_closed_checkbox_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+		GtkWidget *should_hide_internal_if_lid_closed_checkbox_label = gtk_bin_get_child(GTK_BIN(should_hide_internal_if_lid_closed_checkbox));
+		gtk_label_set_xalign(GTK_LABEL(should_hide_internal_if_lid_closed_checkbox_label), 0.0);
+		g_signal_connect(should_hide_internal_if_lid_closed_checkbox, "toggled", G_CALLBACK(_on_should_hide_internal_if_lid_closed_checkbox_toggled), NULL);
+		gtk_box_pack_start(GTK_BOX(menu_box), should_hide_internal_if_lid_closed_checkbox, FALSE, FALSE, 0);
 
-	GtkWidget *should_hide_internal_if_lid_closed_checkbox_label = gtk_bin_get_child(GTK_BIN(should_hide_internal_if_lid_closed_checkbox));
-	gtk_label_set_xalign(GTK_LABEL(should_hide_internal_if_lid_closed_checkbox_label), 0.0);
-	g_signal_connect(should_hide_internal_if_lid_closed_checkbox, "toggled", G_CALLBACK(_on_should_hide_internal_if_lid_closed_checkbox_toggled), NULL);
-	gtk_box_pack_start(GTK_BOX(menu_box), should_hide_internal_if_lid_closed_checkbox, FALSE, FALSE, 0);
-
-
-	GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-	gtk_box_pack_start(GTK_BOX(menu_box), separator, FALSE, FALSE, 0);
-
+		GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+		gtk_box_pack_start(GTK_BOX(menu_box), separator, FALSE, FALSE, 0);
+	}
 
 	gchar about_button_label_text[100];
 	sprintf(about_button_label_text, "About %s", APP_INFO_DISPLAY_NAME);
