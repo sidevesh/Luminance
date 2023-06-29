@@ -119,7 +119,7 @@ void initialize_application_window(GtkApplication *app) {
 	}
 
 	GtkCssProvider *header_css_provider = gtk_css_provider_new();
-	gtk_css_provider_load_from_data(header_css_provider, "headerbar {border-bottom: 0px;background-color: @theme_bg_color;}", -1, NULL);
+	gtk_css_provider_load_from_data(header_css_provider, "headerbar {border-bottom: 0px;background-image: none;background-color: @theme_bg_color;}", -1, NULL);
 	gtk_style_context_add_provider(gtk_widget_get_style_context(_window_header), GTK_STYLE_PROVIDER(header_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
   gtk_window_set_titlebar(GTK_WINDOW(_window), _window_header);
