@@ -72,15 +72,34 @@ sudo ./install_files/install.sh
 You should now be able to find Luminance in your application menu under utilities.
 
 
+## Usage
 
-<!-- LICENSE -->
+Start the application normally or you can also use the app via cli interface:
+```
+Usage: com.sidevesh.Luminance [OPTIONS]
+An application to control brightness of displays including external displays supporting DDC/CI
+
+Options:
+  -l, --list-displays              List displays and their brightness
+  -g, --get-percentage [NUM]         Get the brightness percentage of a display
+  -s, --set-brightness [NUM]       Set the brightness of a display to a percentage value
+  -i, --increase-brightness [NUM]  Increase the brightness of a display by a percentage value
+  -d, --decrease-brightness [NUM]  Decrease the brightness of a display by a percentage value
+  -p  --percentage [PERCENT]       Percentage value to set the brightness to in case of --set-brightness option or to increase or decrease the brightness by in case of --increase-brightness or --decrease-brightness option
+  -o, --show-osd                   Show OSD popup when brightness is changed for specified environment:
+                                   g: GNOME, experimental, only works with https://extensions.gnome.org/extension/5952/eval-gjs/ extension installed
+  -h, --help                       Show help information
+
+When no arguments are provided, the application starts in GUI mode.
+```
+
+
 ## License
 
 Distributed under the GNU General Public License v3.0. See `LICENSE.txt` for more information.
 
 
 
-<!-- CONTACT -->
 ## Contact
 
 Swapnil Devesh - [@sid_devesh](https://twitter.com/sid_devesh) - me@sidevesh.com
@@ -89,7 +108,6 @@ Project Link: [https://github.com/sidevesh/com.sidevesh.Luminance](https://githu
 
 
 
-<!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
 - @ahshabbir : for ddcbc-api and ddcbc-gtk: https://github.com/ahshabbir/ddcbc-api
