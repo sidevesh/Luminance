@@ -23,4 +23,9 @@ glib-compile-schemas /usr/share/glib-2.0/schemas/
 echo "Installing udev rules..."
 cp ./install_files/44-backlight-permissions.rules /usr/lib/udev/rules.d/44-backlight-permissions.rules
 
+# install icon
+echo "Installing icon..."
+cp ./install_files/com.sidevesh.Luminance.svg /usr/share/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
+gtk-update-icon-cache /usr/share/icons/hicolor/
+
 echo "Installed successfully"

@@ -36,7 +36,7 @@ void _open_about_dialog() {
 	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_dialog), APP_INFO_SOURCE_REPOSITORY_TITLE);
 	gtk_about_dialog_set_website_label(GTK_ABOUT_DIALOG(about_dialog), APP_INFO_SOURCE_REPOSITORY_LINK);
 	gtk_about_dialog_set_license_type(GTK_ABOUT_DIALOG(about_dialog), APP_INFO_LICENSE);
-	gtk_about_dialog_set_logo_icon_name(GTK_ABOUT_DIALOG(about_dialog), "video-display");
+	gtk_about_dialog_set_logo_icon_name(GTK_ABOUT_DIALOG(about_dialog), APP_INFO_ICON_NAME);
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about_dialog), (const gchar *[]){
 		APP_INFO_PROJECT_AUTHORS,
 		NULL
