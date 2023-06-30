@@ -161,11 +161,11 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
 // Function to display command-line arguments and help information
 int display_help_in_cli() {
   printf("Usage: %s [OPTIONS]\n", APP_INFO_PACKAGE_NAME);
-  printf("A graphical application to control display brightness.\n");
+  printf("An application to control brightness of displays including external displays supporting DDC/CI\n");
   printf("\n");
   printf("Options:\n");
   printf("  -l, --list-displays              List displays and their brightness\n");
-  printf("  -g, --get-percentage NUM         Get the brightness percentage of a display\n");
+  printf("  -g, --get-percentage [NUM]       Get the brightness percentage of a display\n");
   printf("  -s, --set-brightness [NUM]       Set the brightness of a display to a percentage value\n");
 	printf("  -i, --increase-brightness [NUM]  Increase the brightness of a display by a percentage value\n");
 	printf("  -d, --decrease-brightness [NUM]  Decrease the brightness of a display by a percentage value\n");
