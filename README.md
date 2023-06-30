@@ -81,7 +81,7 @@ An application to control brightness of displays including external displays sup
 
 Options:
   -l, --list-displays              List displays and their brightness
-  -g, --get-percentage [NUM]         Get the brightness percentage of a display
+  -g, --get-percentage [NUM]       Get the brightness percentage of a display
   -s, --set-brightness [NUM]       Set the brightness of a display to a percentage value
   -i, --increase-brightness [NUM]  Increase the brightness of a display by a percentage value
   -d, --decrease-brightness [NUM]  Decrease the brightness of a display by a percentage value
