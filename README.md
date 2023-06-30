@@ -1,26 +1,46 @@
-# Luminance
-A simple GTK application to control brightness of displays including external displays supporting DDC/CI
+<a name="readme-top"></a>
 
-## Dependencies
-- ddcutil library package (typically libddcutil or libddcutil-dev if not already installed with ddcutil)
-- GTK 3.0
+<br />
+<div align="center">
+  <a href="https://github.com/sidevesh/com.sidevesh.Luminance">
+    <img src="install_files/com.sidevesh.Luminance.svg" alt="Logo" width="120" height="120">
+  </a>
+
+<h3 align="center">Luminance</h3>
+
+  <p align="center">
+    A simple GTK application to control brightness of displays including external displays supporting DDC/CI
+    <br />
+    <br />
+  </p>
+</div>
+
+<div align="center">
+  <img src="screenshots/screenshot-faded.png" alt="Screenshot">
+</div>
+
+
 
 ## Setup
 
+### Dependencies
+- ddcutil library package (typically libddcutil or libddcutil-dev if not already installed with ddcutil)
+- GTK 3.0
+
 1. Firstly, ensure that all the dependencies are installed.
 
-#### Arch Linux:
+### Arch Linux:
 ```
 pacman -S --needed ddcutil gtk3
 ```
 
-#### Ubuntu-based distros (credit @aidengilmartin):
+### Ubuntu-based distros (credit @aidengilmartin):
 ```
 sudo apt install libgtk3-dev gcc
 sudo add-apt-repository ppa:rockowitz/ddcutil # add ddcutil repo
 sudo apt install ddcutil libddcutil-dev
 ```
-#### Fedora:
+### Fedora:
 ```
 sudo dnf install ddcutil libddcutil libddcutil-devel gtk3-devel gcc
 ```
@@ -51,6 +71,26 @@ sudo ./install_files/install.sh
 
 You should now be able to find Luminance in your application menu under utilities.
 
-## Credits
+
+
+<!-- LICENSE -->
+## License
+
+Distributed under the GNU General Public License v3.0. See `LICENSE.txt` for more information.
+
+
+
+<!-- CONTACT -->
+## Contact
+
+Swapnil Devesh - [@sid_devesh](https://twitter.com/sid_devesh) - me@sidevesh.com
+
+Project Link: [https://github.com/sidevesh/com.sidevesh.Luminance](https://github.com/sidevesh/com.sidevesh.Luminance)
+
+
+
+<!-- ACKNOWLEDGMENTS -->
+## Acknowledgments
+
 - @ahshabbir : for ddcbc-api and ddcbc-gtk: https://github.com/ahshabbir/ddcbc-api
 - @rockowitz : for ddcutil c api: https://github.com/rockowitz/ddcutil
