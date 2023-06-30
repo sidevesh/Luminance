@@ -29,18 +29,18 @@
 
 1. Firstly, ensure that all the dependencies are installed.
 
-### Arch Linux:
+#### Arch Linux:
 ```
 pacman -S --needed ddcutil gtk3
 ```
 
-### Ubuntu-based distros (credit @aidengilmartin):
+#### Ubuntu-based distros (credit @aidengilmartin):
 ```
 sudo apt install libgtk3-dev gcc
 sudo add-apt-repository ppa:rockowitz/ddcutil # add ddcutil repo
 sudo apt install ddcutil libddcutil-dev
 ```
-### Fedora:
+#### Fedora:
 ```
 sudo dnf install ddcutil libddcutil libddcutil-devel gtk3-devel gcc
 ```
