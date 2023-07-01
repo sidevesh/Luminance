@@ -21,7 +21,7 @@ echo "Removing desktop file from /usr/share/applications..."
 rm /usr/share/applications/com.sidevesh.Luminance.desktop
 
 echo "Removing GSettings schema..."
-rm ./install_files/com.sidevesh.Luminance.gschema.xml
+rm /usr/share/glib-2.0/schemas/com.sidevesh.Luminance.gschema.xml
 
 echo "Removing udev rules..."
 rm /usr/lib/udev/rules.d/44-backlight-permissions.rules
