@@ -19,15 +19,11 @@
   <img src="screenshots/screenshot-faded.png" alt="Screenshot">
 </div>
 
-
-
 ## Install from AUR (Arch Linux):
   
   ```
   yay -S luminance
   ```
-
-
 
 ## Install from source
 
