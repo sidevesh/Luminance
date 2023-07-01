@@ -2,3 +2,6 @@
 	path = ddcbc-api
 	url = https://github.com/ahshabbir/ddcbc-api.git
 	branch = master
+[submodule "arch"]
+	path = arch
+	url = ssh://aur@aur.archlinux.org/luminance.git
