@@ -21,7 +21,15 @@
 
 
 
-## Setup
+## Install from AUR (Arch Linux):
+  
+  ```
+  yay -S luminance
+  ```
+
+
+
+## Install from source
 
 ### Dependencies
 - ddcutil library package (typically libddcutil or libddcutil-dev if not already installed with ddcutil)
