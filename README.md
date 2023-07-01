@@ -2,8 +2,8 @@
 
 <br />
 <div align="center">
-  <a href="https://github.com/sidevesh/com.sidevesh.Luminance">
-    <img src="install_files/com.sidevesh.Luminance.svg" alt="Logo" width="120" height="120">
+  <a href="https://github.com/sidevesh/Luminance">
+    <img src="icons/icon.svg" alt="Logo" width="120" height="120">
   </a>
 
 <h3 align="center">Luminance</h3>
@@ -105,7 +105,7 @@ Distributed under the GNU General Public License v3.0. See `LICENSE.txt` for mor
 
 Swapnil Devesh - [@sid_devesh](https://twitter.com/sid_devesh) - me@sidevesh.com
 
-Project Link: [https://github.com/sidevesh/com.sidevesh.Luminance](https://github.com/sidevesh/com.sidevesh.Luminance)
+Project Link: [https://github.com/sidevesh/Luminance](https://github.com/sidevesh/Luminance)
 
 
 
