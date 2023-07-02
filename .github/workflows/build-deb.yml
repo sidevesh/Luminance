@@ -32,3 +32,4 @@ jobs:
           asset_path: ./build/luminance.deb
           asset_name: luminance.deb
           asset_content_type: application/vnd.debian.binary-package
+          token: ${{ secrets.GITHUB_TOKEN }}
