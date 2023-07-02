@@ -1,14 +1,14 @@
-name: Build Debian Package
-
 on:
-  release:
-    types:
-      - created
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Upload Release Asset
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v2
@@ -25,12 +25,21 @@ jobs:
       - name: Build Debian package
         run: ./build-deb.sh
 
-      - name: Upload deb package
-        uses: actions/upload-release-asset@v1
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./build/luminance.deb
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload deb package
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./build/luminance.deb
           asset_name: luminance.deb
-          asset_content_type: application/vnd.debian.binary-package
+          tag: ${{ github.ref }}
