@@ -27,9 +27,10 @@ jobs:
 
       - name: Upload deb package
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./build/luminance.deb
           asset_name: luminance.deb
           asset_content_type: application/vnd.debian.binary-package
-          token: ${{ secrets.GITHUB_TOKEN }}
