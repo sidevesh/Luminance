@@ -25,6 +25,9 @@
   yay -S luminance
   ```
 
+## Install DEB (Debian and Ubuntu based distros):
+Latest deb release is available on the releases page https://github.com/sidevesh/Luminance/releases
+
 ## Install from source
 
 ### Dependencies
