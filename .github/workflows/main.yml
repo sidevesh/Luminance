@@ -9,7 +9,8 @@ on:
       - created
 
 jobs:
-  build:
+  build-deb:
+    name: Build and upload DEB
     runs-on: ubuntu-latest
     steps:
       - name: Set up Git repository
@@ -32,5 +33,5 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./build/luminance.deb
-          asset_name: luminance.deb
+          asset_name: luminance-${{ github.event.release.tag_name }}.deb
           tag: ${{ github.ref }}
