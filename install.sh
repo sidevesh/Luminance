@@ -18,7 +18,7 @@ echo "Copying desktop file to /usr/share/applications..."
 cp ./install_files/com.sidevesh.Luminance.desktop /usr/share/applications/com.sidevesh.Luminance.desktop
 
 echo "Copying GSettings schema..."
-cp ./install_files/com.sidevesh.Luminance.gschema.xml /usr/share/glib-2.0/schemas/
+cp ./install_files/com.sidevesh.Luminance.gschema.xml /usr/share/glib-2.0/schemas/com.sidevesh.Luminance.gschema.xml
 
 echo "Copying udev rules..."
 cp ./install_files/44-backlight-permissions.rules /usr/lib/udev/rules.d/44-backlight-permissions.rules
