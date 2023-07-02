@@ -1,5 +1,8 @@
 name: Upload release assets
 
+permissions:
+  contents: write
+
 on:
   release:
     types:
