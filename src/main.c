@@ -328,8 +328,15 @@ int main(int argc, char **argv) {
     is_cli_mode = TRUE;
     status = parse_cli_arguments(argc, argv);
   } else {
+		GApplicationFlags flags;
+
+		#if GLIB_CHECK_VERSION(2, 74, 0)
+		flags = G_APPLICATION_DEFAULT_FLAGS;
+		#else
+		flags = G_APPLICATION_FLAGS_NONE;
+		#endif
     GtkApplication *app;
-    app = gtk_application_new(APP_INFO_PACKAGE_NAME, G_APPLICATION_DEFAULT_FLAGS);
+    app = gtk_application_new(APP_INFO_PACKAGE_NAME, flags);
     g_signal_connect(app, "activate", G_CALLBACK(activate_gtk_ui), NULL);
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);

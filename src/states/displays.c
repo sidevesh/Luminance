@@ -39,6 +39,8 @@ ddcbc_display_list _display_list_instance;
 int _last_displays_load_time = 0;
 void (*_on_refresh_completed_callback)() = NULL;
 
+guint _on_refresh_displays_completed_callback_timeout_id = 0;
+
 void _initialize_displays(gboolean first_time_loading) {
   time_t start_loading_displays_time;
   time(&start_loading_displays_time);
@@ -92,6 +94,10 @@ void _initialize_displays(gboolean first_time_loading) {
 }
 
 void _on_refresh_displays_completed_callback_wrapper() {
+  if (_on_refresh_displays_completed_callback_timeout_id != 0) {
+    g_source_remove(_on_refresh_displays_completed_callback_timeout_id);
+    _on_refresh_displays_completed_callback_timeout_id = 0;
+  }
   _is_displays_loading = FALSE;
   if (_on_refresh_completed_callback != NULL) {
     _on_refresh_completed_callback();
@@ -113,7 +119,7 @@ void _refresh_displays_with_callbacks(gboolean first_time_loading, void (*on_ref
     _on_refresh_completed_callback = on_refresh_completed_callback;
     // if the time it took to load the display list is less than a minimum amount of time, wait for the remaining time
     if (_last_displays_load_time < MINIMUM_REFRESH_TIME_IN_SECONDS) {
-      g_timeout_add_once((MINIMUM_REFRESH_TIME_IN_SECONDS - _last_displays_load_time) * 1000, (GSourceOnceFunc)_on_refresh_displays_completed_callback_wrapper, NULL);
+      _on_refresh_displays_completed_callback_timeout_id = g_timeout_add((MINIMUM_REFRESH_TIME_IN_SECONDS - _last_displays_load_time) * 1000, (GSourceFunc)_on_refresh_displays_completed_callback_wrapper, NULL);
     } else {
       _on_refresh_displays_completed_callback_wrapper();
     }
