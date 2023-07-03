@@ -19,16 +19,10 @@ cp ./install_files/com.sidevesh.Luminance.gschema.xml ./build/rpm-package-files/
 cp ./install_files/44-backlight-permissions.rules ./build/rpm-package-files/rpmbuild/SOURCES/44-backlight-permissions.rules
 cp ./icons/icon.svg ./build/rpm-package-files/rpmbuild/SOURCES/com.sidevesh.Luminance.svg
 
-echo "Switching to the 'rpm-package-files' directory..."
-cd ./build/rpm-package-files
-
 echo "Creating RPM package..."
-rpmbuild -bb ./rpmbuild/SPECS/com.sidevesh.Luminance.spec
+rpmbuild -bb ./build/rpm-package-files/rpmbuild/SPECS/com.sidevesh.Luminance.spec
 
 echo "Moving the RPM package to the root build directory..."
-mv ./rpmbuild/RPMS/*/*.rpm ../../luminance.rpm
-
-echo "Returning to the root directory..."
-cd ../..
+cp ./build/rpm-package-files/rpmbuild/RPMS/*/*.rpm ./build/luminance.rpm
 
 echo "RPM package built successfully"
