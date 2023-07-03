@@ -22,7 +22,7 @@ cp ./icons/icon.svg ./build/rpm-package-files/rpmbuild/SOURCES/com.sidevesh.Lumi
 ls -Ralt ./build/rpm-package-files
 
 echo "Creating RPM package..."
-rpmbuild -bb ./build/rpm-package-files/rpmbuild/SPECS/com.sidevesh.Luminance.spec
+rpmbuild --define "_topdir `pwd`/build/rpm-package-files/rpmbuild" -bb ./build/rpm-package-files/rpmbuild/SPECS/com.sidevesh.Luminance.spec
 
 echo "Moving the RPM package to the root build directory..."
 cp ./build/rpm-package-files/rpmbuild/RPMS/*/*.rpm ./build/luminance.rpm
