@@ -48,7 +48,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo dnf install git-all ddcutil libddcutil libddcutil-devel gtk3-devel fedora-packager rpmdevtools gcc
+          sudo dnf install -y git-all ddcutil libddcutil libddcutil-devel gtk3-devel fedora-packager rpmdevtools gcc
 
       - name: Initialize ddcbc-api git submodule
         run: git submodule update --init ddcbc-api
