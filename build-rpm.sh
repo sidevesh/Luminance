@@ -3,7 +3,7 @@
 # This script builds an RPM package for Luminance
 
 echo "Building the app..."
-build.sh
+./build.sh
 
 echo "Creating 'build/rpm-package-files' directory..."
 if [ -d "build/rpm-package-files" ]; then

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Building the app..."
-build.sh
+./build.sh
 
 echo "Creating 'build/debian-package-files' directory..."
 if [ -d "build/debian-package-files" ]; then

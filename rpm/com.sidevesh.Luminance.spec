@@ -18,7 +18,7 @@ Requires:       ddcutil
 Luminance is a simple GTK application that allows you to control the brightness of displays, including external displays supporting DDC/CI.
 
 %prep
-%setup -q
+# No source archive, no unpacking required
 
 %build
 # No build steps are required
