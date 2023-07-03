@@ -25,19 +25,19 @@ Luminance is a simple GTK application that allows you to control the brightness 
 
 %install
 # Install the binary
-install -D -m 755 com.sidevesh.Luminance %{buildroot}/%{_bindir}/com.sidevesh.Luminance
+install -D -m 755 %{_sourcedir}/com.sidevesh.Luminance %{buildroot}/%{_bindir}/com.sidevesh.Luminance
 
 # Install the desktop file
-install -D -m 644 com.sidevesh.Luminance.desktop %{buildroot}/%{_datadir}/applications/com.sidevesh.Luminance.desktop
+install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance.desktop %{buildroot}/%{_datadir}/applications/com.sidevesh.Luminance.desktop
 
 # Install the GSettings schema
-install -D -m 644 com.sidevesh.Luminance.gschema.xml %{buildroot}/%{_datadir}/glib-2.0/schemas/com.sidevesh.Luminance.gschema.xml
+install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance.gschema.xml %{buildroot}/%{_datadir}/glib-2.0/schemas/com.sidevesh.Luminance.gschema.xml
 
 # Install the udev rules
-install -D -m 644 44-backlight-permissions.rules %{buildroot}/%{_libdir}/udev/rules.d/44-backlight-permissions.rules
+install -D -m 644 %{_sourcedir}/44-backlight-permissions.rules %{buildroot}/%{_libdir}/udev/rules.d/44-backlight-permissions.rules
 
 # Install the icon
-install -D -m 644 com.sidevesh.Luminance.svg %{buildroot}/%{_datadir}/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
+install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance.svg %{buildroot}/%{_datadir}/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
 
 %files
 %{_bindir}/com.sidevesh.Luminance
