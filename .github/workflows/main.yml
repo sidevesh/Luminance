@@ -23,9 +23,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Initialize ddcbc-api git submodule
-        run: |
-          git config --global --add safe.directory /__w/Luminance/Luminance
-          git submodule update --init ddcbc-api
+        run: git submodule update --init ddcbc-api
 
       - name: Build package
         run: ./build-deb.sh
@@ -52,7 +50,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Initialize ddcbc-api git submodule
-        run: git submodule update --init ddcbc-api
+        run: |
+          git config --global --add safe.directory /__w/Luminance/Luminance
+          git submodule update --init ddcbc-api
 
       - name: Build package
         run: ./build-rpm.sh
