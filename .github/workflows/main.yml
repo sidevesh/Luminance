@@ -39,6 +39,8 @@ jobs:
   build-rpm:
     name: Build and upload rpm package
     runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v2
@@ -48,9 +50,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo add-apt-repository -y ppa:rockowitz/ddcutil
-          sudo apt-get update
-          sudo apt-get install -y gcc libgtk-3-dev ddcutil libddcutil-dev rpm
+          sudo dnf install ddcutil libddcutil libddcutil-devel gtk3-devel fedora-packager rpmdevtools gcc
 
       - name: Build package
         run: ./build-rpm.sh
