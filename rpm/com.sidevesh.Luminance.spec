@@ -11,7 +11,7 @@ BuildArch:      x86_64
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(gtk+-3.0)
 
-Requires:       libgtk-3-0
+Requires:       gtk3
 Requires:       ddcutil
 
 %description

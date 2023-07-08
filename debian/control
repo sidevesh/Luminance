@@ -5,4 +5,4 @@ Maintainer: Swapnil Devesh <me@sidevesh.com>
 Homepage: https://github.com/sidevesh/Luminance
 Description: A simple GTK application to control brightness of displays including external displays supporting DDC/CI
 License: GPL-3.0
-Depends: libgtk-3-0, ddcutil
+Depends: libgtk-3-0, ddcutil, libddcutil4
