@@ -4,4 +4,4 @@
 	branch = master
 [submodule "arch"]
 	path = arch
-	url = ssh://aur@aur.archlinux.org/luminance.git
+	url = https://aur.archlinux.org/luminance.git
