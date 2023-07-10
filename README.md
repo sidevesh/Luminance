@@ -104,6 +104,14 @@ Options:
 When no arguments are provided, the application starts in GUI mode.
 ```
 
+## Note for AUR publishers
+
+Switch the arch submodule push url to the ssh url before pushing to AUR for the first time:
+```
+cd arch
+git remote set-url --push origin ssh://aur@aur.archlinux.org/luminance.git
+```
+
 
 ## License
 
