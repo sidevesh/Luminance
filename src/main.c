@@ -164,15 +164,16 @@ int display_help_in_cli() {
   printf("An application to control brightness of displays including external displays supporting DDC/CI\n");
   printf("\n");
   printf("Options:\n");
-  printf("  -l, --list-displays              List displays and their brightness\n");
-  printf("  -g, --get-percentage [NUM]       Get the brightness percentage of a display\n");
-  printf("  -s, --set-brightness [NUM]       Set the brightness of a display to a percentage value\n");
-	printf("  -i, --increase-brightness [NUM]  Increase the brightness of a display by a percentage value\n");
-	printf("  -d, --decrease-brightness [NUM]  Decrease the brightness of a display by a percentage value\n");
-  printf("  -p  --percentage [PERCENT]       Percentage value to set the brightness to in case of --set-brightness option or to increase or decrease the brightness by in case of --increase-brightness or --decrease-brightness option\n");
-  printf("  -o, --show-osd                   Show OSD popup when brightness is changed for specified environment:\n");
-	printf("                                   g: GNOME, experimental, only works with https://extensions.gnome.org/extension/5952/eval-gjs/ extension installed\n");
-	printf("  -h, --help                       Show help information\n");
+  printf("  -l, --list-displays                         List displays and their brightness\n");
+  printf("  -g, --get-percentage [DISPLAY NUMBER]       Get the brightness percentage of a display\n");
+  printf("  -s, --set-brightness [DISPLAY NUMBER]       Set the brightness of a display to a percentage value\n");
+	printf("  -i, --increase-brightness [DISPLAY NUMBER]  Increase the brightness of a display by a percentage value\n");
+	printf("  -d, --decrease-brightness [DISPLAY NUMBER]  Decrease the brightness of a display by a percentage value\n");
+	printf("                                                - If DISPLAY NUMBER is not provided, for --set-brightness, --increase-brightness and --decrease-brightness options, the brightness of all displays will be changed\n");
+  printf("  -p  --percentage [PERCENTAGE]               Percentage value to set the brightness to in case of --set-brightness option or to increase or decrease the brightness by in case of --increase-brightness or --decrease-brightness option\n");
+  printf("  -o, --show-osd                              Show OSD popup when brightness is changed for specified environment:\n");
+	printf("                                                g: GNOME, experimental, only works with https://extensions.gnome.org/extension/5952/eval-gjs/ extension installed\n");
+	printf("  -h, --help                                  Show help information\n");
   printf("\n");
   printf("When no arguments are provided, the application starts in GUI mode.\n");
 

@@ -91,15 +91,16 @@ Usage: com.sidevesh.Luminance [OPTIONS]
 An application to control brightness of displays including external displays supporting DDC/CI
 
 Options:
-  -l, --list-displays              List displays and their brightness
-  -g, --get-percentage [NUM]       Get the brightness percentage of a display
-  -s, --set-brightness [NUM]       Set the brightness of a display to a percentage value
-  -i, --increase-brightness [NUM]  Increase the brightness of a display by a percentage value
-  -d, --decrease-brightness [NUM]  Decrease the brightness of a display by a percentage value
-  -p  --percentage [PERCENT]       Percentage value to set the brightness to in case of --set-brightness option or to increase or decrease the brightness by in case of --increase-brightness or --decrease-brightness option
-  -o, --show-osd                   Show OSD popup when brightness is changed for specified environment:
-                                   g: GNOME, experimental, only works with https://extensions.gnome.org/extension/5952/eval-gjs/ extension installed
-  -h, --help                       Show help information
+  -l, --list-displays                         List displays and their brightness
+  -g, --get-percentage [DISPLAY NUMBER]       Get the brightness percentage of a display
+  -s, --set-brightness [DISPLAY NUMBER]       Set the brightness of a display to a percentage value
+  -i, --increase-brightness [DISPLAY NUMBER]  Increase the brightness of a display by a percentage value
+  -d, --decrease-brightness [DISPLAY NUMBER]  Decrease the brightness of a display by a percentage value
+                                              If DISPLAY NUMBER is not provided, for --set-brightness, --increase-brightness and --decrease-brightness options, the brightness of all displays will be changed
+  -p  --percentage [PERCENTAGE]               Percentage value to set the brightness to in case of --set-brightness option or to increase or decrease the brightness by in case of --increase-brightness or --decrease-brightness option
+  -o, --show-osd                              Show OSD popup when brightness is changed for specified environment:
+                                                g: GNOME, experimental, only works with https://extensions.gnome.org/extension/5952/eval-gjs/ extension installed
+  -h, --help                                  Show help information
 
 When no arguments are provided, the application starts in GUI mode.
 ```
