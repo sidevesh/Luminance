@@ -81,6 +81,8 @@ https://www.ddcutil.com/i2c_permissions/
     ```
 
     You should now be able to find Luminance in your list of apps
+    * Installing the application is necessary for it to work because this using gsettings to store preferences and will need the schema files to be installed.
+      You can read the install.sh script and copy the schema files yourself if you don't want to do all the install steps.
 
 
 ## Usage
