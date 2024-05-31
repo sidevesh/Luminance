@@ -9,10 +9,10 @@ then
 fi
 
 echo "Building app..."
-./build.sh
+./build-debug.sh
 
 echo "Copying app to /usr/bin..."
-cp ./build/app /usr/bin/com.sidevesh.Luminance
+cp ./build/app.debug /usr/bin/com.sidevesh.Luminance
 
 echo "Copying desktop file to /usr/share/applications..."
 cp ./install_files/com.sidevesh.Luminance.desktop /usr/share/applications/com.sidevesh.Luminance.desktop
@@ -24,7 +24,7 @@ echo "Copying udev rules..."
 cp ./install_files/44-backlight-permissions.rules /usr/lib/udev/rules.d/44-backlight-permissions.rules
 
 echo "Copying icons..."
-cp ./icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg /usr/share/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
+cp ./icons/hicolor/scalable/apps/com.sidevesh.Luminance.Devel.svg /usr/share/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
 cp ./icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg /usr/share/icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg
 
 echo "Compiling schemas and updating icon cache..."

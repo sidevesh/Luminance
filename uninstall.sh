@@ -26,8 +26,9 @@ rm /usr/share/glib-2.0/schemas/com.sidevesh.Luminance.gschema.xml
 echo "Removing udev rules..."
 rm /usr/lib/udev/rules.d/44-backlight-permissions.rules
 
-echo "Removing icon..."
+echo "Removing icons..."
 rm /usr/share/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
+rm /usr/share/icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg
 
 echo "Compiling schemas and updating icon cache..."
 glib-compile-schemas /usr/share/glib-2.0/schemas/

@@ -17,7 +17,8 @@ cp ./rpm/com.sidevesh.Luminance.spec ./build/rpm-package-files/rpmbuild/SPECS/co
 cp ./install_files/com.sidevesh.Luminance.desktop ./build/rpm-package-files/rpmbuild/SOURCES/com.sidevesh.Luminance.desktop
 cp ./install_files/com.sidevesh.Luminance.gschema.xml ./build/rpm-package-files/rpmbuild/SOURCES/com.sidevesh.Luminance.gschema.xml
 cp ./install_files/44-backlight-permissions.rules ./build/rpm-package-files/rpmbuild/SOURCES/44-backlight-permissions.rules
-cp ./icons/hicolor/scalable/apps/com.sidevesh.luminance.svg ./build/rpm-package-files/rpmbuild/SOURCES/com.sidevesh.Luminance.svg
+cp ./icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg ./build/rpm-package-files/rpmbuild/SOURCES/com.sidevesh.Luminance.svg
+cp ./icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg ./build/rpm-package-files/rpmbuild/SOURCES/com.sidevesh.Luminance-symbolic.svg
 
 echo "Creating RPM package..."
 rpmbuild --define "_topdir `pwd`/build/rpm-package-files/rpmbuild" -bb ./build/rpm-package-files/rpmbuild/SPECS/com.sidevesh.Luminance.spec

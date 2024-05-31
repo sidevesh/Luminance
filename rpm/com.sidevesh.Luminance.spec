@@ -36,8 +36,9 @@ install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance.gschema.xml %{buildroot}/
 # Install the udev rules
 install -D -m 644 %{_sourcedir}/44-backlight-permissions.rules %{buildroot}/%{_libdir}/udev/rules.d/44-backlight-permissions.rules
 
-# Install the icon
+# Install the icons
 install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance.svg %{buildroot}/%{_datadir}/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
+install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance-symbolic.svg %{buildroot}/%{_datadir}/icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg
 
 %files
 %{_bindir}/com.sidevesh.Luminance

@@ -21,7 +21,8 @@ cp ./build/app ./build/debian-package-files/usr/bin/com.sidevesh.Luminance
 cp ./install_files/com.sidevesh.Luminance.desktop ./build/debian-package-files/usr/share/applications/com.sidevesh.Luminance.desktop
 cp ./install_files/com.sidevesh.Luminance.gschema.xml ./build/debian-package-files/usr/share/glib-2.0/schemas/com.sidevesh.Luminance.gschema.xml
 cp ./install_files/44-backlight-permissions.rules ./build/debian-package-files/usr/lib/udev/rules.d/44-backlight-permissions.rules
-cp ./icons/hicolor/scalable/apps/com.sidevesh.luminance.svg ./build/debian-package-files/usr/share/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
+cp ./icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg ./build/debian-package-files/usr/share/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
+cp ./icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg ./build/debian-package-files/usr/share/icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg
 
 echo "Creating Debian package..."
 dpkg-deb --build ./build/debian-package-files ./build/luminance.deb
