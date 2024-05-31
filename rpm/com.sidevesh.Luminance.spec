@@ -1,5 +1,5 @@
 Name:           com.sidevesh.Luminance
-Version:        1.0.2
+Version:        1.0.3
 Release:        1%{?dist}
 Summary:        A simple GTK application to control brightness of displays including external displays supporting DDC/CI
 
