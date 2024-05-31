@@ -24,7 +24,7 @@ echo "Copying udev rules..."
 cp ./install_files/44-backlight-permissions.rules /usr/lib/udev/rules.d/44-backlight-permissions.rules
 
 echo "Copying icon..."
-cp ./icons/icon.svg /usr/share/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
+cp ./icons/hicolor/scalable/apps/com.sidevesh.luminance.svg /usr/share/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
 
 echo "Compiling schemas and updating icon cache..."
 glib-compile-schemas /usr/share/glib-2.0/schemas/
