@@ -46,3 +46,4 @@ install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance-symbolic.svg %{buildroot}
 %{_datadir}/glib-2.0/schemas/com.sidevesh.Luminance.gschema.xml
 %{_libdir}/udev/rules.d/44-backlight-permissions.rules
 %{_datadir}/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
+%{_datadir}/icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg
