@@ -81,7 +81,7 @@ https://www.ddcutil.com/i2c_permissions/
     ```
 
     You should now be able to find Luminance in your list of apps
-    * Installing the application is necessary for it to work because this using gsettings to store preferences and will need the schema files to be installed.
+    * Installing the application is necessary for it to work because it uses gsettings to store preferences and will need the schema files to be installed.
       You can read the install.sh script and copy the schema files yourself if you don't want to do all the install steps.
 
 
@@ -134,3 +134,5 @@ Project Link: [https://github.com/sidevesh/Luminance](https://github.com/sideves
 
 - @ahshabbir : for ddcbc-api and ddcbc-gtk: https://github.com/ahshabbir/ddcbc-api
 - @rockowitz : for ddcutil c api: https://github.com/rockowitz/ddcutil
+- @jimmac : for the awesome new icon:
+- https://github.com/jimmac
