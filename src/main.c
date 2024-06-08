@@ -40,7 +40,7 @@ void update_window_contents_in_ui() {
 }
 
 static void activate_gtk_ui(GtkApplication *app) {
-	initialize_application_window(app);
+	initialize_application_window(GTK_APPLICATION(app));
 	update_window_contents_in_ui();
   load_displays(update_window_contents_in_ui, update_window_contents_in_ui);
 }

@@ -7,7 +7,7 @@ GtkWidget* get_link_brightness_checkbox(gboolean initial_value) {
 	gtk_widget_set_margin_end(link_brightness_checkbox, MARGIN_UNIT);
 	gtk_widget_set_margin_top(link_brightness_checkbox, MARGIN_UNIT);
 	gtk_widget_set_margin_bottom(link_brightness_checkbox, MARGIN_UNIT);
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(link_brightness_checkbox), initial_value);
+	gtk_check_button_set_active(GTK_CHECK_BUTTON(link_brightness_checkbox), initial_value);
 
 	return link_brightness_checkbox;
 }

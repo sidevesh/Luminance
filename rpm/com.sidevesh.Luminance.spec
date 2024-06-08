@@ -9,7 +9,7 @@ BuildArch:      x86_64
 
 # Define the BuildRequires and Requires packages
 BuildRequires:  pkgconfig(glib-2.0)
-BuildRequires:  pkgconfig(gtk+-3.0)
+BuildRequires:  pkgconfig(gtk4)
 
 Requires:       gtk3
 Requires:       ddcutil

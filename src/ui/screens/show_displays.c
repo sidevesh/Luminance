@@ -48,8 +48,8 @@ void _update_display_brightness_scales(GtkRange *range, guint data) {
 	}
 }
 
-void _link_brightness(GtkToggleButton *link_brightness_checkbox) {
-	gboolean is_brightness_linked = gtk_toggle_button_get_active(link_brightness_checkbox);
+void _link_brightness(GtkCheckButton *link_brightness_checkbox) {
+	gboolean is_brightness_linked = gtk_check_button_get_active(link_brightness_checkbox);
 	set_is_brightness_linked(is_brightness_linked);
 
 	if (!is_brightness_linked) {
