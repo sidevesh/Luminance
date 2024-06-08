@@ -14,27 +14,46 @@ typedef struct display_section {
 display_section **_display_sections;
 guint _display_sections_count = 0;
 
-gboolean _set_brightness(GtkWidget *widget, GdkEvent *event, guint data) {
-	guint index_of_display_section = GPOINTER_TO_UINT(data);
+#include <gtk/gtk.h>
 
+static void _set_brightness(GtkGesture *gesture, gdouble offset_x, gdouble offset_y, gpointer user_data)
+{
+	guint index_of_display_section = GPOINTER_TO_UINT(user_data);
 	display_section *display_section = _display_sections[index_of_display_section];
 
-	guint16 new_brightness_percentage = gtk_range_get_value(GTK_RANGE(widget));
+	GtkWidget *scale_widget = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture));
+	GtkRange *range = GTK_RANGE(scale_widget);
+	gdouble current_value = gtk_range_get_value(range);
+
+	gdouble new_value = current_value;
+	if (GTK_IS_GESTURE_DRAG(gesture)) {
+		// For drag, you might want to adjust based on the drag distance
+		// This is a simple example, you may want to fine-tune it
+		new_value += offset_x * 0.1;  // Adjust 0.1 to control sensitivity
+	} else if (GTK_IS_EVENT_CONTROLLER_SCROLL(gesture)) {
+		// For scroll, adjust up or down
+		new_value += (offset_y < 0) ? 1.0 : -1.0;  // Scroll up increases, down decreases
+	}
+
+	// Clamp the new value between 0 and 100
+	new_value = CLAMP(new_value, 0.0, 100.0);
+
+	guint16 new_brightness_percentage = (guint16)new_value;
 	set_display_brightness_percentage(display_section->display_index, new_brightness_percentage);
+
+	// Update the range value (this will trigger _update_display_brightness_scales)
+	gtk_range_set_value(range, new_value);
 
 	if (get_is_brightness_linked()) {
 		for (guint index = 0; index < _display_sections_count; index++) {
-			GtkWidget *scale = _display_sections[index]->scale;
-
 			if (_display_sections[index]->display_index == display_section->display_index) {
-				continue;
+				continue;  // Skip the current display
 			}
-			gtk_range_set_value(GTK_RANGE(scale), new_brightness_percentage);
+			GtkRange *linked_range = GTK_RANGE(_display_sections[index]->scale);
+			gtk_range_set_value(linked_range, new_value);
 			set_display_brightness_percentage(_display_sections[index]->display_index, new_brightness_percentage);
 		}
 	}
-
-	return FALSE;
 }
 
 void _update_display_brightness_scales(GtkRange *range, guint data) {
@@ -84,9 +103,16 @@ GtkWidget* get_show_displays_screen() {
 		display_section_instance->display_index = index;
 		display_section_instance->label = get_display_label(get_display_name(index));
 		display_section_instance->scale = get_display_brightness_scale(get_display_brightness_percentage(index), 100.0);
-		g_signal_connect(display_section_instance->scale, "button-release-event", G_CALLBACK(_set_brightness), GUINT_TO_POINTER(index));
-		g_signal_connect(display_section_instance->scale, "scroll-event", G_CALLBACK(_set_brightness), GUINT_TO_POINTER(index));
+
 		g_signal_connect(display_section_instance->scale, "value-changed", G_CALLBACK(_update_display_brightness_scales), GUINT_TO_POINTER(index));
+		GtkGesture *drag_gesture = gtk_gesture_drag_new();
+		gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(drag_gesture), 0);
+		g_signal_connect(drag_gesture, "drag-end", G_CALLBACK(_set_brightness), GUINT_TO_POINTER(index));
+		gtk_widget_add_controller(display_section_instance->scale, GTK_EVENT_CONTROLLER(drag_gesture));
+		GtkEventController *scroll_controller = gtk_event_controller_scroll_new(GTK_EVENT_CONTROLLER_SCROLL_BOTH_AXES);
+		g_signal_connect(scroll_controller, "scroll", G_CALLBACK(_set_brightness), GUINT_TO_POINTER(index));
+		gtk_widget_add_controller(display_section_instance->scale, GTK_EVENT_CONTROLLER(scroll_controller));
+
 		display_section_instance->separator_left_column = get_separator();
 		display_section_instance->separator_right_column = get_separator();
 		display_section_instance->icon = get_display_icon();
