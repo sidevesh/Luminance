@@ -1,5 +1,4 @@
 #include <gtk/gtk.h>
-
 #include "../../states/displays.c"
 
 typedef struct display_section {
@@ -14,18 +13,14 @@ typedef struct display_section {
 display_section **_display_sections;
 guint _display_sections_count = 0;
 
-#include <gtk/gtk.h>
-
-static void _set_brightness(GtkGesture *gesture, gdouble offset_x, gdouble offset_y, gpointer user_data)
-{
+static void _set_brightness(GtkGesture *gesture, gdouble offset_x, gdouble offset_y, gpointer user_data) {
 	guint index_of_display_section = GPOINTER_TO_UINT(user_data);
 	display_section *display_section = _display_sections[index_of_display_section];
-
 	GtkWidget *scale_widget = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture));
 	GtkRange *range = GTK_RANGE(scale_widget);
 	gdouble current_value = gtk_range_get_value(range);
-
 	gdouble new_value = current_value;
+
 	if (GTK_IS_GESTURE_DRAG(gesture)) {
 		// For drag, you might want to adjust based on the drag distance
 		// This is a simple example, you may want to fine-tune it
@@ -58,8 +53,8 @@ static void _set_brightness(GtkGesture *gesture, gdouble offset_x, gdouble offse
 
 void _update_display_brightness_scales(GtkRange *range, guint data) {
 	guint index_of_display_section = GPOINTER_TO_UINT(data);
-
 	guint new_value = gtk_range_get_value(range);
+
 	for (guint index = 0; index < _display_sections_count; index++) {
 		if (get_is_brightness_linked() || index == index_of_display_section) {
 			gtk_range_set_value(GTK_RANGE(_display_sections[index]->scale), new_value);
@@ -69,13 +64,13 @@ void _update_display_brightness_scales(GtkRange *range, guint data) {
 
 void _link_brightness(GtkCheckButton *link_brightness_checkbox) {
 	gboolean is_brightness_linked = gtk_check_button_get_active(link_brightness_checkbox);
-	set_is_brightness_linked(is_brightness_linked);
+	gdouble max_scale_percentage = 0;
 
+	set_is_brightness_linked(is_brightness_linked);
 	if (!is_brightness_linked) {
 		return;
 	}
 
-	gdouble max_scale_percentage = 0;
 	for (guint index = 0; index < _display_sections_count; index++) {
 		guint percentage_value = gtk_range_get_value(GTK_RANGE(_display_sections[index]->scale));
 		max_scale_percentage = percentage_value > max_scale_percentage ? percentage_value : max_scale_percentage;
@@ -89,14 +84,12 @@ void _link_brightness(GtkCheckButton *link_brightness_checkbox) {
 
 GtkWidget* get_show_displays_screen() {
 	GtkWidget *grid, *link_brightness_checkbox;
+	display_section **sections = malloc(displays_count());
+	display_section *sibling = NULL;
 
 	grid = gtk_grid_new();
-
-	display_section **sections = malloc(displays_count());
 	_display_sections = sections;
 	_display_sections_count = displays_count();
-
-	display_section *sibling = NULL;
 
 	for (guint index = 0; index < displays_count(); index++) {
 		display_section *display_section_instance = malloc(sizeof(display_section));

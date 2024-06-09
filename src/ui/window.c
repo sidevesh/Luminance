@@ -1,8 +1,6 @@
 #include <gtk/gtk.h>
-
 #include "../constants/main.c"
 #include "./constants/main.c"
-
 #include "../states/displays.c"
 #include "../states/laptop_lid.c"
 #include "../states/should_hide_internal_if_lid_closed.c"
@@ -54,11 +52,10 @@ void initialize_application_window(GtkApplication *app) {
 
 	gtk_window_set_resizable(GTK_WINDOW(_window), FALSE);
 	gtk_window_set_default_size(GTK_WINDOW(_window), MINIMUM_WINDOW_WIDTH, -1);  // Set the minimum width
-	// gtk_window_set_keep_above(GTK_WINDOW(_window), TRUE);
 
 	_window_header = gtk_header_bar_new();
-	// gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(_window_header), TRUE);
 	gtk_header_bar_set_show_title_buttons(GTK_HEADER_BAR(_window_header), TRUE);
+	gtk_header_bar_set_title_widget(GTK_HEADER_BAR(_window_header), gtk_label_new(""));
 
 	GtkWidget *menu_button = gtk_menu_button_new();
 	GtkWidget *menu_image = gtk_image_new_from_icon_name("open-menu-symbolic");
@@ -122,9 +119,8 @@ void initialize_application_window(GtkApplication *app) {
 	}
 
 	GtkCssProvider *header_css_provider = gtk_css_provider_new();
-	gtk_css_provider_load_from_string(header_css_provider, "headerbar {border-bottom: 0px;background-image: none;background-color: @theme_bg_color;}");
+	gtk_css_provider_load_from_string(header_css_provider, "headerbar {border-bottom: 0px;background-image: none;background-color: @theme_bg_color;box-shadow: none;}");
 	gtk_style_context_add_provider(gtk_widget_get_style_context(_window_header), GTK_STYLE_PROVIDER(header_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
 	gtk_window_set_titlebar(GTK_WINDOW(_window), _window_header);
 }
 
@@ -139,19 +135,6 @@ void update_window_content_screen(GtkWidget *new_window_content_screen) {
 	gtk_window_set_default_size(GTK_WINDOW(_window), gtk_widget_get_allocated_width(_window), gtk_widget_get_allocated_height(new_window_content_screen));
 	_last_window_content_screen = new_window_content_screen;
 
-	GtkWidget *_refresh_displays_button = NULL;
-	// GList *children = gtk_widget_get_children(GTK_WIDGET(_window_header));
-	// if (g_list_length(children) > 1) {
-	// 	_refresh_displays_button = g_list_nth_data(children, 0);
-	// }
-	GtkWidget *child = gtk_widget_get_first_child(GTK_WIDGET(_window_header));
-	if (child != NULL) {
-		_refresh_displays_button = child;
-		child = gtk_widget_get_next_sibling(child);
-		if (child != NULL) {
-			_refresh_displays_button = child;
-		}
-	}
 	if (is_displays_loading() == FALSE) {
 		if (_refresh_displays_button == NULL) {
 			_refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic");
@@ -160,9 +143,11 @@ void update_window_content_screen(GtkWidget *new_window_content_screen) {
 		}
 	} else {
 		if (_refresh_displays_button != NULL) {
-			gtk_widget_unparent(_refresh_displays_button);
+			gtk_header_bar_remove(GTK_HEADER_BAR(_window_header), _refresh_displays_button);
+			// gtk_widget_unparent(_refresh_displays_button);
 			// gtk_widget_destroy(_refresh_displays_button);
 			g_object_unref(_refresh_displays_button);
+			_refresh_displays_button = NULL;
 		}
 	}
 
