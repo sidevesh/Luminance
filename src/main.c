@@ -3,6 +3,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <gtk/gtk.h>
+#include <adwaita.h>
 #include "./constants/main.c"
 #include "./osd/main.c"
 #include "./states/displays.c"
@@ -328,8 +329,9 @@ int main(int argc, char **argv) {
 		#else
 		flags = G_APPLICATION_FLAGS_NONE;
 		#endif
-    GtkApplication *app;
-    app = gtk_application_new(APP_INFO_PACKAGE_NAME, flags);
+
+    AdwApplication *app;
+    app = adw_application_new(APP_INFO_PACKAGE_NAME, flags);
     g_signal_connect(app, "activate", G_CALLBACK(activate_gtk_ui), NULL);
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);

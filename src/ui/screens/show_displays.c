@@ -124,8 +124,8 @@ GtkWidget* get_show_displays_screen() {
 	}
 
 	link_brightness_checkbox = get_link_brightness_checkbox(get_is_brightness_linked());
-	g_signal_connect(link_brightness_checkbox, "toggled", G_CALLBACK(_link_brightness), NULL);
 	gtk_grid_attach_next_to(GTK_GRID(grid), link_brightness_checkbox, sibling->separator_right_column, GTK_POS_BOTTOM, 1, 1);
+	g_signal_connect(link_brightness_checkbox, "toggled", G_CALLBACK(_link_brightness), NULL);
 
 	return grid;
 }

@@ -10,7 +10,6 @@ void _on_no_displays_screen_refresh_button_clicked(GtkWidget *widget, gpointer d
 
 GtkWidget* get_no_displays_screen() {
   GtkWidget *box, *image, *title, *subtitle, *button;
-	GtkStyleContext *button_style_context;
 	GtkCssProvider *button_css_provider;
 
   box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
@@ -37,7 +36,7 @@ GtkWidget* get_no_displays_screen() {
 	button = gtk_button_new_with_label("Refresh");
   gtk_widget_add_css_class(button, "circular");
 	button_css_provider = gtk_css_provider_new();
-  gtk_css_provider_load_from_string(button_css_provider, "button {padding-left: 10px;padding-right: 10px;padding-top: 2px;padding-bottom: 2px;}");
+  gtk_css_provider_load_from_string(button_css_provider, "button {padding-left: 12px;padding-right: 12px;padding-top: 4px;padding-bottom: 4px;}");
   gtk_style_context_add_provider(gtk_widget_get_style_context(button), GTK_STYLE_PROVIDER(button_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
   gtk_widget_set_halign(button, GTK_ALIGN_CENTER);
   gtk_widget_set_valign(button, GTK_ALIGN_CENTER);
