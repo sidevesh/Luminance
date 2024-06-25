@@ -30,8 +30,6 @@ void _open_about_dialog_and_close_popover() {
 	AdwDialog *about_dialog = adw_about_dialog_new();
 
 	gtk_popover_popdown(GTK_POPOVER(_menu_popover));
-
-	gtk_window_set_transient_for(GTK_WINDOW(about_dialog), GTK_WINDOW(_window));
 	adw_about_dialog_set_application_name(ADW_ABOUT_DIALOG(about_dialog), APP_INFO_DISPLAY_NAME);
 	adw_about_dialog_set_version(ADW_ABOUT_DIALOG(about_dialog), APP_INFO_VERSION_NUMBER);
 	adw_about_dialog_set_comments(ADW_ABOUT_DIALOG(about_dialog), APP_INFO_DESCRIPTION);
@@ -71,8 +69,6 @@ void initialize_application_window(GtkApplication *app) {
 		gtk_style_context_add_provider(should_hide_internal_if_lid_closed_checkbox_style_context, GTK_STYLE_PROVIDER(should_hide_internal_if_lid_closed_checkbox_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 		gtk_style_context_add_class(should_hide_internal_if_lid_closed_checkbox_style_context, "flat");
 
-		GtkWidget *should_hide_internal_if_lid_closed_checkbox_label = gtk_label_new(NULL);
-		gtk_widget_set_parent(should_hide_internal_if_lid_closed_checkbox_label, should_hide_internal_if_lid_closed_checkbox);
 		gtk_box_append(GTK_BOX(menu_box), should_hide_internal_if_lid_closed_checkbox);
 		g_signal_connect(should_hide_internal_if_lid_closed_checkbox, "toggled", G_CALLBACK(_on_should_hide_internal_if_lid_closed_checkbox_toggled), NULL);
 
@@ -94,15 +90,13 @@ void initialize_application_window(GtkApplication *app) {
 	gtk_style_context_add_provider(about_button_style_context, GTK_STYLE_PROVIDER(about_button_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 	gtk_style_context_add_class(about_button_style_context, "flat");
 
-	GtkWidget *about_button_label = gtk_label_new(NULL);
-	gtk_widget_set_parent(about_button_label, about_button);
 	gtk_box_append(GTK_BOX(menu_box), about_button);
 	g_signal_connect(about_button, "clicked", G_CALLBACK(_open_about_dialog_and_close_popover), NULL);
 
 	gtk_popover_set_child(GTK_POPOVER(_menu_popover), menu_box);
 	gtk_menu_button_set_popover(GTK_MENU_BUTTON(menu_button), _menu_popover);
 	gtk_header_bar_pack_end(GTK_HEADER_BAR(_window_header), menu_button);
-	gtk_widget_show(menu_box);
+	gtk_widget_set_visible(menu_box, true);
 
 	if (is_displays_loading() == FALSE) {
 		_refresh_displays_button = gtk_button_new_from_icon_name("view-refresh-symbolic");
@@ -119,12 +113,10 @@ void initialize_application_window(GtkApplication *app) {
 void update_window_content_screen(GtkWidget *new_window_content_screen) {
 	if (_last_window_content_screen != NULL) {
 		gtk_widget_unparent(_last_window_content_screen);
-		// gtk_widget_destroy(_last_window_content_screen);
 		g_object_unref(_last_window_content_screen);
 	}
 	gtk_window_set_child(GTK_WINDOW(_window), new_window_content_screen);
-	// gtk_window_resize(GTK_WINDOW(_window), gtk_widget_get_allocated_width(_window), gtk_widget_get_allocated_height(new_window_content_screen));
-	gtk_window_set_default_size(GTK_WINDOW(_window), gtk_widget_get_allocated_width(_window), gtk_widget_get_allocated_height(new_window_content_screen));
+	gtk_window_set_default_size(GTK_WINDOW(_window), gtk_widget_get_width(_window), gtk_widget_get_height(new_window_content_screen));
 	_last_window_content_screen = new_window_content_screen;
 
 	if (is_displays_loading() == FALSE) {
@@ -136,12 +128,11 @@ void update_window_content_screen(GtkWidget *new_window_content_screen) {
 	} else {
 		if (_refresh_displays_button != NULL) {
 			gtk_header_bar_remove(GTK_HEADER_BAR(_window_header), _refresh_displays_button);
-			// gtk_widget_unparent(_refresh_displays_button);
-			// gtk_widget_destroy(_refresh_displays_button);
+			gtk_widget_unparent(_refresh_displays_button);
 			g_object_unref(_refresh_displays_button);
 			_refresh_displays_button = NULL;
 		}
 	}
 
-	gtk_widget_show(_window);
+	gtk_widget_set_visible(_window, true);
 }
