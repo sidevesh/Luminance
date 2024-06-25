@@ -3,7 +3,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <gtk/gtk.h>
-
+#include <adwaita.h>
 #include "./constants/main.c"
 #include "./osd/main.c"
 #include "./states/displays.c"
@@ -40,7 +40,7 @@ void update_window_contents_in_ui() {
 }
 
 static void activate_gtk_ui(GtkApplication *app) {
-	initialize_application_window(app);
+	initialize_application_window(GTK_APPLICATION(app));
 	update_window_contents_in_ui();
   load_displays(update_window_contents_in_ui, update_window_contents_in_ui);
 }
@@ -54,7 +54,6 @@ int ensure_displays_are_present_in_cli() {
   }
 }
 
-// Function to list all displays and their brightness
 int list_displays_in_cli() {
   for (guint index = 0; index < displays_count(); index++) {
     gchar *label = get_display_name(index);
@@ -65,7 +64,6 @@ int list_displays_in_cli() {
 	return 0;
 }
 
-// Function to get the brightness percentage of a specified display
 int get_display_brightness_in_cli(guint display_number) {
 	for (guint index = 0; index < displays_count(); index++) {
 		if ((index + 1) == display_number) {
@@ -90,13 +88,12 @@ void set_brightness_percentage_in_cli(guint display_index, double brightness_per
 	fprintf(stderr, "Invalid display number: %d\n", display_index + 1);
 }
 
-// Function to set the brightness of a specified display
 int set_display_brightness_if_needed_in_cli(guint display_number, guint brightness_percentage, gchar option, gchar show_osd) {
-  load_displays(NULL, NULL);
-  ensure_displays_are_present_in_cli();
-
 	gdouble linked_all_displays_brightness_percentage = -1;
 	gdouble non_linked_all_displays_brightness_percentages_average = -1;
+
+  load_displays(NULL, NULL);
+  ensure_displays_are_present_in_cli();
 
 	for (guint index = 0; index < displays_count(); index++) {
 		if (display_number == 0 || (index + 1) == display_number) {
@@ -158,7 +155,6 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
 	return 0;
 }
 
-// Function to display command-line arguments and help information
 int display_help_in_cli() {
   printf("Usage: %s [OPTIONS]\n", APP_INFO_PACKAGE_NAME);
   printf("An application to control brightness of displays including external displays supporting DDC/CI\n");
@@ -180,7 +176,6 @@ int display_help_in_cli() {
 	return 0;
 }
 
-// CLI argument parsing
 int parse_cli_arguments(int argc, char **argv) {
   struct option long_options[] = {
     {"list-displays", no_argument, NULL, 'l'},
@@ -303,11 +298,9 @@ int parse_cli_arguments(int argc, char **argv) {
 	if (status == 0 && show_osd != 0) {
 		show_osd_after_brightness_change(show_osd);
 	}
-
 	return status;
 }
 
-// Entry point of the program
 int main(int argc, char **argv) {
   // Check if the lock file exists
   if (g_file_test(LOCK_FILE_PATH, G_FILE_TEST_EXISTS)) {
@@ -336,8 +329,9 @@ int main(int argc, char **argv) {
 		#else
 		flags = G_APPLICATION_FLAGS_NONE;
 		#endif
-    GtkApplication *app;
-    app = gtk_application_new(APP_INFO_PACKAGE_NAME, flags);
+
+    AdwApplication *app;
+    app = adw_application_new(APP_INFO_PACKAGE_NAME, flags);
     g_signal_connect(app, "activate", G_CALLBACK(activate_gtk_ui), NULL);
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);

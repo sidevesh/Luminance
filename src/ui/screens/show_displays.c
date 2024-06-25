@@ -1,5 +1,4 @@
 #include <gtk/gtk.h>
-
 #include "../../states/displays.c"
 
 typedef struct display_section {
@@ -14,49 +13,36 @@ typedef struct display_section {
 display_section **_display_sections;
 guint _display_sections_count = 0;
 
-gboolean _set_brightness(GtkWidget *widget, GdkEvent *event, guint data) {
+void _update_display_brightness(GtkRange *range, guint data) {
 	guint index_of_display_section = GPOINTER_TO_UINT(data);
+	guint new_value = gtk_range_get_value(range);
 
-	display_section *display_section = _display_sections[index_of_display_section];
-
-	guint16 new_brightness_percentage = gtk_range_get_value(GTK_RANGE(widget));
-	set_display_brightness_percentage(display_section->display_index, new_brightness_percentage);
+	// Clamp the new value between 0 and 100
+	new_value = CLAMP(new_value, 0.0, 100.0);
+	guint16 new_brightness_percentage = (guint16)new_value;
+	set_display_brightness_percentage(index_of_display_section, new_brightness_percentage);
 
 	if (get_is_brightness_linked()) {
 		for (guint index = 0; index < _display_sections_count; index++) {
-			GtkWidget *scale = _display_sections[index]->scale;
-
-			if (_display_sections[index]->display_index == display_section->display_index) {
-				continue;
+			if (_display_sections[index]->display_index == index_of_display_section) {
+				continue;  // Skip the current display
 			}
-			gtk_range_set_value(GTK_RANGE(scale), new_brightness_percentage);
+			GtkRange *linked_range = GTK_RANGE(_display_sections[index]->scale);
+			gtk_range_set_value(linked_range, new_value);
 			set_display_brightness_percentage(_display_sections[index]->display_index, new_brightness_percentage);
 		}
 	}
-
-	return FALSE;
 }
 
-void _update_display_brightness_scales(GtkRange *range, guint data) {
-	guint index_of_display_section = GPOINTER_TO_UINT(data);
+void _link_brightness(GtkCheckButton *link_brightness_checkbox) {
+	gboolean is_brightness_linked = gtk_check_button_get_active(link_brightness_checkbox);
+	gdouble max_scale_percentage = 0;
 
-	guint new_value = gtk_range_get_value(range);
-	for (guint index = 0; index < _display_sections_count; index++) {
-		if (get_is_brightness_linked() || index == index_of_display_section) {
-			gtk_range_set_value(GTK_RANGE(_display_sections[index]->scale), new_value);
-		}
-	}
-}
-
-void _link_brightness(GtkToggleButton *link_brightness_checkbox) {
-	gboolean is_brightness_linked = gtk_toggle_button_get_active(link_brightness_checkbox);
 	set_is_brightness_linked(is_brightness_linked);
-
 	if (!is_brightness_linked) {
 		return;
 	}
 
-	gdouble max_scale_percentage = 0;
 	for (guint index = 0; index < _display_sections_count; index++) {
 		guint percentage_value = gtk_range_get_value(GTK_RANGE(_display_sections[index]->scale));
 		max_scale_percentage = percentage_value > max_scale_percentage ? percentage_value : max_scale_percentage;
@@ -70,23 +56,20 @@ void _link_brightness(GtkToggleButton *link_brightness_checkbox) {
 
 GtkWidget* get_show_displays_screen() {
 	GtkWidget *grid, *link_brightness_checkbox;
+	display_section **sections = malloc(displays_count());
+	display_section *sibling = NULL;
 
 	grid = gtk_grid_new();
-
-	display_section **sections = malloc(displays_count());
 	_display_sections = sections;
 	_display_sections_count = displays_count();
-
-	display_section *sibling = NULL;
 
 	for (guint index = 0; index < displays_count(); index++) {
 		display_section *display_section_instance = malloc(sizeof(display_section));
 		display_section_instance->display_index = index;
 		display_section_instance->label = get_display_label(get_display_name(index));
 		display_section_instance->scale = get_display_brightness_scale(get_display_brightness_percentage(index), 100.0);
-		g_signal_connect(display_section_instance->scale, "button-release-event", G_CALLBACK(_set_brightness), GUINT_TO_POINTER(index));
-		g_signal_connect(display_section_instance->scale, "scroll-event", G_CALLBACK(_set_brightness), GUINT_TO_POINTER(index));
-		g_signal_connect(display_section_instance->scale, "value-changed", G_CALLBACK(_update_display_brightness_scales), GUINT_TO_POINTER(index));
+		g_signal_connect(display_section_instance->scale, "value-changed", G_CALLBACK(_update_display_brightness), GUINT_TO_POINTER(index));
+
 		display_section_instance->separator_left_column = get_separator();
 		display_section_instance->separator_right_column = get_separator();
 		display_section_instance->icon = get_display_icon();
@@ -105,8 +88,8 @@ GtkWidget* get_show_displays_screen() {
 	}
 
 	link_brightness_checkbox = get_link_brightness_checkbox(get_is_brightness_linked());
-	g_signal_connect(link_brightness_checkbox, "toggled", G_CALLBACK(_link_brightness), NULL);
 	gtk_grid_attach_next_to(GTK_GRID(grid), link_brightness_checkbox, sibling->separator_right_column, GTK_POS_BOTTOM, 1, 1);
+	g_signal_connect(link_brightness_checkbox, "toggled", G_CALLBACK(_link_brightness), NULL);
 
 	return grid;
 }

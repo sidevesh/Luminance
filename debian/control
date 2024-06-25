@@ -1,8 +1,8 @@
 Package: luminance
-Version: 1.0.3
+Version: 1.1.0
 Architecture: amd64
 Maintainer: Swapnil Devesh <me@sidevesh.com>
 Homepage: https://github.com/sidevesh/Luminance
 Description: A simple GTK application to control brightness of displays including external displays supporting DDC/CI
 License: GPL-3.0
-Depends: libgtk-3-0, ddcutil, libddcutil4
+Depends: libgtk-4-1, libadwaita-1-0, ddcutil, libddcutil4
