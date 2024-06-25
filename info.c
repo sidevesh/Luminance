@@ -1,4 +1,4 @@
-#define APP_INFO_VERSION_NUMBER "1.0.3"
+#define APP_INFO_VERSION_NUMBER "1.1.0"
 #define APP_INFO_PACKAGE_NAME "com.sidevesh.Luminance"
 #define APP_INFO_DISPLAY_NAME "Luminance"
 #define APP_INFO_ICON_NAME "com.sidevesh.Luminance"
