@@ -35,25 +35,24 @@ Latest rpm release is available on the releases page https://github.com/sidevesh
 
 ### Dependencies
 - ddcutil library package (typically libddcutil or libddcutil-dev if not already installed with ddcutil)
-- GTK 3.0
+- GTK 4.0
+- Libadwaita
 
 ### Steps
 1. Firstly, ensure that all the dependencies are installed:
 
     ##### Arch Linux:
     ```
-    pacman -S --needed ddcutil gtk3
+    pacman -S --needed glib2 gtk4 libadwaita ddcutil
     ```
     
     ##### Ubuntu-based distros (credit @aidengilmartin):
     ```
-    sudo apt install libgtk3-dev gcc
-    sudo add-apt-repository ppa:rockowitz/ddcutil # add ddcutil repo
-    sudo apt install ddcutil libddcutil-dev
+    sudo apt install gcc libglib2.0-dev libgtk-4-dev libadwaita-1-dev libddcutil-dev
     ```
     ##### Fedora:
     ```
-    sudo dnf install ddcutil libddcutil libddcutil-devel gtk3-devel gcc
+    sudo dnf install gcc glib2-devel gtk4-devel libadwaita-devel libddcutil-devel
     ```
 
 2. Ensure that your user has access to the i2c devices:
@@ -134,5 +133,4 @@ Project Link: [https://github.com/sidevesh/Luminance](https://github.com/sideves
 
 - @ahshabbir : for ddcbc-api and ddcbc-gtk: https://github.com/ahshabbir/ddcbc-api
 - @rockowitz : for ddcutil c api: https://github.com/rockowitz/ddcutil
-- @jimmac : for the awesome new icon:
-- https://github.com/jimmac
+- @jimmac : for the awesome new icon: https://github.com/jimmac

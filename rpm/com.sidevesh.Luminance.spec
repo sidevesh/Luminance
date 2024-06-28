@@ -10,10 +10,13 @@ BuildArch:      x86_64
 # Define the BuildRequires and Requires packages
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(gtk4)
+BuildRequires:  pkgconfig(libadwaita-1)
+BuildRequires:  pkgconfig(ddcutil)
 
+Requires:       glib2
 Requires:       gtk4
 Requires:       libadwaita
-Requires:       ddcutil
+Requires:       libddcutil
 
 %description
 Luminance is a simple GTK application that allows you to control the brightness of displays, including external displays supporting DDC/CI.

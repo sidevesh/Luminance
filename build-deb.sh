@@ -14,6 +14,7 @@ mkdir -p ./build/debian-package-files/usr/share/applications
 mkdir -p ./build/debian-package-files/usr/share/glib-2.0/schemas
 mkdir -p ./build/debian-package-files/usr/lib/udev/rules.d
 mkdir -p ./build/debian-package-files/usr/share/icons/hicolor/scalable/apps
+mkdir -p ./build/debian-package-files/usr/share/icons/hicolor/symbolic/apps
 
 echo "Copying files to the package structure..."
 cp ./debian/control ./build/debian-package-files/DEBIAN/control
