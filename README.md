@@ -34,9 +34,9 @@ Latest rpm release is available on the releases page https://github.com/sidevesh
 ## Install from source
 
 ### Dependencies
-- ddcutil library package (typically libddcutil or libddcutil-dev if not already installed with ddcutil)
 - GTK 4.0
 - Libadwaita
+- ddcutil library package (typically libddcutil or libddcutil-dev if not already installed with ddcutil)
 
 ### Steps
 1. Firstly, ensure that all the dependencies are installed:
