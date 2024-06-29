@@ -28,6 +28,8 @@
 ## Install deb package (Debian and Ubuntu based distros):
 Latest deb release is available on the releases page https://github.com/sidevesh/Luminance/releases
 
+* Version 1.0.4 is the last supported version for Ubuntu before 24.04, Debian or any other Debian based distro that does not have atleast libadwaita 1.5 version
+
 ## Install rpm package (Fedora, OpenSUSE and other rpm based distros):
 Latest rpm release is available on the releases page https://github.com/sidevesh/Luminance/releases
 
