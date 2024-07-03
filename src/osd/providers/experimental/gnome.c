@@ -1,3 +1,5 @@
+#include "osd/gnome.h"
+
 #include <gtk/gtk.h>
 
 void show_gnome_osd(gdouble brightness_percentage) {

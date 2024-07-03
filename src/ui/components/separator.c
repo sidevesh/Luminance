@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
-#include "../constants/main.c"
+
+#include "ui/constants.h"
+#include "ui/components.h"
 
 GtkWidget* get_separator() {
 	GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);

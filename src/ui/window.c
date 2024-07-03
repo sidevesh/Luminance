@@ -1,10 +1,12 @@
 #include <gtk/gtk.h>
 #include <adwaita.h>
-#include "../constants/main.c"
-#include "./constants/main.c"
-#include "../states/displays.c"
-#include "../states/laptop_lid.c"
-#include "../states/should_hide_internal_if_lid_closed.c"
+
+#include "constants.h"
+#include "ui/constants.h"
+#include "ui/window.h"
+
+#include "states/displays.h"
+#include "states/lid.h"
 
 GtkWidget *_window;
 GtkWidget *_window_header;
@@ -16,11 +18,11 @@ extern GtkApplication *app;
 
 extern void update_window_contents_in_ui();
 
-void _on_window_refresh_button_clicked(GtkWidget *widget, gpointer data) {
+void _on_window_refresh_button_clicked(G_GNUC_UNUSED GtkWidget *widget, G_GNUC_UNUSED gpointer data) {
 	reload_displays(update_window_contents_in_ui, update_window_contents_in_ui);
 }
 
-void _on_should_hide_internal_if_lid_closed_checkbox_toggled(GtkCheckButton *widget, gpointer data) {
+void _on_should_hide_internal_if_lid_closed_checkbox_toggled(GtkCheckButton *widget, G_GNUC_UNUSED gpointer data) {
 	gboolean should_hide_internal_if_lid_closed = gtk_check_button_get_active(widget);
 	gtk_check_button_set_active(GTK_CHECK_BUTTON(widget), should_hide_internal_if_lid_closed);
 	set_should_hide_internal_if_lid_closed(should_hide_internal_if_lid_closed);

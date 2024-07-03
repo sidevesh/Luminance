@@ -1,5 +1,5 @@
 #ifndef APP_INFO_VERSION_NUMBER
-#include "../../info.c"
+#include "info.h"
 #endif
 
 #ifndef LOCK_FILE_PATH

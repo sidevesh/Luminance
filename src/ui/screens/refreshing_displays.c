@@ -1,5 +1,7 @@
+#include "ui/screens.h"
+
 #include <gtk/gtk.h>
-#include "../constants/main.c"
+#include "ui/constants.h"
 
 GtkWidget* get_refreshing_displays_screen() {
   GtkWidget *box, *image, *title, *spinner;

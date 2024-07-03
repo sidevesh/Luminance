@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
-#include "../constants/main.c"
+
+#include "ui/constants.h"
+#include "ui/components.h"
 
 
 static char* format_brightness_value(GtkScale *scale, gdouble value, gpointer data) {

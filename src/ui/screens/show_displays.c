@@ -1,5 +1,11 @@
+#include "ui/screens.h"
+
 #include <gtk/gtk.h>
-#include "../../states/displays.c"
+
+#include "states/is_brightness_linked.h"
+#include "states/displays.h"
+
+#include "ui/components.h"
 
 typedef struct display_section {
   GtkWidget *icon;
@@ -10,8 +16,9 @@ typedef struct display_section {
   guint display_index;
 } display_section;
 
-display_section **_display_sections;
-guint _display_sections_count = 0;
+static display_section **_display_sections;
+static guint _display_sections_count = 0;
+
 
 void _update_display_brightness(GtkRange *range, guint data) {
 	guint index_of_display_section = GPOINTER_TO_UINT(data);

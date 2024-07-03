@@ -1,10 +1,12 @@
+#include "ui/screens.h"
+
 #include <gtk/gtk.h>
-#include "../constants/main.c"
-#include "../../states/displays.c"
+#include "ui/constants.h"
+#include "states/displays.h"
 
 extern void update_window_contents_in_ui();
 
-void _on_no_displays_screen_refresh_button_clicked(GtkWidget *widget, gpointer data) {
+void _on_no_displays_screen_refresh_button_clicked(G_GNUC_UNUSED GtkWidget *widget, G_GNUC_UNUSED gpointer data) {
 	reload_displays(update_window_contents_in_ui, update_window_contents_in_ui);
 }
 
