@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
-#include "../constants/main.c"
+
+#include "ui/constants.h"
+#include "ui/components.h"
 
 GtkWidget* get_link_brightness_checkbox(gboolean initial_value) {
 	GtkWidget *link_brightness_checkbox = gtk_check_button_new_with_label("Sync brightness of all displays");

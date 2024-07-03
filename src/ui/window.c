@@ -1,10 +1,12 @@
 #include <gtk/gtk.h>
 #include <adwaita.h>
-#include "../constants/main.c"
-#include "./constants/main.c"
-#include "../states/displays.c"
-#include "../states/laptop_lid.c"
-#include "../states/should_hide_internal_if_lid_closed.c"
+
+#include "constants.h"
+#include "ui/constants.h"
+#include "ui/window.h"
+
+#include "states/displays.h"
+#include "states/lid.h"
 
 GtkWidget *_window;
 GtkWidget *_window_header;

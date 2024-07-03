@@ -1,7 +1,6 @@
-#include <gtk/gtk.h>
+#include "states/lid.h"
 
-#ifndef LAPTOP_LID_STATE
-#define LAPTOP_LID_STATE
+#include <gtk/gtk.h>
 
 gboolean get_has_lid() {
   FILE* lid_state_file = fopen("/proc/acpi/button/lid/LID0/state", "r");
@@ -32,5 +31,3 @@ gboolean is_lid_open() {
 
   return FALSE;
 }
-
-#endif

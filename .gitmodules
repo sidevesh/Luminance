@@ -1,5 +1,5 @@
 [submodule "ddcbc-api"]
-	path = ddcbc-api
+	path = subprojects/ddcbc-api
 	url = https://github.com/ahshabbir/ddcbc-api.git
 	branch = master
 [submodule "arch"]

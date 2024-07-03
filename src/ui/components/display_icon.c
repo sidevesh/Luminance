@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
-#include "../constants/main.c"
+
+#include "ui/constants.h"
+#include "ui/components.h"
 
 GtkWidget* get_display_icon() {
 	GtkWidget *icon = gtk_image_new_from_icon_name("video-display-symbolic");

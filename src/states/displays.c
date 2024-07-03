@@ -1,25 +1,10 @@
-#include "../constants/main.c"
+#include "states/displays.h"
 
-#ifndef BRIGHTNESS_CODE
-#include "../../ddcbc-api/ddcbc-api.c"
-#endif
+#include "constants.h"
 
-#include "./laptop_lid.c"
-#include "./should_hide_internal_if_lid_closed.c"
+#include "ddcbc-api.h"
 
-#ifndef DISPLAYS_STATE
-#define DISPLAYS_STATE
-
-#ifndef DT_DIR
-#define DT_DIR 4
-#endif
-
-// Define constants for display types
-#define DISPLAY_TYPE_DDC 0
-#define DISPLAY_TYPE_INTERNAL_BACKLIGHT 1
-
-#define MAX_DISPLAYS 20
-#define MAX_INTERNAL_BACKLIGHT_DISPLAYS 10
+#include "states/lid.h"
 
 // Array structure for display indexes
 typedef struct {
@@ -28,18 +13,19 @@ typedef struct {
 } GlobalDisplayIndex;
 
 // Declare the display indexes array
-GlobalDisplayIndex _display_indexes[MAX_DISPLAYS];
-guint _display_indexes_count = 0;
-gchar* _internal_backlight_display_directories[MAX_INTERNAL_BACKLIGHT_DISPLAYS];
-guint _internal_backlight_display_directories_count = 0;
+static GlobalDisplayIndex _display_indexes[MAX_DISPLAYS];
+static guint _display_indexes_count = 0;
+static gchar* _internal_backlight_display_directories[MAX_INTERNAL_BACKLIGHT_DISPLAYS];
+static guint _internal_backlight_display_directories_count = 0;
 
-gboolean _is_displays_loading = TRUE;
-ddcbc_display_list *_display_list;
-ddcbc_display_list _display_list_instance;
-int _last_displays_load_time = 0;
-void (*_on_refresh_completed_callback)() = NULL;
+static gboolean _is_displays_loading = TRUE;
+static ddcbc_display_list *_display_list;
+static ddcbc_display_list _display_list_instance;
 
-guint _on_refresh_displays_completed_callback_timeout_id = 0;
+static int _last_displays_load_time = 0;
+static void (*_on_refresh_completed_callback)() = NULL;
+
+static guint _on_refresh_displays_completed_callback_timeout_id = 0;
 
 void _initialize_displays(gboolean first_time_loading) {
   time_t start_loading_displays_time;
@@ -240,4 +226,3 @@ void set_display_brightness_percentage(guint index, gdouble brightness_percentag
   }
 }
 
-#endif

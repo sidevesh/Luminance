@@ -1,12 +1,9 @@
+#include "osd/osd.h"
+#include "osd/gnome.h"
+
 #include <gtk/gtk.h>
-#include "./providers/experimental/gnome.c"
 
-#ifndef OSD
-#define OSD
-
-#define GNOME_OSD 'g'
-
-gdouble _osd_brightness_percentage_to_show = -1;
+static gdouble _osd_brightness_percentage_to_show = -1;
 
 gboolean is_osd_provider_supported(gchar provider) {
   if (provider == GNOME_OSD) {
@@ -32,4 +29,3 @@ void show_osd_after_brightness_change(gchar provider) {
   _osd_brightness_percentage_to_show = -1;
 }
 
-#endif

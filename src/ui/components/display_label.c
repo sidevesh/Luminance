@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
-#include "../constants/main.c"
+
+#include "ui/constants.h"
+#include "ui/components.h"
 
 GtkWidget* get_display_label(gchar *text) {
 	GtkWidget *label = gtk_label_new(text);

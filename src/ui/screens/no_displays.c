@@ -1,6 +1,8 @@
+#include "ui/screens.h"
+
 #include <gtk/gtk.h>
-#include "../constants/main.c"
-#include "../../states/displays.c"
+#include "ui/constants.h"
+#include "states/displays.h"
 
 extern void update_window_contents_in_ui();
 

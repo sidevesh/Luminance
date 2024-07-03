@@ -4,20 +4,17 @@
 #include <getopt.h>
 #include <gtk/gtk.h>
 #include <adwaita.h>
-#include "./constants/main.c"
-#include "./osd/main.c"
-#include "./states/displays.c"
-#include "./states/is_brightness_linked.c"
-#include "./ui/constants/main.c"
-#include "./ui/components/display_brightness_scale.c"
-#include "./ui/components/display_icon.c"
-#include "./ui/components/display_label.c"
-#include "./ui/components/link_brightness_check_button.c"
-#include "./ui/components/separator.c"
-#include "./ui/screens/show_displays.c"
-#include "./ui/screens/no_displays.c"
-#include "./ui/screens/refreshing_displays.c"
-#include "./ui/window.c"
+
+#include "constants.h"
+#include "osd/osd.h"
+
+#include "states/displays.h"
+#include "states/is_brightness_linked.h"
+
+#include "ui/constants.h"
+#include "ui/components.h"
+#include "ui/screens.h"
+#include "ui/window.h"
 
 gboolean is_cli_mode = FALSE;
 
