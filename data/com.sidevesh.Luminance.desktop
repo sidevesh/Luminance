@@ -2,7 +2,7 @@
 Name=Luminance
 Comment=A simple GTK application to control brightness of displays including external displays supporting DDC/CI
 Icon=com.sidevesh.Luminance
-Exec=com.sidevesh.Luminance
+Exec=Luminance
 Terminal=false
 Type=Application
 Categories=GTK;Utility;

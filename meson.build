@@ -5,6 +5,8 @@ project(
 	default_options : ['warning_level=3']
 )
 
+gnome = import('gnome')
+
 project_source_files = [
     'src/osd/osd.c',
     'src/osd/providers/experimental/gnome.c',
@@ -35,17 +37,12 @@ project_dependencies = [
 	libddcbc_dep
 ]
 
-schemas_dir = get_option('prefix') / get_option('datadir') / 'glib-2.0' / 'schemas'
-settings_schemas = [ 'data/com.sidevesh.Luminance.gschema.xml' ]
-
-install_data(settings_schemas, install_dir: schemas_dir)
-
-# Compile the schemas in the current directory; this is only
-# useful for testing
-gnome = import('gnome')
-gnome.compile_schemas(depend_files: files(settings_schemas))
-
-
 executable(meson.project_name(), project_source_files, dependencies: project_dependencies, include_directories: project_include_directories, install: true)
 
-meson.add_install_script('glib-compile-schemas', schemas_dir)
+subdir('data')
+
+gnome.post_install(
+  glib_compile_schemas: true,
+  gtk_update_icon_cache: true,
+  update_desktop_database: true,
+)

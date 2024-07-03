@@ -3,7 +3,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/sidevesh/Luminance">
-    <img src="icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg" alt="Logo" width="120" height="120">
+    <img src="data/com.sidevesh.Luminance.svg" alt="Logo" width="120" height="120">
   </a>
 
 <h3 align="center">Luminance</h3>
