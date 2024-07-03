@@ -154,7 +154,7 @@ gboolean is_displays_loading() {
   return _is_displays_loading;
 }
 
-int displays_count() {
+guint displays_count() {
   return _display_indexes_count;
 }
 
@@ -191,10 +191,9 @@ gdouble get_display_brightness_percentage(guint index) {
       fclose(file);
       return brightness * 100.0 / max_brightness_value;
     }
-  } else {
-    ddcbc_display* display = _get_ddcbc_display(index);
-    return display->last_val * 100.0 / max_brightness_value;
   }
+  ddcbc_display* display = _get_ddcbc_display(index);
+  return display->last_val * 100.0 / max_brightness_value;
 }
 
 void set_display_brightness_percentage(guint index, gdouble brightness_percentage) {

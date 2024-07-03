@@ -15,7 +15,7 @@ ddcbc_display * _get_ddcbc_display (guint index);
 gboolean is_displays_loading ();
 gdouble get_display_brightness_percentage (guint index);
 guint16 _get_display_max_brightness_value (guint index);
-int displays_count ();
+guint displays_count ();
 int last_displays_load_time ();
 void _initialize_displays (gboolean first_time_loading);
 void _on_refresh_displays_completed_callback_wrapper ();
