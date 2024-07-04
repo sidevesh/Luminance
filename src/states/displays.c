@@ -1,3 +1,5 @@
+#include <glib.h>
+
 #include "../constants/main.c"
 
 #ifndef BRIGHTNESS_CODE
@@ -54,10 +56,10 @@ void _initialize_displays(gboolean first_time_loading) {
       struct dirent* entry;
       while ((entry = readdir(dir)) != NULL && internal_backlight_count < MAX_INTERNAL_BACKLIGHT_DISPLAYS) {
         if (
-          strcmp(entry->d_name, ".") != 0 &&
-          strcmp(entry->d_name, "..") != 0
+          g_strcmp0(entry->d_name, ".") != 0 &&
+          g_strcmp0(entry->d_name, "..") != 0
         ) {
-          _internal_backlight_display_directories[internal_backlight_count] = strdup(entry->d_name);
+          _internal_backlight_display_directories[internal_backlight_count] = g_strdup(entry->d_name);
           // insert the internal backlight display into the _display_indexes array
           _display_indexes[internal_backlight_count].type = DISPLAY_TYPE_INTERNAL_BACKLIGHT;
           _display_indexes[internal_backlight_count].index = internal_backlight_count;

@@ -1,3 +1,4 @@
+#include <glib.h>
 #include <gtk/gtk.h>
 
 #ifndef LAPTOP_LID_STATE
@@ -26,7 +27,7 @@ gboolean is_lid_open() {
 
   fclose(lid_state_file);
 
-  if (strcmp(state, "open") == 0) {
+  if (g_strcmp0(state, "open") == 0) {
     return TRUE;
   }
 

@@ -4,6 +4,7 @@
 #include <getopt.h>
 #include <gtk/gtk.h>
 #include <adwaita.h>
+#include "config.h"
 #include "./constants/main.c"
 #include "./osd/main.c"
 #include "./states/displays.c"
@@ -156,7 +157,7 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
 }
 
 int display_help_in_cli() {
-  printf("Usage: %s [OPTIONS]\n", APP_INFO_PACKAGE_NAME);
+  printf("Usage: %s [OPTIONS]\n", APPLICATION_ID);
   printf("An application to control brightness of displays including external displays supporting DDC/CI\n");
   printf("\n");
   printf("Options:\n");
@@ -331,7 +332,7 @@ int main(int argc, char **argv) {
 		#endif
 
     AdwApplication *app;
-    app = adw_application_new(APP_INFO_PACKAGE_NAME, flags);
+    app = adw_application_new(APPLICATION_ID, flags);
     g_signal_connect(app, "activate", G_CALLBACK(activate_gtk_ui), NULL);
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);

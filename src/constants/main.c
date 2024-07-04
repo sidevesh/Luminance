@@ -1,9 +1,7 @@
-#ifndef APP_INFO_VERSION_NUMBER
-#include "../../info.c"
-#endif
+#include "config.h"
 
 #ifndef LOCK_FILE_PATH
-#define LOCK_FILE_PATH "/tmp/" APP_INFO_PACKAGE_NAME ".lock"
+#define LOCK_FILE_PATH "/tmp/" APPLICATION_ID ".lock"
 #endif
 
 #ifndef MINIMUM_REFRESH_TIME_IN_SECONDS

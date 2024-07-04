@@ -1,5 +1,9 @@
 #include <gtk/gtk.h>
 #include <adwaita.h>
+#include "config.h"
+#ifndef APP_INFO_DISPLAY_NAME
+#include "../info.c"
+#endif
 #include "../constants/main.c"
 #include "./constants/main.c"
 #include "../states/displays.c"
@@ -31,12 +35,12 @@ void _open_about_dialog_and_close_popover() {
 
 	gtk_popover_popdown(GTK_POPOVER(_menu_popover));
 	adw_about_dialog_set_application_name(ADW_ABOUT_DIALOG(about_dialog), APP_INFO_DISPLAY_NAME);
-	adw_about_dialog_set_version(ADW_ABOUT_DIALOG(about_dialog), APP_INFO_VERSION_NUMBER);
+	adw_about_dialog_set_version(ADW_ABOUT_DIALOG(about_dialog), APPLICATION_VERSION);
 	adw_about_dialog_set_comments(ADW_ABOUT_DIALOG(about_dialog), APP_INFO_DESCRIPTION);
 	adw_about_dialog_set_website(ADW_ABOUT_DIALOG(about_dialog), APP_INFO_SOURCE_REPOSITORY_TITLE);
 	adw_about_dialog_set_issue_url(ADW_ABOUT_DIALOG(about_dialog), APP_INFO_SOURCE_REPOSITORY_LINK);
 	adw_about_dialog_set_license_type(ADW_ABOUT_DIALOG(about_dialog), APP_INFO_LICENSE);
-	adw_about_dialog_set_application_icon(ADW_ABOUT_DIALOG(about_dialog), APP_INFO_ICON_NAME);
+	adw_about_dialog_set_application_icon(ADW_ABOUT_DIALOG(about_dialog), APPLICATION_ID);
 	const char *developers[] = { APP_INFO_PROJECT_AUTHORS, NULL };
 	adw_about_dialog_set_developers(ADW_ABOUT_DIALOG(about_dialog), developers);
 	const char *artists[] = { APP_INFO_PROJECT_ARTISTS, NULL };
@@ -134,5 +138,8 @@ void update_window_content_screen(GtkWidget *new_window_content_screen) {
 		}
 	}
 
+	#ifdef DEVELOPMENT_BUILD
+	gtk_widget_add_css_class(GTK_WIDGET(_window), "devel");
+	#endif
 	gtk_widget_set_visible(_window, true);
 }
