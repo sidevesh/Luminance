@@ -23,6 +23,9 @@ static gdouble *_pending_brightness_values = NULL;
 
 static gboolean _apply_debounced_brightness(gpointer user_data) {
     guint index = GPOINTER_TO_UINT(user_data);
+    if (index >= _display_sections_count || _pending_brightness_values == NULL) {
+        return G_SOURCE_REMOVE;
+    }
     gdouble brightness = _pending_brightness_values[index];
 
     set_display_brightness_percentage(index, brightness);
@@ -50,11 +53,14 @@ void _update_display_brightness(GtkRange *range, guint data) {
 
 	_pending_brightness_values[index_of_display_section] = new_value;
 
-	_pending_brightness_timeout_ids[index_of_display_section] = g_timeout_add(
+	guint new_timeout_id = g_timeout_add(
 		BRIGHTNESS_DEBOUNCE_DELAY_MS,
 		_apply_debounced_brightness,
 		GUINT_TO_POINTER(index_of_display_section)
 	);
+	if (new_timeout_id != 0) {
+		_pending_brightness_timeout_ids[index_of_display_section] = new_timeout_id;
+	}
 
 	if (get_is_brightness_linked()) {
 		for (guint index = 0; index < _display_sections_count; index++) {
@@ -98,6 +104,10 @@ GtkWidget* get_show_displays_screen() {
 
 	_pending_brightness_timeout_ids = calloc(_display_sections_count, sizeof(guint));
 	_pending_brightness_values = calloc(_display_sections_count, sizeof(gdouble));
+
+	if (_pending_brightness_timeout_ids == NULL || _pending_brightness_values == NULL) {
+		fprintf(stderr, "Failed to allocate debounce tracking arrays\n");
+	}
 
 	for (guint index = 0; index < displays_count(); index++) {
 		display_section *display_section_instance = malloc(sizeof(display_section));
