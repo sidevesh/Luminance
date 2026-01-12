@@ -42,6 +42,9 @@ static gboolean _apply_debounced_brightness(gpointer user_data) {
 }
 
 void _update_display_brightness(GtkRange *range, guint data) {
+	if (_pending_brightness_timeout_ids == NULL || _pending_brightness_values == NULL) {
+		return;
+	}
 	guint index_of_display_section = GPOINTER_TO_UINT(data);
 	gdouble new_value = gtk_range_get_value(range);
 
@@ -93,12 +96,44 @@ void _link_brightness(GtkCheckButton *link_brightness_checkbox) {
 	}
 }
 
+
+static void _cleanup_display_resources(GtkWidget *widget, gpointer data) {
+    if (_pending_brightness_timeout_ids != NULL) {
+        for (guint i = 0; i < _display_sections_count; i++) {
+            if (_pending_brightness_timeout_ids[i] > 0) {
+                g_source_remove(_pending_brightness_timeout_ids[i]);
+            }
+        }
+        free(_pending_brightness_timeout_ids);
+        _pending_brightness_timeout_ids = NULL;
+    }
+
+    if (_pending_brightness_values != NULL) {
+        free(_pending_brightness_values);
+        _pending_brightness_values = NULL;
+    }
+
+    if (_display_sections != NULL) {
+        for (guint i = 0; i < _display_sections_count; i++) {
+            if (_display_sections[i] != NULL) {
+                free(_display_sections[i]);
+            }
+        }
+        free(_display_sections);
+        _display_sections = NULL;
+    }
+
+    _display_sections_count = 0;
+}
+
 GtkWidget* get_show_displays_screen() {
 	GtkWidget *grid, *link_brightness_checkbox;
-	display_section **sections = malloc(displays_count());
+	display_section **sections = malloc(displays_count() * sizeof(display_section *));
 	display_section *sibling = NULL;
 
 	grid = gtk_grid_new();
+    g_signal_connect(grid, "destroy", G_CALLBACK(_cleanup_display_resources), NULL);
+
 	_display_sections = sections;
 	_display_sections_count = displays_count();
 
