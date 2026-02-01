@@ -1,4 +1,4 @@
-.PHONY: all release debug install uninstall install-debug uninstall-debug clean package-deb package-rpm
+.PHONY: all release debug install uninstall install-debug uninstall-debug clean package-deb package-rpm test-arch
 
 # Build directories
 BUILD_RELEASE_DIR = build/release
@@ -66,7 +66,7 @@ package-deb: packaging-build
 	# Generate control file from template
 	sed "s/@VERSION@/$(VERSION)/g" debian/control.in > $(DEB_DIR)/DEBIAN/control
 	# Install to packaging directory using the packaging build (prefix=/usr)
-	meson install -C $(BUILD_PACKAGING_DIR) --destdir $(shell pwd)/$(DEB_DIR)
+	meson install -C $(BUILD_PACKAGING_DIR) --destdir $(CURDIR)/$(DEB_DIR)
 	dpkg-deb --build $(DEB_DIR) $(OUTPUTS_DIR)/luminance.deb
 	@echo "Debian package created at $(OUTPUTS_DIR)/luminance.deb"
 
@@ -86,10 +86,26 @@ package-rpm: packaging-build
 	# Generate spec file from template
 	sed "s/@VERSION@/$(VERSION)/g" rpm/com.sidevesh.Luminance.spec.in > $(RPMBUILD_DIR)/SPECS/com.sidevesh.Luminance.spec
 	# Build
-	rpmbuild --define "_topdir $(shell pwd)/$(RPMBUILD_DIR)" -bb $(RPMBUILD_DIR)/SPECS/com.sidevesh.Luminance.spec
+	rpmbuild --define "_topdir $(CURDIR)/$(RPMBUILD_DIR)" -bb $(RPMBUILD_DIR)/SPECS/com.sidevesh.Luminance.spec
 	# Copy result
 	cp $(RPMBUILD_DIR)/RPMS/*/*.rpm $(OUTPUTS_DIR)/luminance.rpm
 	@echo "RPM package created at $(OUTPUTS_DIR)/luminance.rpm"
+
+# Generate arch/PKGBUILD from template
+arch/PKGBUILD: arch/PKGBUILD.in version.txt
+	@echo "Generating arch/PKGBUILD..."
+	sed "s/@VERSION@/$(VERSION)/g" arch/PKGBUILD.in > arch/PKGBUILD
+	# Update .SRCINFO
+	cd arch && makepkg --printsrcinfo > .SRCINFO
+
+# Test Arch package locally
+test-arch: arch/PKGBUILD
+	@echo "Building Arch package from local source..."
+	# Create a local PKGBUILD that points to local filesystem instead of git tag
+	# Use $$_pkgname:: to force the source directory name to match what prepare() expects (Luminance)
+	sed 's|git+https://github.com/sidevesh/[^ "]*|$$_pkgname::git+file://$(CURDIR)|' arch/PKGBUILD > arch/PKGBUILD.local
+	cd arch && makepkg -p PKGBUILD.local -f
+	rm arch/PKGBUILD.local
 
 # Remove build directories
 clean:
