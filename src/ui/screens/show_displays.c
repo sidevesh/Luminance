@@ -71,7 +71,11 @@ void _update_display_brightness(GtkRange *range, guint data) {
 				continue;
 			}
 			GtkRange *linked_range = GTK_RANGE(_display_sections[index]->scale);
+			// Block signal handler to prevent recursive calls and redundant debounce timers
+			// when updating linked sliders programmatically.
+			g_signal_handlers_block_by_func(linked_range, _update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
 			gtk_range_set_value(linked_range, new_value);
+			g_signal_handlers_unblock_by_func(linked_range, _update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
 		}
 	}
 }
@@ -91,7 +95,12 @@ void _link_brightness(GtkCheckButton *link_brightness_checkbox) {
 	}
 
 	for (guint index = 0; index < _display_sections_count; index++) {
-		gtk_range_set_value(GTK_RANGE(_display_sections[index]->scale), max_scale_percentage);
+		GtkRange *range = GTK_RANGE(_display_sections[index]->scale);
+		// Block signal handler to verify we simply update the UI and apply brightness immediately
+		// without triggering the debounce mechanism.
+		g_signal_handlers_block_by_func(range, _update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
+		gtk_range_set_value(range, max_scale_percentage);
+		g_signal_handlers_unblock_by_func(range, _update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
 		set_display_brightness_percentage(_display_sections[index]->display_index, max_scale_percentage);
 	}
 }
