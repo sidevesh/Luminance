@@ -304,9 +304,29 @@ int parse_cli_arguments(int argc, char **argv) {
 	return status;
 }
 
+gboolean already_running(void) {
+  intmax_t pid;
+  gboolean retval = false;
+  FILE *lock_file = fopen(LOCK_FILE_PATH, "r");
+  if (lock_file == NULL) {
+    return retval;
+  }
+
+  if (
+    fscanf(lock_file, "%jd\n", &pid) == 1
+    // kill(pid, 0) does not send any signal but still validates the PID.
+    && kill((pid_t)pid, 0) == 0
+  ) {
+    retval = true;
+  }
+
+  fclose(lock_file);
+  return retval;
+}
+
 int main(int argc, char **argv) {
   // Check if the lock file exists
-  if (g_file_test(LOCK_FILE_PATH, G_FILE_TEST_EXISTS)) {
+  if (already_running()) {
     fprintf(stderr, "Another instance of the application is already running.\n");
     return 1;
   }
@@ -317,6 +337,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Failed to create lock file.\n");
     return 1;
   }
+  fprintf(lock_file, "%jd\n", (intmax_t)getpid());
   fclose(lock_file);
 
   int status = 0;
