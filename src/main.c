@@ -310,10 +310,9 @@ int parse_cli_arguments(int argc, char **argv) {
 
 gboolean already_running(void) {
   intmax_t pid;
-  gboolean retval = false;
   FILE *lock_file = fopen(LOCK_FILE_PATH, "r");
   if (lock_file == NULL) {
-    return retval;
+    return false;
   }
 
   if (
@@ -321,15 +320,15 @@ gboolean already_running(void) {
     // kill(pid, 0) does not send any signal but still validates the PID.
     && kill((pid_t)pid, 0) == 0
   ) {
-    retval = true;
+    fclose(lock_file);
+		return true;
   }
 
   fclose(lock_file);
-  return retval;
+  return false;
 }
 
 int main(int argc, char **argv) {
-  // Check if the lock file exists
   if (already_running()) {
     fprintf(stderr, "Another instance of the application is already running.\n");
     return 1;
@@ -377,5 +376,5 @@ int main(int argc, char **argv) {
   // Remove the lock file when the application exits
   remove(LOCK_FILE_PATH);
 
-  return status;
+	return status;
 }
