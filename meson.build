@@ -115,8 +115,16 @@ else
 endif
 
 # Post-install scripts
+# Check for CI environment to skip post-install scripts
+is_ci = run_command('sh', '-c', 'echo $CI', check: false).stdout().strip() == 'true'
+
+# Check for tools first to avoid build failures in environments where they are missing.
+# Packagers typically handle these updates via triggers anyway.
+update_desktop_db = find_program('update-desktop-database', required: false)
+gtk_update_icon_cache = find_program('gtk4-update-icon-cache', required: false)
+
 gnome.post_install(
   glib_compile_schemas: true,
-  gtk_update_icon_cache: true,
-  update_desktop_database: true
+  gtk_update_icon_cache: (not is_ci) and gtk_update_icon_cache.found(),
+  update_desktop_database: (not is_ci) and update_desktop_db.found()
 )

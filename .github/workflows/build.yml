@@ -8,6 +8,9 @@ on:
     types:
       - created
 
+env:
+  CI: true
+
 jobs:
   build-deb:
     name: Build and upload deb package

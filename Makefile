@@ -64,6 +64,7 @@ package-deb: packaging-build
 	@echo "Building Debian package (Version: $(VERSION))..."
 	rm -rf $(DEB_DIR)
 	mkdir -p $(DEB_DIR)/DEBIAN
+	mkdir -p $(OUTPUTS_DIR)
 	# Generate control file from template
 	sed -e "s|@VERSION@|$(VERSION)|g" -e "s|@DESCRIPTION@|$(DESCRIPTION)|g" packaging/debian/control.in > $(DEB_DIR)/DEBIAN/control
 	# Install to packaging directory using the packaging build (prefix=/usr)
@@ -75,6 +76,7 @@ package-rpm: packaging-build
 	@echo "Building RPM package (Version: $(VERSION))..."
 	rm -rf $(RPM_DIR)
 	mkdir -p $(RPMBUILD_DIR)/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+	mkdir -p $(OUTPUTS_DIR)
 	# Copy binary (from packaging build)
 	cp $(BUILD_PACKAGING_DIR)/com.sidevesh.Luminance $(RPMBUILD_DIR)/SOURCES/
 	# Copy resources
