@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="com.sidevesh.Luminance" path="/com/sidevesh/Luminance/">
+  <schema id="@APP_ID@" path="@SCHEMA_PATH@">
     <key name="is-brightness-linked" type="b">
       <default>false</default>
       <summary>Whether to link display brightness adjustments</summary>

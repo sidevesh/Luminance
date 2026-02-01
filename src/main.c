@@ -52,6 +52,7 @@ int ensure_displays_are_present_in_cli() {
     free_displays();
     return 1;
   }
+  return 0;
 }
 
 int list_displays_in_cli() {
@@ -208,6 +209,7 @@ int parse_cli_arguments(int argc, char **argv) {
         free_displays();
         return status;
       case 'g': // --get-percentage option
+	  	{
         guint get_percentage_display_number = atoi(optarg);
 				// Display numbers are 1-based, so 0 is invalid
 				// and we use 0 to indicate that the brightness should be set for all displays,
@@ -222,6 +224,7 @@ int parse_cli_arguments(int argc, char **argv) {
 				status = get_display_brightness_in_cli(get_percentage_display_number);
 				free_displays();
 				return status;
+	  	}
 			case 's': // --set-brightness option
 			case 'i': // --increase-brightness option
 			case 'd': // --decrease-brightness option
@@ -270,12 +273,12 @@ int parse_cli_arguments(int argc, char **argv) {
 		return status;
 	}
 
-	if (set_brightness_display_number == -1) {
+	if (set_brightness_display_number == (guint) -1) {
 		display_help_in_cli();
 		status = 1;
 		return status;
 	}
-	if (set_brightness_percentage_value == -1) {
+	if (set_brightness_percentage_value == (guint) -1) {
 		display_help_in_cli();
 		status = 1;
 		return status;

@@ -54,10 +54,10 @@ void _initialize_displays(gboolean first_time_loading) {
       struct dirent* entry;
       while ((entry = readdir(dir)) != NULL && internal_backlight_count < MAX_INTERNAL_BACKLIGHT_DISPLAYS) {
         if (
-          strcmp(entry->d_name, ".") != 0 &&
-          strcmp(entry->d_name, "..") != 0
+          g_strcmp0(entry->d_name, ".") != 0 &&
+          g_strcmp0(entry->d_name, "..") != 0
         ) {
-          _internal_backlight_display_directories[internal_backlight_count] = strdup(entry->d_name);
+          _internal_backlight_display_directories[internal_backlight_count] = g_strdup(entry->d_name);
           // insert the internal backlight display into the _display_indexes array
           _display_indexes[internal_backlight_count].type = DISPLAY_TYPE_INTERNAL_BACKLIGHT;
           _display_indexes[internal_backlight_count].index = internal_backlight_count;
@@ -93,6 +93,14 @@ void _initialize_displays(gboolean first_time_loading) {
   _last_displays_load_time = difftime(end_loading_displays_time, start_loading_displays_time);
 }
 
+void _on_refresh_displays_completed_callback_wrapper();
+
+gboolean _on_refresh_displays_completed_callback_wrapper_for_timeout(gpointer data) {
+  (void)data;
+  _on_refresh_displays_completed_callback_wrapper();
+  return G_SOURCE_REMOVE;
+}
+
 void _on_refresh_displays_completed_callback_wrapper() {
   if (_on_refresh_displays_completed_callback_timeout_id != 0) {
     g_source_remove(_on_refresh_displays_completed_callback_timeout_id);
@@ -119,7 +127,7 @@ void _refresh_displays_with_callbacks(gboolean first_time_loading, void (*on_ref
     _on_refresh_completed_callback = on_refresh_completed_callback;
     // if the time it took to load the display list is less than a minimum amount of time, wait for the remaining time
     if (_last_displays_load_time < MINIMUM_REFRESH_TIME_IN_SECONDS) {
-      _on_refresh_displays_completed_callback_timeout_id = g_timeout_add((MINIMUM_REFRESH_TIME_IN_SECONDS - _last_displays_load_time) * 1000, (GSourceFunc)_on_refresh_displays_completed_callback_wrapper, NULL);
+      _on_refresh_displays_completed_callback_timeout_id = g_timeout_add((MINIMUM_REFRESH_TIME_IN_SECONDS - _last_displays_load_time) * 1000, _on_refresh_displays_completed_callback_wrapper_for_timeout, NULL);
     } else {
       _on_refresh_displays_completed_callback_wrapper();
     }
@@ -146,6 +154,7 @@ guint16 _get_display_max_brightness_value(guint index) {
         fclose(file);
         return max_brightness;
     }
+	return 0;
   } else {
     ddcbc_display* display = _get_ddcbc_display(index);
     return display->max_val;
@@ -168,7 +177,7 @@ gboolean is_displays_loading() {
   return _is_displays_loading;
 }
 
-int displays_count() {
+guint displays_count() {
   return _display_indexes_count;
 }
 
@@ -205,6 +214,8 @@ gdouble get_display_brightness_percentage(guint index) {
       fclose(file);
       return brightness * 100.0 / max_brightness_value;
     }
+
+	  return 0.0;
   } else {
     ddcbc_display* display = _get_ddcbc_display(index);
     return display->last_val * 100.0 / max_brightness_value;

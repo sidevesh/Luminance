@@ -39,52 +39,72 @@ Latest rpm release is available on the releases page https://github.com/sidevesh
 - GTK 4.0
 - Libadwaita
 - ddcutil library package (typically libddcutil or libddcutil-dev if not already installed with ddcutil)
+- Make (Build tool)
+- Meson (Build tool)
+- Ninja (Build tool)
+- GCC (Compiler)
 
 ### Steps
 1. Firstly, ensure that all the dependencies are installed:
 
     ##### Arch Linux:
     ```
-    pacman -S --needed glib2 gtk4 libadwaita ddcutil
+    pacman -S --needed make meson glib2 gtk4 libadwaita ddcutil
     ```
     
     ##### Ubuntu-based distros (credit @aidengilmartin):
     ```
-    sudo apt install gcc libglib2.0-dev libgtk-4-dev libadwaita-1-dev libddcutil-dev
+    sudo apt install make gcc meson libglib2.0-dev libgtk-4-dev libadwaita-1-dev libddcutil-dev
     ```
     ##### Fedora:
     ```
-    sudo dnf install gcc glib2-devel gtk4-devel libadwaita-devel libddcutil-devel
+    sudo dnf install make gcc meson glib2-devel gtk4-devel libadwaita-devel libddcutil-devel
     ```
 
 2. Ensure that your user has access to the i2c devices:
 https://www.ddcutil.com/i2c_permissions/
 
-3. Clone this repo along with its submodules:
+3. Clone this repo:
     ```
     git clone --recurse-submodules https://github.com/sidevesh/Luminance.git
     ```
 
-4. Change into the `Luminance` directory and execute build.sh to build this application:
+4. Change into the `Luminance` directory and build the application:
     ```
     cd Luminance
-    ./build.sh
+    make
     ```
 
-5. This should result in a binary that you can execute to contol the brightness:
+5. To install this binary for all users execute install command:
     ```
-    ./build/app
-    ```
-
-6. To install this binary for all users execute 'install.sh' as root:
-    ```
-    sudo ./install.sh
+    make install
     ```
 
-    You should now be able to find Luminance in your list of apps
+    You should now be able to find Luminance in your list of apps.
     * Installing the application is necessary for it to work because it uses gsettings to store preferences and will need the schema files to be installed.
-      You can read the install.sh script and copy the schema files yourself if you don't want to do all the install steps.
+    * Note: You might need to reload udev rules or reboot for brightness control permissions to take effect.
 
+
+### Development Build
+To build a development version (which installs as `com.sidevesh.Luminance.Devel` and allows side-by-side installation with the release version):
+
+```
+make install-debug
+```
+
+### Uninstall
+
+To uninstall the application, run the following from the build directory:
+
+```bash
+make uninstall
+```
+
+Or for the debug build:
+
+```bash
+make uninstall-debug
+```
 
 ## Usage
 
@@ -135,4 +155,4 @@ Project Link: [https://github.com/sidevesh/Luminance](https://github.com/sideves
 
 - @ahshabbir : for ddcbc-api and ddcbc-gtk: https://github.com/ahshabbir/ddcbc-api
 - @rockowitz : for ddcutil c api: https://github.com/rockowitz/ddcutil
-- @jimmac : for the awesome new icon: https://github.com/jimmac
+- @jimmac : for the awesome icon: https://github.com/jimmac

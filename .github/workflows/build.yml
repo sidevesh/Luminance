@@ -16,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc libglib2.0-dev libgtk-4-dev libadwaita-1-dev libddcutil-dev
+          sudo apt-get install -y gcc meson libglib2.0-dev libgtk-4-dev libadwaita-1-dev libddcutil-dev
 
       - name: Set up Git repository
         uses: actions/checkout@v2
@@ -25,13 +25,13 @@ jobs:
         run: git submodule update --init ddcbc-api
 
       - name: Build package
-        run: ./build-deb.sh
+        run: make package-deb
 
       - name: Upload package
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./build/luminance.deb
+          file: ./build/packaging/outputs/luminance.deb
           asset_name: luminance-${{ github.event.release.tag_name }}.deb
           tag: ${{ github.ref }}
 
@@ -44,7 +44,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo dnf -y upgrade
-          sudo dnf install -y git-all gcc glib2-devel gtk4-devel libadwaita-devel libddcutil-devel fedora-packager rpmdevtools
+          sudo dnf install -y git-all gcc meson glib2-devel gtk4-devel libadwaita-devel libddcutil-devel fedora-packager rpmdevtools
 
       - name: Set up Git repository
         uses: actions/checkout@v2
@@ -55,12 +55,12 @@ jobs:
           git submodule update --init ddcbc-api
 
       - name: Build package
-        run: ./build-rpm.sh
+        run: make package-rpm
 
       - name: Upload package
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./build/luminance.rpm
+          file: ./build/packaging/outputs/luminance.rpm
           asset_name: luminance-${{ github.event.release.tag_name }}.rpm
           tag: ${{ github.ref }}

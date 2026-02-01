@@ -3,6 +3,8 @@
 
 
 static char* format_brightness_value(GtkScale *scale, gdouble value, gpointer data) {
+    (void)scale;
+    (void)data;
 	return g_strdup_printf(" %d%%", (int)value);
 }
 

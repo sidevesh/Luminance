@@ -1,4 +1,4 @@
-#ifndef APP_INFO_VERSION_NUMBER
+#ifndef APP_INFO_DISPLAY_NAME
 #include "../../info.c"
 #endif
 

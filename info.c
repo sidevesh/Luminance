@@ -1,7 +1,6 @@
-#define APP_INFO_VERSION_NUMBER "1.2.0"
-#define APP_INFO_PACKAGE_NAME "com.sidevesh.Luminance"
+#include "config.h"
+
 #define APP_INFO_DISPLAY_NAME "Luminance"
-#define APP_INFO_ICON_NAME "com.sidevesh.Luminance"
 #define APP_INFO_DESCRIPTION "A simple GTK application to control brightness of displays including external displays supporting DDC/CI"
 #define APP_INFO_SOURCE_REPOSITORY_TITLE "GitHub"
 #define APP_INFO_SOURCE_REPOSITORY_LINK "https://github.com/sidevesh/Luminance"

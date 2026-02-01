@@ -5,6 +5,8 @@
 extern void update_window_contents_in_ui();
 
 void _on_no_displays_screen_refresh_button_clicked(GtkWidget *widget, gpointer data) {
+    (void)widget;
+    (void)data;
 	reload_displays(update_window_contents_in_ui, update_window_contents_in_ui);
 }
 
