@@ -1,4 +1,4 @@
-.PHONY: all release debug install uninstall install-debug uninstall-debug clean package-deb package-rpm test-arch
+.PHONY: all release debug install uninstall install-debug uninstall-debug clean package-deb package-rpm package-arch package-arch-test install-arch uninstall-arch
 
 # Build directories
 BUILD_RELEASE_DIR = build/release
@@ -13,6 +13,7 @@ RPMBUILD_DIR = $(RPM_DIR)/rpmbuild
 OUTPUTS_DIR = $(PKG_DIR)/outputs
 
 VERSION = $(shell cat version.txt)
+DESCRIPTION = $(shell cat description.txt)
 
 # Default target is release
 all: release
@@ -64,7 +65,7 @@ package-deb: packaging-build
 	rm -rf $(DEB_DIR)
 	mkdir -p $(DEB_DIR)/DEBIAN
 	# Generate control file from template
-	sed "s/@VERSION@/$(VERSION)/g" debian/control.in > $(DEB_DIR)/DEBIAN/control
+	sed -e "s|@VERSION@|$(VERSION)|g" -e "s|@DESCRIPTION@|$(DESCRIPTION)|g" packaging/debian/control.in > $(DEB_DIR)/DEBIAN/control
 	# Install to packaging directory using the packaging build (prefix=/usr)
 	meson install -C $(BUILD_PACKAGING_DIR) --destdir $(CURDIR)/$(DEB_DIR)
 	dpkg-deb --build $(DEB_DIR) $(OUTPUTS_DIR)/luminance.deb
@@ -84,7 +85,7 @@ package-rpm: packaging-build
 	cp icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg $(RPMBUILD_DIR)/SOURCES/
 	cp icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg $(RPMBUILD_DIR)/SOURCES/
 	# Generate spec file from template
-	sed "s/@VERSION@/$(VERSION)/g" rpm/com.sidevesh.Luminance.spec.in > $(RPMBUILD_DIR)/SPECS/com.sidevesh.Luminance.spec
+	sed -e "s|@VERSION@|$(VERSION)|g" -e "s|@DESCRIPTION@|$(DESCRIPTION)|g" packaging/rpm/com.sidevesh.Luminance.spec.in > $(RPMBUILD_DIR)/SPECS/com.sidevesh.Luminance.spec
 	# Build
 	rpmbuild --define "_topdir $(CURDIR)/$(RPMBUILD_DIR)" -bb $(RPMBUILD_DIR)/SPECS/com.sidevesh.Luminance.spec
 	# Copy result
@@ -92,20 +93,28 @@ package-rpm: packaging-build
 	@echo "RPM package created at $(OUTPUTS_DIR)/luminance.rpm"
 
 # Generate arch/PKGBUILD from template
-arch/PKGBUILD: arch/PKGBUILD.in version.txt
+package-arch: packaging/arch/PKGBUILD.in version.txt description.txt
 	@echo "Generating arch/PKGBUILD..."
-	sed "s/@VERSION@/$(VERSION)/g" arch/PKGBUILD.in > arch/PKGBUILD
+	sed -e "s|@VERSION@|$(VERSION)|g" -e "s|@DESCRIPTION@|$(DESCRIPTION)|g" packaging/arch/PKGBUILD.in > arch/PKGBUILD
 	# Update .SRCINFO
 	cd arch && makepkg --printsrcinfo > .SRCINFO
 
 # Test Arch package locally
-test-arch: arch/PKGBUILD
+package-arch-test: package-arch
 	@echo "Building Arch package from local source..."
 	# Create a local PKGBUILD that points to local filesystem instead of git tag
 	# Use $$_pkgname:: to force the source directory name to match what prepare() expects (Luminance)
 	sed 's|git+https://github.com/sidevesh/[^ "]*|$$_pkgname::git+file://$(CURDIR)|' arch/PKGBUILD > arch/PKGBUILD.local
 	cd arch && makepkg -p PKGBUILD.local -f
 	rm arch/PKGBUILD.local
+
+install-arch: package-arch-test
+	@echo "Installing Arch package..."
+	sudo pacman -U arch/luminance-$(VERSION)-*.pkg.tar.zst
+
+uninstall-arch:
+	@echo "Uninstalling Arch package..."
+	sudo pacman -R luminance
 
 # Remove build directories
 clean:

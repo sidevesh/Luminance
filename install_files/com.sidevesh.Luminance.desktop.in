@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Luminance
-Comment=A simple GTK application to control brightness of displays including external displays supporting DDC/CI
+Comment=@DESCRIPTION@
 Icon=@ICON_NAME@
 Exec=@EXEC_NAME@
 Terminal=false

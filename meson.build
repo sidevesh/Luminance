@@ -17,6 +17,7 @@ thread_dep = dependency('threads')
 # Configuration
 conf_data = configuration_data()
 conf_data.set_quoted('APP_INFO_VERSION_NUMBER', meson.project_version())
+conf_data.set_quoted('APP_INFO_DESCRIPTION', run_command('cat', 'description.txt', check: true).stdout().strip())
 
 # Application ID and Icon determination
 if get_option('buildtype').startswith('debug')
@@ -55,6 +56,7 @@ desktop_conf = configuration_data()
 desktop_conf.set('APP_ID', app_id)
 desktop_conf.set('ICON_NAME', icon_name)
 desktop_conf.set('EXEC_NAME', app_id)
+desktop_conf.set('DESCRIPTION', run_command('cat', 'description.txt', check: true).stdout().strip())
 
 configure_file(
   input: 'install_files/com.sidevesh.Luminance.desktop.in',

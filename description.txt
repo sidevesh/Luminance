@@ -1,0 +1,1 @@
+A simple GTK application to control brightness of displays including external displays supporting DDC/CI
