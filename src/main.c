@@ -45,6 +45,10 @@ static void activate_gtk_ui(GtkApplication *app) {
   load_displays(update_window_contents_in_ui, update_window_contents_in_ui);
 }
 
+static void quit_application(GSimpleAction *action, GVariant *parameter, gpointer user_data) {
+  AdwApplication *app = user_data;
+  g_application_quit(G_APPLICATION(app));
+}
 
 int ensure_displays_are_present_in_cli() {
   if (displays_count() == 0) {
@@ -356,6 +360,14 @@ int main(int argc, char **argv) {
 
     AdwApplication *app;
     app = adw_application_new(APP_INFO_PACKAGE_NAME, flags);
+
+    static const GActionEntry app_actions[] = {
+        { "quit", quit_application },
+    };
+
+    g_action_map_add_action_entries(G_ACTION_MAP(app), app_actions, G_N_ELEMENTS(app_actions), app);
+    gtk_application_set_accels_for_action(GTK_APPLICATION(app), "app.quit", (const char *[]) { "<Ctrl>q", NULL });
+
     g_signal_connect(app, "activate", G_CALLBACK(activate_gtk_ui), NULL);
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
@@ -365,5 +377,5 @@ int main(int argc, char **argv) {
   // Remove the lock file when the application exits
   remove(LOCK_FILE_PATH);
 
-	return status;
+  return status;
 }
