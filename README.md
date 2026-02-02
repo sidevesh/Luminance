@@ -121,8 +121,6 @@ Options:
   -d, --decrease-brightness [DISPLAY NUMBER]  Decrease the brightness of a display by a percentage value
                                               If DISPLAY NUMBER is not provided, for --set-brightness, --increase-brightness and --decrease-brightness options, the brightness of all displays will be changed
   -p  --percentage [PERCENTAGE]               Percentage value to set the brightness to in case of --set-brightness option or to increase or decrease the brightness by in case of --increase-brightness or --decrease-brightness option
-  -o, --show-osd                              Show OSD popup when brightness is changed for specified environment:
-                                                g: GNOME, experimental, only works with https://extensions.gnome.org/extension/5952/eval-gjs/ extension installed
   -h, --help                                  Show help information
 
 When no arguments are provided, the application starts in GUI mode.
