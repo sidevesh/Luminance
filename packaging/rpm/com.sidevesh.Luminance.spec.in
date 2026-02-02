@@ -37,6 +37,9 @@ install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance.desktop %{buildroot}/%{_d
 # Install the GSettings schema
 install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance.gschema.xml %{buildroot}/%{_datadir}/glib-2.0/schemas/com.sidevesh.Luminance.gschema.xml
 
+# Install the AppStream metainfo
+install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance.metainfo.xml %{buildroot}/%{_datadir}/metainfo/com.sidevesh.Luminance.metainfo.xml
+
 # Install the udev rules
 install -D -m 644 %{_sourcedir}/44-backlight-permissions.rules %{buildroot}/%{_libdir}/udev/rules.d/44-backlight-permissions.rules
 
@@ -48,6 +51,8 @@ install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance-symbolic.svg %{buildroot}
 %{_bindir}/com.sidevesh.Luminance
 %{_datadir}/applications/com.sidevesh.Luminance.desktop
 %{_datadir}/glib-2.0/schemas/com.sidevesh.Luminance.gschema.xml
+%{_datadir}/metainfo/com.sidevesh.Luminance.metainfo.xml
+
 %{_libdir}/udev/rules.d/44-backlight-permissions.rules
 %{_datadir}/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg
 %{_datadir}/icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg

@@ -19,6 +19,7 @@ modules:
       - type: git
         url: https://github.com/akheron/jansson.git
         tag: v2.14
+        commit: de5460cf7108b3161026a85800004e208e19f902
 
   - name: ddcutil
     buildsystem: autotools
@@ -28,6 +29,7 @@ modules:
       - type: git
         url: https://github.com/rockowitz/ddcutil.git
         tag: v2.1.4
+        commit: 45aeabea5ab8bb6d18d24106d952f7eb978d806f
 
   - name: luminance
     buildsystem: meson

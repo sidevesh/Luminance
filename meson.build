@@ -81,6 +81,18 @@ configure_file(
   install_dir: join_paths(datadir, 'glib-2.0/schemas')
 )
 
+# AppStream Metadata
+appstream_conf = configuration_data()
+appstream_conf.set('APP_ID', app_id)
+
+configure_file(
+  input: 'install_files/com.sidevesh.Luminance.metainfo.xml.in',
+  output: app_id + '.metainfo.xml',
+  configuration: appstream_conf,
+  install: true,
+  install_dir: join_paths(datadir, 'metainfo')
+)
+
 # Udev rules
 if get_option('install_udev_rules')
   # Try to detect udev rules directory, otherwise fallback to /lib/udev/rules.d

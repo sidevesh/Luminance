@@ -139,8 +139,12 @@ git remote set-url --push origin ssh://aur@aur.archlinux.org/luminance.git
 ## Note for Flatpak Packaging
 
 ### Prerequisites
-1. Install `flatpak` and `flatpak-builder`.
-2. Install the required GNOME Runtime and SDK:
+1. Install `flatpak`:
+2. Install `flatpak-builder` (It is recommended to use the flatpak version of the builder):
+    ```
+    flatpak install -y flathub org.flatpak.Builder
+    ```
+3. Install the required GNOME Runtime and SDK:
    ```
    flatpak install org.gnome.Platform//48 org.gnome.Sdk//48
    ```
@@ -148,24 +152,25 @@ git remote set-url --push origin ssh://aur@aur.archlinux.org/luminance.git
 ### Build and Install
 To build and install the Flatpak locally for testing:
 ```
-flatpak-builder --user --install --force-clean build-dir com.sidevesh.Luminance.yml
+make flatpak-build
+```
+
+### Validate (Lint)
+To validate the manifest and repository against Flathub requirements:
+```
+make flatpak-lint
 ```
 
 ### Run the Application (with Debugging)
 ```
-flatpak run --devel --command=sh com.sidevesh.Luminance -c "gdb -batch -ex run -ex \"bt full\" --args /app/bin/com.sidevesh.Luminance"
+make flatpak-run
 ```
 
 ### Creating a Bundle (Publishing)
 To create a binary bundle `.flatpak` for distribution:
-1. Build into a local repository:
-   ```
-   flatpak-builder --repo=repo --force-clean build-dir com.sidevesh.Luminance.yml
-   ```
-2. Generate the bundle file:
-   ```
-   flatpak build-bundle repo com.sidevesh.Luminance.flatpak com.sidevesh.Luminance
-   ```
+```
+make flatpak-bundle
+```
 
 
 ## License

@@ -1,2 +1,5 @@
 compile_flags.txt
 build/*
+
+# Flatpak
+*.flatpak

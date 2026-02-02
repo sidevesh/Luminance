@@ -11,6 +11,10 @@ DEB_DIR = $(PKG_DIR)/debian
 RPM_DIR = $(PKG_DIR)/rpm
 RPMBUILD_DIR = $(RPM_DIR)/rpmbuild
 OUTPUTS_DIR = $(PKG_DIR)/outputs
+FLATPAK_DIR = $(PKG_DIR)/flatpak
+FLATPAK_REPO_DIR = $(FLATPAK_DIR)/repo
+FLATPAK_MANIFEST = $(CURDIR)/packaging/flatpak/com.sidevesh.Luminance.yml
+FLATPAK_APP_ID = com.sidevesh.Luminance
 
 VERSION = $(shell cat version.txt)
 DESCRIPTION = $(shell cat description.txt)
@@ -83,6 +87,7 @@ package-rpm: packaging-build
 	# Use generated desktop file from build
 	cp $(BUILD_PACKAGING_DIR)/com.sidevesh.Luminance.desktop $(RPMBUILD_DIR)/SOURCES/
 	cp $(BUILD_PACKAGING_DIR)/com.sidevesh.Luminance.gschema.xml $(RPMBUILD_DIR)/SOURCES/
+	cp $(BUILD_PACKAGING_DIR)/com.sidevesh.Luminance.metainfo.xml $(RPMBUILD_DIR)/SOURCES/
 	cp install_files/44-backlight-permissions.rules $(RPMBUILD_DIR)/SOURCES/
 	cp icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg $(RPMBUILD_DIR)/SOURCES/
 	cp icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg $(RPMBUILD_DIR)/SOURCES/
@@ -98,8 +103,6 @@ package-rpm: packaging-build
 package-arch: packaging/arch/PKGBUILD.in version.txt description.txt
 	@echo "Generating arch/PKGBUILD..."
 	sed -e "s|@VERSION@|$(VERSION)|g" -e "s|@DESCRIPTION@|$(DESCRIPTION)|g" packaging/arch/PKGBUILD.in > arch/PKGBUILD
-	# Update .SRCINFO
-	cd arch && makepkg --printsrcinfo > .SRCINFO
 
 # Test Arch package locally
 package-arch-test: package-arch
@@ -117,6 +120,55 @@ install-arch: package-arch-test
 uninstall-arch:
 	@echo "Uninstalling Arch package..."
 	sudo pacman -R luminance
+
+flatpak:
+	@echo "Building Flatpak..."
+	mkdir -p $(FLATPAK_DIR)
+	# Copy manifest to build directory to satisfy flatpak-builder output requirements
+	# This is necessary because flatpak-builder forbids 'path' from pointing outside the manifest directory
+	cp $(FLATPAK_MANIFEST) $(CURDIR)/.flatpak-manifest.yml
+	
+	# Run flathub-build from root. This creates 'repo' and 'builddir' in $(CURDIR)
+	flatpak run --filesystem=$(CURDIR) --command=flathub-build org.flatpak.Builder --force-clean $(CURDIR)/.flatpak-manifest.yml
+	
+	# Move artifacts to clean up root
+	rm -rf $(FLATPAK_DIR)/repo $(FLATPAK_DIR)/builddir
+	mv repo $(FLATPAK_DIR)/
+	mv builddir $(FLATPAK_DIR)/
+	rm $(CURDIR)/.flatpak-manifest.yml
+
+install-flatpak: flatpak
+	@echo "Installing Flatpak..."
+	flatpak remote-add --user --if-not-exists --no-gpg-verify luminance-local-repo $(CURDIR)/$(FLATPAK_REPO_DIR)
+	flatpak install --user -y luminance-local-repo $(FLATPAK_APP_ID)
+
+uninstall-flatpak:
+	@echo "Uninstalling Flatpak..."
+	-flatpak uninstall --user -y $(FLATPAK_APP_ID)
+	-flatpak remote-delete --user luminance-local-repo
+
+lint-flatpak: flatpak
+	@echo "Linting Flatpak manifest..."
+	# Lint the original manifest
+	-flatpak run --filesystem=$(CURDIR) --command=flatpak-builder-lint org.flatpak.Builder manifest $(FLATPAK_MANIFEST)
+	@echo "Linting Flatpak repo..."
+	@if [ -d "$(FLATPAK_REPO_DIR)" ]; then \
+		flatpak run --filesystem=$(CURDIR) --command=flatpak-builder-lint org.flatpak.Builder repo $(CURDIR)/$(FLATPAK_REPO_DIR); \
+	else \
+		echo "Repo directory not found. Skipping repo linting (run 'make flatpak-build' first)."; \
+	fi
+
+run-flatpak: install-flatpak
+	@echo "Running Flatpak with GDB..."
+	flatpak run --devel --command=sh $(FLATPAK_APP_ID) -c "gdb -batch -ex run -ex \"bt full\" --args /app/bin/$(FLATPAK_APP_ID)"
+
+flatpak-bundle: flatpak
+	@echo "Creating Flatpak bundle..."
+	mkdir -p $(OUTPUTS_DIR)
+	flatpak build-bundle $(FLATPAK_REPO_DIR) $(OUTPUTS_DIR)/$(FLATPAK_APP_ID).flatpak $(FLATPAK_APP_ID)
+	@echo "Flatpak bundle created at $(OUTPUTS_DIR)/$(FLATPAK_APP_ID).flatpak"
+	# Update .SRCINFO
+	cd arch && makepkg --printsrcinfo > .SRCINFO
 
 # Remove build directories
 clean:
