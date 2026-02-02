@@ -49,6 +49,7 @@ void _open_about_dialog_and_close_popover() {
 
 void initialize_application_window(GtkApplication *app) {
 	_window = gtk_application_window_new(app);
+	gtk_window_set_title(GTK_WINDOW(_window), APP_INFO_DISPLAY_NAME);
 
 	gtk_window_set_resizable(GTK_WINDOW(_window), FALSE);
 	gtk_widget_set_size_request(_window, MINIMUM_WINDOW_WIDTH, -1);

@@ -2,15 +2,42 @@
 
 static LuminanceService *skeleton = NULL;
 
+// Forward declarations from states/displays.c
+guint displays_count(void);
+char* get_display_name(guint index);
+gdouble get_display_brightness_percentage(guint index);
+void set_display_brightness_percentage(guint index, gdouble brightness_percentage, gboolean emit_osd_signal);
+void load_displays(void (*)(), void (*)());
+
 static gboolean
 on_handle_get_monitors (LuminanceService *interface,
                         GDBusMethodInvocation *invocation,
                         gpointer user_data)
 {
-  // Placeholder: In real implementation, query displays.c
-  // For now return empty list to demonstrate connectivity
-  gchar *json = "[]"; 
-  luminance_service_complete_get_monitors (interface, invocation, json);
+  load_displays(NULL, NULL);
+
+  GString *json_builder = g_string_new("[");
+  guint count = displays_count();
+
+  for (guint i = 0; i < count; i++) {
+    if (i > 0) g_string_append(json_builder, ",");
+
+    char *name = get_display_name(i);
+    // Escape the name for JSON
+    gchar *escaped_name = g_strescape(name, "");
+    gdouble brightness = get_display_brightness_percentage(i);
+
+    g_string_append_printf(json_builder,
+                           "{\"id\": \"%u\", \"name\": \"%s\", \"brightness\": %.2f}",
+                           i, escaped_name ? escaped_name : "Unknown", brightness);
+
+    if (escaped_name) g_free(escaped_name);
+  }
+  g_string_append(json_builder, "]");
+
+  luminance_service_complete_get_monitors (interface, invocation, json_builder->str);
+
+  g_string_free(json_builder, TRUE);
   return TRUE;
 }
 
@@ -21,8 +48,27 @@ on_handle_set_brightness (LuminanceService *interface,
                           gdouble value,
                           gpointer user_data)
 {
-  // Placeholder: Call logic to set brightness
-  g_print("DBus Request: Set brightness for %s to %f\n", monitor_id, value);
+  gchar *endptr;
+  guint64 index_val = g_ascii_strtoull(monitor_id, &endptr, 10);
+
+  if (*endptr != '\0') {
+      g_warning("Invalid monitor ID format: %s", monitor_id);
+      luminance_service_complete_set_brightness (interface, invocation);
+      return TRUE;
+  }
+
+  if (displays_count() == 0) {
+      load_displays(NULL, NULL);
+  }
+
+  if (index_val < displays_count()) {
+      g_print("DBus Request: Set brightness for %s (index %lu) to %f\n", monitor_id, index_val, value);
+      // Emit signal is set to TRUE as requested
+      set_display_brightness_percentage((guint)index_val, value, TRUE);
+  } else {
+      g_warning("Monitor ID out of range: %s", monitor_id);
+  }
+
   luminance_service_complete_set_brightness (interface, invocation);
   return TRUE;
 }

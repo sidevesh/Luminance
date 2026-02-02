@@ -227,7 +227,7 @@ gdouble get_display_brightness_percentage(guint index) {
   }
 }
 
-void set_display_brightness_percentage(guint index, gdouble brightness_percentage) {
+void set_display_brightness_percentage(guint index, gdouble brightness_percentage, gboolean emit_osd_signal) {
   GlobalDisplayIndex display_index = _display_indexes[index];
 	guint16 max_brightness_value = _get_display_max_brightness_value(index);
 	guint16 brightness_value = (guint16)(brightness_percentage * max_brightness_value / 100);
@@ -256,17 +256,19 @@ void set_display_brightness_percentage(guint index, gdouble brightness_percentag
   }
 
   // Emit OSD signal
-  gchar model_name[256];
-  if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
-     snprintf(model_name, sizeof(model_name), "Built-in display");
-  } else {
-     ddcbc_display* display = _get_ddcbc_display(index);
-     if (display)
-        snprintf(model_name, sizeof(model_name), "%s", display->info.model_name);
-     else
-        snprintf(model_name, sizeof(model_name), "Unknown Display"); 
+  if (emit_osd_signal) {
+    gchar model_name[256];
+    if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
+      snprintf(model_name, sizeof(model_name), "Built-in display");
+    } else {
+      ddcbc_display* display = _get_ddcbc_display(index);
+      if (display)
+          snprintf(model_name, sizeof(model_name), "%s", display->info.model_name);
+      else
+          snprintf(model_name, sizeof(model_name), "Unknown Display"); 
+    }
+    emit_osd_signal_dbus(brightness_percentage, model_name);
   }
-  emit_osd_signal_dbus(brightness_percentage, model_name);
 }
 
 #endif

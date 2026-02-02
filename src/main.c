@@ -93,7 +93,7 @@ int get_display_brightness_in_cli(guint display_number) {
 void set_brightness_percentage_in_cli(guint display_index, double brightness_percentage) {
   for (guint index = 0; index < displays_count(); index++) {
     if (index == display_index) {
-      set_display_brightness_percentage(index, brightness_percentage);
+      set_display_brightness_percentage(index, brightness_percentage, TRUE);
       return;
     }
   }
@@ -362,6 +362,8 @@ int main(int argc, char **argv) {
 		#else
 		flags = G_APPLICATION_FLAGS_NONE;
 		#endif
+
+    g_set_application_name(APP_INFO_DISPLAY_NAME);
 
     AdwApplication *app;
     app = adw_application_new(APP_INFO_PACKAGE_NAME, flags);

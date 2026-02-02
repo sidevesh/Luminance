@@ -28,12 +28,12 @@ static gboolean _apply_debounced_brightness(gpointer user_data) {
     }
     gdouble brightness = _pending_brightness_values[index];
 
-    set_display_brightness_percentage(index, brightness);
+    set_display_brightness_percentage(index, brightness, FALSE);
 
     if (get_is_brightness_linked()) {
         for (guint i = 0; i < _display_sections_count; i++) {
             if (_display_sections[i]->display_index == index) continue;
-            set_display_brightness_percentage(_display_sections[i]->display_index, brightness);
+            set_display_brightness_percentage(_display_sections[i]->display_index, brightness, FALSE);
         }
     }
 
@@ -101,7 +101,7 @@ void _link_brightness(GtkCheckButton *link_brightness_checkbox) {
 		g_signal_handlers_block_by_func(range, _update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
 		gtk_range_set_value(range, max_scale_percentage);
 		g_signal_handlers_unblock_by_func(range, _update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
-		set_display_brightness_percentage(_display_sections[index]->display_index, max_scale_percentage);
+		set_display_brightness_percentage(_display_sections[index]->display_index, max_scale_percentage, FALSE);
 	}
 }
 
