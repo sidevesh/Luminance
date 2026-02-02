@@ -4,6 +4,7 @@
 #include <getopt.h>
 #include <gtk/gtk.h>
 #include <adwaita.h>
+#include "./dbus_service.c"
 #include "./constants/main.c"
 #include "./osd/main.c"
 #include "./states/displays.c"
@@ -37,6 +38,13 @@ void update_window_contents_in_ui() {
 	}
 
 	update_window_content_screen(current_screen);
+}
+
+static void on_app_startup(GApplication *app, gpointer user_data) {
+  GDBusConnection *conn = g_application_get_dbus_connection(app);
+  if (conn) {
+    setup_dbus_service(conn);
+  }
 }
 
 static void activate_gtk_ui(GtkApplication *app) {
@@ -365,6 +373,7 @@ int main(int argc, char **argv) {
     g_action_map_add_action_entries(G_ACTION_MAP(app), app_actions, G_N_ELEMENTS(app_actions), app);
     gtk_application_set_accels_for_action(GTK_APPLICATION(app), "app.quit", (const char *[]) { "<Ctrl>q", NULL });
 
+    g_signal_connect(app, "startup", G_CALLBACK(on_app_startup), NULL);
     g_signal_connect(app, "activate", G_CALLBACK(activate_gtk_ui), NULL);
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);

@@ -1,0 +1,23 @@
+<node>
+  <interface name="com.sidevesh.Luminance">
+    <!-- Signal to notify listeners (e.g. Gnome Extension) to show OSD -->
+    <signal name="ShowOSD">
+      <arg type="d" name="brightness_percentage"/>
+      <arg type="s" name="monitor_name"/>
+    </signal>
+
+    <!-- Methods for future control interface -->
+    <method name="GetMonitors">
+      <!-- Returning JSON string for flexibility given C structure -->
+      <arg type="s" name="monitors_json" direction="out"/>
+    </method>
+
+    <method name="SetBrightness">
+      <arg type="s" name="monitor_id" direction="in"/>
+      <arg type="d" name="value" direction="in"/>
+    </method>
+    
+    <method name="Quit">
+    </method>
+  </interface>
+</node>

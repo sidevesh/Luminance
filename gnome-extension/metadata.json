@@ -1,0 +1,10 @@
+{
+  "name": "Luminance OSD",
+  "description": "Displays brightness OSD for Luminance app",
+  "uuid": "luminance-osd@sidevesh.com",
+  "shell-version": [
+    "45",
+    "46",
+    "47"
+  ]
+}

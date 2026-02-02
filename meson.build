@@ -33,11 +33,21 @@ conf_data.set_quoted('APP_INFO_ICON_NAME', icon_name)
 
 configure_file(output: 'config.h', configuration: conf_data)
 
+# DBus Interface Generation
+# Generates com-sidevesh-Luminance.c and com-sidevesh-Luminance.h
+gdbus_src = gnome.gdbus_codegen(
+  'com-sidevesh-Luminance',
+  sources: 'src/com.sidevesh.Luminance.xml',
+  interface_prefix: 'com.sidevesh.Luminance.',
+  namespace: 'Luminance',
+  annotations: [['com.sidevesh.Luminance', 'org.gtk.GDBus.C.Name', 'Service']]
+)
+
 # Main executable
 # Note: src/main.c includes other source files directly.
 # This structure means we only need to compile main.c.
 executable(app_id,
-  sources: 'src/main.c',
+  sources: ['src/main.c', gdbus_src],
   dependencies: [
     gtk4_dep, 
     libadwaita_dep, 
