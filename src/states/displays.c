@@ -254,6 +254,19 @@ void set_display_brightness_percentage(guint index, gdouble brightness_percentag
         display->info.dispno, brightness_value, rc);
     }
   }
+
+  // Emit OSD signal
+  gchar model_name[256];
+  if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
+     snprintf(model_name, sizeof(model_name), "Built-in display");
+  } else {
+     ddcbc_display* display = _get_ddcbc_display(index);
+     if (display)
+        snprintf(model_name, sizeof(model_name), "%s", display->info.model_name);
+     else
+        snprintf(model_name, sizeof(model_name), "Unknown Display"); 
+  }
+  emit_osd_signal_dbus(brightness_percentage, model_name);
 }
 
 #endif
