@@ -84,6 +84,7 @@ configure_file(
 # AppStream Metadata
 appstream_conf = configuration_data()
 appstream_conf.set('APP_ID', app_id)
+appstream_conf.set('DESCRIPTION', run_command('cat', 'description.txt', check: true).stdout().strip())
 
 configure_file(
   input: 'install_files/com.sidevesh.Luminance.metainfo.xml.in',

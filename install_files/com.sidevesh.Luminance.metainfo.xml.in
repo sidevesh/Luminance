@@ -7,9 +7,7 @@
   <developer_name>Swapnil Devesh</developer_name>
   <summary>Control brightness of displays</summary>
   <description>
-    <p>
-      Luminance is a simple GTK application to control brightness of displays including external displays supporting DDC/CI.
-    </p>
+    <p>@DESCRIPTION@</p>
   </description>
   <launchable type="desktop-id">@APP_ID@.desktop</launchable>
   <url type="homepage">https://github.com/sidevesh/Luminance</url>
@@ -19,7 +17,7 @@
   <screenshots>
       <screenshot type="default">
         <caption>Main Window</caption>
-        <image type="source" width="2232" height="1576">https://raw.githubusercontent.com/sidevesh/Luminance/main/screenshots/screenshot.png</image>
+        <image type="source" width="472" height="416">https://raw.githubusercontent.com/sidevesh/Luminance/main/screenshots/screenshot.png</image>
       </screenshot>
   </screenshots>
   <releases>
