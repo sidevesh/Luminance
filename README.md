@@ -92,6 +92,38 @@ To build a development version (which installs as `com.sidevesh.Luminance.Devel`
 make install-debug
 ```
 
+### Flatpak
+
+To build the application as a Flatpak:
+
+```
+make flatpak
+```
+
+To install the locally built Flatpak:
+
+```
+make install-flatpak
+```
+
+To uninstall the locally built Flatpak:
+
+```
+make uninstall-flatpak
+```
+
+To run the installed Flatpak with GDB for debugging:
+
+```
+make run-flatpak
+```
+
+To create a standalone Flatpak bundle:
+
+```
+make flatpak-bundle
+```
+
 ### Uninstall
 
 To uninstall the application, run the following from the build directory:
@@ -150,7 +182,7 @@ git remote set-url --push origin ssh://aur@aur.archlinux.org/luminance.git
 ### Build and Install
 To build and install the Flatpak locally for testing:
 ```
-make flatpak-build
+make flatpak-install
 ```
 
 ### Validate (Lint)
