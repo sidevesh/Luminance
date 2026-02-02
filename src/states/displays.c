@@ -71,7 +71,9 @@ void _initialize_displays(gboolean first_time_loading) {
   }
 
   if (!first_time_loading) {
-    ddcbc_display_list_free(_display_list);
+    if (_display_list != NULL) {
+      ddcbc_display_list_free(_display_list);
+    }
   }
 
   _display_list_instance = ddcbc_display_list_init(FALSE);
@@ -79,12 +81,14 @@ void _initialize_displays(gboolean first_time_loading) {
 
 	// insert all DDC displays into the _display_indexes array
 	guint ddc_display_count = 0;
-	for (guint index = 0; index < _display_list->ct; index++) {
-		_display_indexes[internal_backlight_count + ddc_display_count].type = DISPLAY_TYPE_DDC;
-		_display_indexes[internal_backlight_count + ddc_display_count].index = index;
-		ddc_display_count++;
-    total_displays_count++;
-	}
+  if (_display_list != NULL && _display_list->list != NULL) {
+    for (guint index = 0; index < _display_list->ct; index++) {
+      _display_indexes[internal_backlight_count + ddc_display_count].type = DISPLAY_TYPE_DDC;
+      _display_indexes[internal_backlight_count + ddc_display_count].index = index;
+      ddc_display_count++;
+      total_displays_count++;
+    }
+  }
 
   _display_indexes_count = total_displays_count;
 
@@ -108,8 +112,9 @@ void _on_refresh_displays_completed_callback_wrapper() {
   }
   _is_displays_loading = FALSE;
   if (_on_refresh_completed_callback != NULL) {
-    _on_refresh_completed_callback();
+    void (*callback)() = _on_refresh_completed_callback;
     _on_refresh_completed_callback = NULL;
+    callback();
   }
 }
 

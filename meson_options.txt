@@ -1,0 +1,1 @@
+option('install_udev_rules', type: 'boolean', value: true, description: 'Install udev rules')

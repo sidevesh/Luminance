@@ -1,0 +1,39 @@
+app-id: com.sidevesh.Luminance
+runtime: org.gnome.Platform
+runtime-version: '48'
+sdk: org.gnome.Sdk
+command: com.sidevesh.Luminance
+finish-args:
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --device=all
+  - --filesystem=/sys/class/backlight
+  - --filesystem=/sys/devices
+  - --share=ipc
+  - --talk-name=org.freedesktop.Flatpak
+modules:
+  - name: jansson
+    buildsystem: cmake
+    sources:
+      - type: git
+        url: https://github.com/akheron/jansson.git
+        tag: v2.14
+
+  - name: ddcutil
+    buildsystem: autotools
+    config-opts:
+      - --disable-udev
+    sources:
+      - type: git
+        url: https://github.com/rockowitz/ddcutil.git
+        tag: v2.1.4
+
+  - name: luminance
+    buildsystem: meson
+    config-opts:
+      - --buildtype=release
+      - -Dinstall_udev_rules=false
+    sources:
+      - type: dir
+        path: .

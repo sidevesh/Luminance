@@ -115,8 +115,8 @@ void initialize_application_window(GtkApplication *app) {
 
 void update_window_content_screen(GtkWidget *new_window_content_screen) {
 	if (_last_window_content_screen != NULL) {
-		gtk_widget_unparent(_last_window_content_screen);
-		g_object_unref(_last_window_content_screen);
+		// gtk_widget_unparent(_last_window_content_screen);
+		// g_object_unref(_last_window_content_screen);
 	}
 	gtk_window_set_child(GTK_WINDOW(_window), new_window_content_screen);
 	gtk_window_set_default_size(GTK_WINDOW(_window), gtk_widget_get_width(_window), gtk_widget_get_height(new_window_content_screen));
@@ -131,8 +131,8 @@ void update_window_content_screen(GtkWidget *new_window_content_screen) {
 	} else {
 		if (_refresh_displays_button != NULL) {
 			gtk_header_bar_remove(GTK_HEADER_BAR(_window_header), _refresh_displays_button);
-			gtk_widget_unparent(_refresh_displays_button);
-			g_object_unref(_refresh_displays_button);
+			// gtk_widget_unparent(_refresh_displays_button);
+			// g_object_unref(_refresh_displays_button);
 			_refresh_displays_button = NULL;
 		}
 	}

@@ -82,18 +82,20 @@ configure_file(
 )
 
 # Udev rules
-# Try to detect udev rules directory, otherwise fallback to /lib/udev/rules.d
-udev_dep = dependency('udev', required: false)
-if udev_dep.found()
-  udev_rules_dir = udev_dep.get_pkgconfig_variable('udevdir') + '/rules.d'
-else
-  # Standard location for udev rules
-  udev_rules_dir = '/lib/udev/rules.d'
-endif
+if get_option('install_udev_rules')
+  # Try to detect udev rules directory, otherwise fallback to /lib/udev/rules.d
+  udev_dep = dependency('udev', required: false)
+  if udev_dep.found()
+    udev_rules_dir = udev_dep.get_pkgconfig_variable('udevdir') + '/rules.d'
+  else
+    # Standard location for udev rules
+    udev_rules_dir = '/lib/udev/rules.d'
+  endif
 
-install_data('install_files/44-backlight-permissions.rules',
-  install_dir: udev_rules_dir
-)
+  install_data('install_files/44-backlight-permissions.rules',
+    install_dir: udev_rules_dir
+  )
+endif
 
 # Icons
 # Install the appropriate icon based on the build type
