@@ -11,6 +11,7 @@ finish-args:
   - --filesystem=/sys/class/backlight
   - --filesystem=/sys/devices
   - --share=ipc
+  - --own-name=com.sidevesh.Luminance
 modules:
   - name: jansson
     buildsystem: cmake

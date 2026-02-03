@@ -1,4 +1,4 @@
-.PHONY: all release debug install uninstall install-debug uninstall-debug clean package-deb package-rpm package-arch package-arch-test install-arch uninstall-arch
+.PHONY: all release debug install uninstall install-debug uninstall-debug clean package-deb package-rpm package-arch package-arch-test install-arch uninstall-arch flatpak install-flatpak uninstall-flatpak lint-flatpak run-flatpak flatpak-bundle pack-extension install-extension uninstall-extension
 
 # Build directories
 BUILD_RELEASE_DIR = build/release
@@ -88,6 +88,7 @@ package-rpm: packaging-build
 	cp $(BUILD_PACKAGING_DIR)/com.sidevesh.Luminance.desktop $(RPMBUILD_DIR)/SOURCES/
 	cp $(BUILD_PACKAGING_DIR)/com.sidevesh.Luminance.gschema.xml $(RPMBUILD_DIR)/SOURCES/
 	cp $(BUILD_PACKAGING_DIR)/com.sidevesh.Luminance.metainfo.xml $(RPMBUILD_DIR)/SOURCES/
+	cp $(BUILD_PACKAGING_DIR)/com.sidevesh.Luminance.service $(RPMBUILD_DIR)/SOURCES/
 	cp install_files/44-backlight-permissions.rules $(RPMBUILD_DIR)/SOURCES/
 	cp icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg $(RPMBUILD_DIR)/SOURCES/
 	cp icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg $(RPMBUILD_DIR)/SOURCES/
@@ -140,7 +141,7 @@ flatpak:
 install-flatpak: flatpak
 	@echo "Installing Flatpak..."
 	flatpak remote-add --user --if-not-exists --no-gpg-verify luminance-local-repo $(CURDIR)/$(FLATPAK_REPO_DIR)
-	flatpak install --user -y luminance-local-repo $(FLATPAK_APP_ID)
+	flatpak install --user -y --reinstall luminance-local-repo $(FLATPAK_APP_ID)
 
 uninstall-flatpak:
 	@echo "Uninstalling Flatpak..."
@@ -173,3 +174,29 @@ flatpak-bundle: flatpak
 # Remove build directories
 clean:
 	rm -rf build
+
+# GNOME Extension
+EXTENSION_UUID = luminance@sidevesh.com
+SRC_EXTENSION_DIR = gnome-extension
+EXTENSION_BUILD_DIR = $(PKG_DIR)/gnome-extension
+EXTENSION_ZIP = $(OUTPUTS_DIR)/$(EXTENSION_UUID).shell-extension.zip
+
+pack-extension:
+	@echo "Packing GNOME extension..."
+	rm -rf $(EXTENSION_BUILD_DIR)
+	mkdir -p $(EXTENSION_BUILD_DIR)
+	cp -r $(SRC_EXTENSION_DIR)/* $(EXTENSION_BUILD_DIR)/
+	mkdir -p $(OUTPUTS_DIR)
+	gnome-extensions pack $(EXTENSION_BUILD_DIR) --force --out-dir=$(OUTPUTS_DIR)
+	@echo "Extension packed at $(EXTENSION_ZIP)"
+
+install-extension: pack-extension
+	@echo "Installing GNOME extension..."
+	gnome-extensions install --force $(EXTENSION_ZIP)
+	@echo "GNOME extension installed. You may need to enable it with: gnome-extensions enable $(EXTENSION_UUID)"
+	@echo "You may need to restart GNOME Shell (Alt+F2, 'r') or log out/in."
+
+uninstall-extension:
+	@echo "Uninstalling GNOME extension..."
+	-gnome-extensions uninstall $(EXTENSION_UUID)
+	@echo "Extension uninstalled."

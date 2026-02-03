@@ -33,11 +33,21 @@ conf_data.set_quoted('APP_INFO_ICON_NAME', icon_name)
 
 configure_file(output: 'config.h', configuration: conf_data)
 
+# DBus Interface Generation
+# Generates com-sidevesh-Luminance.c and com-sidevesh-Luminance.h
+gdbus_src = gnome.gdbus_codegen(
+  'com-sidevesh-Luminance',
+  sources: 'src/com.sidevesh.Luminance.xml',
+  interface_prefix: 'com.sidevesh.Luminance.',
+  namespace: 'Luminance',
+  annotations: [['com.sidevesh.Luminance', 'org.gtk.GDBus.C.Name', 'Service']]
+)
+
 # Main executable
 # Note: src/main.c includes other source files directly.
 # This structure means we only need to compile main.c.
 executable(app_id,
-  sources: 'src/main.c',
+  sources: ['src/main.c', gdbus_src],
   dependencies: [
     gtk4_dep, 
     libadwaita_dep, 
@@ -85,6 +95,7 @@ configure_file(
 appstream_conf = configuration_data()
 appstream_conf.set('APP_ID', app_id)
 appstream_conf.set('DESCRIPTION', run_command('cat', 'description.txt', check: true).stdout().strip())
+appstream_conf.set('RELEASES', run_command('sh', 'generate_releases.sh', check: false).stdout())
 
 configure_file(
   input: 'install_files/com.sidevesh.Luminance.metainfo.xml.in',
@@ -92,6 +103,19 @@ configure_file(
   configuration: appstream_conf,
   install: true,
   install_dir: join_paths(datadir, 'metainfo')
+)
+
+# DBus activatable service
+dbus_service_conf = configuration_data()
+dbus_service_conf.set('APP_ID', app_id)
+dbus_service_conf.set('bindir', join_paths(get_option('prefix'), get_option('bindir')))
+
+configure_file(
+  input: 'install_files/com.sidevesh.Luminance.service.in',
+  output: app_id + '.service',
+  configuration: dbus_service_conf,
+  install: true,
+  install_dir: join_paths(datadir, 'dbus-1', 'services')
 )
 
 # Udev rules

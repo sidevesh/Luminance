@@ -4,7 +4,9 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-only</project_license>
   <name>Luminance</name>
-  <developer_name>Swapnil Devesh</developer_name>
+  <developer id="com.sidevesh">
+    <name>Swapnil Devesh</name>
+  </developer>
   <summary>Control brightness of displays</summary>
   <description>
     <p>@DESCRIPTION@</p>
@@ -16,13 +18,15 @@
   <content_rating type="oars-1.1"/>
   <screenshots>
       <screenshot type="default">
-        <caption>Main Window</caption>
-        <image type="source" width="472" height="416">https://raw.githubusercontent.com/sidevesh/Luminance/main/screenshots/screenshot.png</image>
+        <caption>Main Window (Light Style)</caption>
+        <image type="source">https://raw.githubusercontent.com/sidevesh/Luminance/main/screenshots/screenshot.light.png</image>
+      </screenshot>
+      <screenshot>
+        <caption>Main Window (Dark Style)</caption>
+        <image type="source">https://raw.githubusercontent.com/sidevesh/Luminance/main/screenshots/screenshot.dark.png</image>
       </screenshot>
   </screenshots>
   <releases>
-    <release version="1.2.0" date="2024-01-01">
-        <!-- Update date and description -->
-    </release>
+@RELEASES@
   </releases>
 </component>

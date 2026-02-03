@@ -4,6 +4,7 @@
 #include <getopt.h>
 #include <gtk/gtk.h>
 #include <adwaita.h>
+#include "./dbus_service.c"
 #include "./constants/main.c"
 #include "./osd/main.c"
 #include "./states/displays.c"
@@ -37,6 +38,13 @@ void update_window_contents_in_ui() {
 	}
 
 	update_window_content_screen(current_screen);
+}
+
+static void on_app_startup(GApplication *app, gpointer user_data) {
+  // Set inactivity timeout to 10 seconds.
+  // This ensures the service stays alive for a short while after D-Bus activation
+  // to handle requests, then quits if no window starts or requests cease.
+  g_application_set_inactivity_timeout(app, 10000);
 }
 
 static void activate_gtk_ui(GtkApplication *app) {
@@ -85,7 +93,7 @@ int get_display_brightness_in_cli(guint display_number) {
 void set_brightness_percentage_in_cli(guint display_index, double brightness_percentage) {
   for (guint index = 0; index < displays_count(); index++) {
     if (index == display_index) {
-      set_display_brightness_percentage(index, brightness_percentage);
+      set_display_brightness_percentage(index, brightness_percentage, TRUE);
       return;
     }
   }
@@ -341,9 +349,27 @@ int main(int argc, char **argv) {
   fprintf(lock_file, "%jd\n", (intmax_t)getpid());
   fclose(lock_file);
 
+  // Initialize DBus service early to ensure object is exported before
+  // GApplication acquires the bus name. This prevents "Object does not exist"
+  // errors during D-Bus activation.
+  GError *error = NULL;
+  GDBusConnection *conn = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
+  if (conn) {
+    setup_dbus_service(conn);
+    g_object_unref(conn);
+  } else {
+    g_warning("Failed to connect to session bus: %s", error ? error->message : "Unknown error");
+    if (error) g_error_free(error);
+  }
+
   int status = 0;
 
-  if (argc > 1) {
+  gboolean service_mode = FALSE;
+  if (argc > 1 && strcmp(argv[1], "--gapplication-service") == 0) {
+    service_mode = TRUE;
+  }
+
+  if (argc > 1 && !service_mode) {
     is_cli_mode = TRUE;
     status = parse_cli_arguments(argc, argv);
   } else {
@@ -355,6 +381,8 @@ int main(int argc, char **argv) {
 		flags = G_APPLICATION_FLAGS_NONE;
 		#endif
 
+    g_set_application_name(APP_INFO_DISPLAY_NAME);
+
     AdwApplication *app;
     app = adw_application_new(APP_INFO_PACKAGE_NAME, flags);
 
@@ -365,6 +393,7 @@ int main(int argc, char **argv) {
     g_action_map_add_action_entries(G_ACTION_MAP(app), app_actions, G_N_ELEMENTS(app_actions), app);
     gtk_application_set_accels_for_action(GTK_APPLICATION(app), "app.quit", (const char *[]) { "<Ctrl>q", NULL });
 
+    g_signal_connect(app, "startup", G_CALLBACK(on_app_startup), NULL);
     g_signal_connect(app, "activate", G_CALLBACK(activate_gtk_ui), NULL);
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
