@@ -34,13 +34,22 @@ conf_data.set_quoted('APP_INFO_ICON_NAME', icon_name)
 configure_file(output: 'config.h', configuration: conf_data)
 
 # DBus Interface Generation
+xml_conf = configuration_data()
+xml_conf.set('APP_INFO_PACKAGE_NAME', app_id)
+
+dbus_xml = configure_file(
+    input: 'install_files/com.sidevesh.Luminance.xml.in',
+    output: app_id + '.xml',
+    configuration: xml_conf
+)
+
 # Generates com-sidevesh-Luminance.c and com-sidevesh-Luminance.h
 gdbus_src = gnome.gdbus_codegen(
   'com-sidevesh-Luminance',
-  sources: 'src/com.sidevesh.Luminance.xml',
-  interface_prefix: 'com.sidevesh.Luminance.',
+  sources: dbus_xml,
+  interface_prefix: app_id + '.',
   namespace: 'Luminance',
-  annotations: [['com.sidevesh.Luminance', 'org.gtk.GDBus.C.Name', 'Service']]
+  annotations: [[app_id, 'org.gtk.GDBus.C.Name', 'Service']]
 )
 
 # Main executable

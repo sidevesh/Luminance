@@ -144,7 +144,7 @@ void emit_osd_signal_dbus(gdouble percentage, const char* monitor) {
              g_dbus_connection_emit_signal(conn,
                                            NULL, 
                                            object_path,
-                                           "com.sidevesh.Luminance",
+                                           APP_INFO_PACKAGE_NAME,
                                            "ShowOSD",
                                            g_variant_new("(ds)", percentage, monitor ? monitor : ""),
                                            &error);
