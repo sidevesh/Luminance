@@ -50,6 +50,7 @@ static void on_app_startup(GApplication *app, gpointer user_data) {
 static void activate_gtk_ui(GtkApplication *app) {
 	initialize_application_window(GTK_APPLICATION(app));
 	update_window_contents_in_ui();
+  set_displays_update_callback(update_window_contents_in_ui);
   load_displays(update_window_contents_in_ui, update_window_contents_in_ui);
 }
 

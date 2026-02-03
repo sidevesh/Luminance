@@ -166,7 +166,27 @@ guint16 _get_display_max_brightness_value(guint index) {
   }
 }
 
+void reload_displays(void (*)(), void (*)());
+
+static void (*_global_ui_callback)() = NULL;
+
+void set_displays_update_callback(void (*callback)()) {
+    _global_ui_callback = callback;
+}
+
+static void on_lid_state_changed() {
+    g_print("Lid state changed detected. Hiding internal: %d. Reloading displays...\n", get_should_hide_internal_if_lid_closed());
+    if (get_should_hide_internal_if_lid_closed()) {
+        reload_displays(_global_ui_callback, _global_ui_callback);
+    }
+}
+
 void load_displays(void (*on_load_started_callback)(), void (*on_load_completed_callback)()) {
+  static gboolean is_observer_registered = FALSE;
+  if (!is_observer_registered) {
+       register_lid_state_observer(on_lid_state_changed);
+       is_observer_registered = TRUE;
+  }
   _refresh_displays_with_callbacks(TRUE, on_load_started_callback, on_load_completed_callback);
 }
 
