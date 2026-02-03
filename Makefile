@@ -104,6 +104,8 @@ package-rpm: packaging-build
 package-arch: packaging/arch/PKGBUILD.in version.txt description.txt
 	@echo "Generating arch/PKGBUILD..."
 	sed -e "s|@VERSION@|$(VERSION)|g" -e "s|@DESCRIPTION@|$(DESCRIPTION)|g" packaging/arch/PKGBUILD.in > arch/PKGBUILD
+	# Update .SRCINFO
+	cd arch && makepkg --printsrcinfo > .SRCINFO
 
 # Test Arch package locally
 package-arch-test: package-arch
@@ -168,8 +170,6 @@ flatpak-bundle: flatpak
 	mkdir -p $(OUTPUTS_DIR)
 	flatpak build-bundle $(FLATPAK_REPO_DIR) $(OUTPUTS_DIR)/$(FLATPAK_APP_ID).flatpak $(FLATPAK_APP_ID)
 	@echo "Flatpak bundle created at $(OUTPUTS_DIR)/$(FLATPAK_APP_ID).flatpak"
-	# Update .SRCINFO
-	cd arch && makepkg --printsrcinfo > .SRCINFO
 
 # Remove build directories
 clean:
