@@ -95,7 +95,7 @@ configure_file(
 appstream_conf = configuration_data()
 appstream_conf.set('APP_ID', app_id)
 appstream_conf.set('DESCRIPTION', run_command('cat', 'description.txt', check: true).stdout().strip())
-appstream_conf.set('RELEASES', run_command('sh', 'generate_releases.sh', check: false).stdout())
+appstream_conf.set('RELEASES', run_command('sh', './scripts/generate-releases.sh', check: false).stdout())
 
 configure_file(
   input: 'install_files/com.sidevesh.Luminance.metainfo.xml.in',

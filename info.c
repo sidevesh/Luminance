@@ -6,4 +6,4 @@
 #define APP_INFO_LICENSE GTK_LICENSE_GPL_3_0
 #define APP_INFO_PROJECT_AUTHORS "Swapnil Devesh <me@sidevesh.com>", "Ahad Shabbir <shabbirahadh@gmail.com>"
 #define APP_INFO_PROJECT_ARTISTS "Swapnil Devesh <me@sidevesh.com>", "Jakub Steiner <jimmac@gmail.com>"
-#define APP_INFO_FLATPAK_SETUP_SCRIPT_URL "https://raw.githubusercontent.com/sidevesh/Luminance/main/flatpak-setup.sh"
+#define APP_INFO_FLATPAK_SETUP_SCRIPT_URL "https://raw.githubusercontent.com/sidevesh/Luminance/main/scripts/flatpak-setup.sh"

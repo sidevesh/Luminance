@@ -49,7 +49,7 @@ Latest rpm release is available on the releases page https://github.com/sidevesh
 
     ##### Arch Linux:
     ```
-    pacman -S --needed make meson glib2 gtk4 libadwaita ddcutil
+    pacman -S --needed make meson glib2-devel glib2 gtk4 libadwaita ddcutil
     ```
     
     ##### Ubuntu-based distros (credit @aidengilmartin):
