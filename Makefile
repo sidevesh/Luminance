@@ -88,6 +88,7 @@ package-rpm: packaging-build
 	cp $(BUILD_PACKAGING_DIR)/com.sidevesh.Luminance.desktop $(RPMBUILD_DIR)/SOURCES/
 	cp $(BUILD_PACKAGING_DIR)/com.sidevesh.Luminance.gschema.xml $(RPMBUILD_DIR)/SOURCES/
 	cp $(BUILD_PACKAGING_DIR)/com.sidevesh.Luminance.metainfo.xml $(RPMBUILD_DIR)/SOURCES/
+	cp $(BUILD_PACKAGING_DIR)/com.sidevesh.Luminance.service $(RPMBUILD_DIR)/SOURCES/
 	cp install_files/44-backlight-permissions.rules $(RPMBUILD_DIR)/SOURCES/
 	cp icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg $(RPMBUILD_DIR)/SOURCES/
 	cp icons/hicolor/symbolic/apps/com.sidevesh.Luminance-symbolic.svg $(RPMBUILD_DIR)/SOURCES/

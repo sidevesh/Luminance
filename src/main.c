@@ -41,10 +41,10 @@ void update_window_contents_in_ui() {
 }
 
 static void on_app_startup(GApplication *app, gpointer user_data) {
-  GDBusConnection *conn = g_application_get_dbus_connection(app);
-  if (conn) {
-    setup_dbus_service(conn);
-  }
+  // Set inactivity timeout to 10 seconds.
+  // This ensures the service stays alive for a short while after D-Bus activation
+  // to handle requests, then quits if no window starts or requests cease.
+  g_application_set_inactivity_timeout(app, 10000);
 }
 
 static void activate_gtk_ui(GtkApplication *app) {
@@ -349,9 +349,27 @@ int main(int argc, char **argv) {
   fprintf(lock_file, "%jd\n", (intmax_t)getpid());
   fclose(lock_file);
 
+  // Initialize DBus service early to ensure object is exported before
+  // GApplication acquires the bus name. This prevents "Object does not exist"
+  // errors during D-Bus activation.
+  GError *error = NULL;
+  GDBusConnection *conn = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
+  if (conn) {
+    setup_dbus_service(conn);
+    g_object_unref(conn);
+  } else {
+    g_warning("Failed to connect to session bus: %s", error ? error->message : "Unknown error");
+    if (error) g_error_free(error);
+  }
+
   int status = 0;
 
-  if (argc > 1) {
+  gboolean service_mode = FALSE;
+  if (argc > 1 && strcmp(argv[1], "--gapplication-service") == 0) {
+    service_mode = TRUE;
+  }
+
+  if (argc > 1 && !service_mode) {
     is_cli_mode = TRUE;
     status = parse_cli_arguments(argc, argv);
   } else {

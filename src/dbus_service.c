@@ -1,3 +1,4 @@
+#include "config.h"
 #include "com-sidevesh-Luminance.h"
 
 static LuminanceService *skeleton = NULL;
@@ -8,6 +9,16 @@ char* get_display_name(guint index);
 gdouble get_display_brightness_percentage(guint index);
 void set_display_brightness_percentage(guint index, gdouble brightness_percentage, gboolean emit_osd_signal);
 void load_displays(void (*)(), void (*)());
+
+static gchar *
+get_dbus_object_path (void)
+{
+  gchar *object_path_str = g_strdup(APP_INFO_PACKAGE_NAME);
+  g_strdelimit(object_path_str, ".", '/');
+  gchar *full_path = g_strdup_printf("/%s/Service", object_path_str);
+  g_free(object_path_str);
+  return full_path;
+}
 
 static gboolean
 on_handle_get_monitors (LuminanceService *interface,
@@ -107,16 +118,18 @@ void setup_dbus_service (GDBusConnection *connection)
                     G_CALLBACK (on_handle_quit),
                     NULL);
 
+  gchar *object_path = get_dbus_object_path();
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (skeleton),
                                          connection,
-                                         "/com/sidevesh/Luminance",
+                                         object_path,
                                          &error))
     {
       g_warning ("Error exporting DBus interface: %s", error->message);
       g_error_free (error);
     } else {
-      g_print("DBus interface exported at /com/sidevesh/Luminance\n");
+      g_print("DBus interface exported at %s\n", object_path);
     }
+  g_free(object_path);
 }
 
 void emit_osd_signal_dbus(gdouble percentage, const char* monitor) {
@@ -127,13 +140,15 @@ void emit_osd_signal_dbus(gdouble percentage, const char* monitor) {
         GError *error = NULL;
         GDBusConnection *conn = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
         if (conn) {
+             gchar *object_path = get_dbus_object_path();
              g_dbus_connection_emit_signal(conn,
                                            NULL, 
-                                           "/com/sidevesh/Luminance",
+                                           object_path,
                                            "com.sidevesh.Luminance",
                                            "ShowOSD",
                                            g_variant_new("(ds)", percentage, monitor ? monitor : ""),
                                            &error);
+             g_free(object_path);
              if (error) {
                  g_warning("Failed to emit signal: %s", error->message);
                  g_error_free(error);

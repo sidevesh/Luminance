@@ -1,8 +1,14 @@
 #!/bin/bash
 
 BUS_NAME="com.sidevesh.Luminance"
-OBJECT_PATH="/com/sidevesh/Luminance"
+OBJECT_PATH="/com/sidevesh/Luminance/Service"
 INTERFACE="com.sidevesh.Luminance"
+
+if [[ "$1" == "--devel" ]]; then
+    BUS_NAME="com.sidevesh.Luminance.Devel"
+    OBJECT_PATH="/com/sidevesh/Luminance/Devel/Service"
+    echo "Running in development mode..."
+fi
 
 echo "Testing DBus Interface for $BUS_NAME..."
 

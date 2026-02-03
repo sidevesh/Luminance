@@ -40,6 +40,9 @@ install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance.gschema.xml %{buildroot}/
 # Install the AppStream metainfo
 install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance.metainfo.xml %{buildroot}/%{_datadir}/metainfo/com.sidevesh.Luminance.metainfo.xml
 
+# Install the DBus service file
+install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance.service %{buildroot}/%{_datadir}/dbus-1/services/com.sidevesh.Luminance.service
+
 # Install the udev rules
 install -D -m 644 %{_sourcedir}/44-backlight-permissions.rules %{buildroot}/%{_libdir}/udev/rules.d/44-backlight-permissions.rules
 
@@ -52,6 +55,7 @@ install -D -m 644 %{_sourcedir}/com.sidevesh.Luminance-symbolic.svg %{buildroot}
 %{_datadir}/applications/com.sidevesh.Luminance.desktop
 %{_datadir}/glib-2.0/schemas/com.sidevesh.Luminance.gschema.xml
 %{_datadir}/metainfo/com.sidevesh.Luminance.metainfo.xml
+%{_datadir}/dbus-1/services/com.sidevesh.Luminance.service
 
 %{_libdir}/udev/rules.d/44-backlight-permissions.rules
 %{_datadir}/icons/hicolor/scalable/apps/com.sidevesh.Luminance.svg

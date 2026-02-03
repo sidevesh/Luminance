@@ -95,6 +95,7 @@ configure_file(
 appstream_conf = configuration_data()
 appstream_conf.set('APP_ID', app_id)
 appstream_conf.set('DESCRIPTION', run_command('cat', 'description.txt', check: true).stdout().strip())
+appstream_conf.set('RELEASES', run_command('sh', 'generate_releases.sh', check: false).stdout())
 
 configure_file(
   input: 'install_files/com.sidevesh.Luminance.metainfo.xml.in',
@@ -102,6 +103,19 @@ configure_file(
   configuration: appstream_conf,
   install: true,
   install_dir: join_paths(datadir, 'metainfo')
+)
+
+# DBus activatable service
+dbus_service_conf = configuration_data()
+dbus_service_conf.set('APP_ID', app_id)
+dbus_service_conf.set('bindir', join_paths(get_option('prefix'), get_option('bindir')))
+
+configure_file(
+  input: 'install_files/com.sidevesh.Luminance.service.in',
+  output: app_id + '.service',
+  configuration: dbus_service_conf,
+  install: true,
+  install_dir: join_paths(datadir, 'dbus-1', 'services')
 )
 
 # Udev rules
