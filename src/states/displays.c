@@ -175,9 +175,12 @@ void set_displays_update_callback(void (*callback)()) {
 }
 
 static void on_lid_state_changed() {
-    g_print("Lid state changed detected. Hiding internal: %d. Reloading displays...\n", get_should_hide_internal_if_lid_closed());
-    if (get_should_hide_internal_if_lid_closed()) {
+    gboolean should_hide = get_should_hide_internal_if_lid_closed();
+    if (should_hide) {
+        g_print("Lid state changed and 'hide internal' is enabled. Reloading displays...\n");
         reload_displays(_global_ui_callback, _global_ui_callback);
+    } else {
+        g_print("Lid state changed but 'hide internal' is disabled. Ignoring.\n");
     }
 }
 
