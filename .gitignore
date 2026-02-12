@@ -3,3 +3,4 @@ build/*
 
 # Flatpak
 *.flatpak
+.flatpak-manifest.yml

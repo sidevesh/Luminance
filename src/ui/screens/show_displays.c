@@ -73,9 +73,9 @@ void _update_display_brightness(GtkRange *range, guint data) {
 			GtkRange *linked_range = GTK_RANGE(_display_sections[index]->scale);
 			// Block signal handler to prevent recursive calls and redundant debounce timers
 			// when updating linked sliders programmatically.
-			g_signal_handlers_block_by_func(linked_range, _update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
+			g_signal_handlers_block_by_func(linked_range, (gpointer)_update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
 			gtk_range_set_value(linked_range, new_value);
-			g_signal_handlers_unblock_by_func(linked_range, _update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
+			g_signal_handlers_unblock_by_func(linked_range, (gpointer)_update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
 		}
 	}
 }
@@ -98,15 +98,17 @@ void _link_brightness(GtkCheckButton *link_brightness_checkbox) {
 		GtkRange *range = GTK_RANGE(_display_sections[index]->scale);
 		// Block signal handler to verify we simply update the UI and apply brightness immediately
 		// without triggering the debounce mechanism.
-		g_signal_handlers_block_by_func(range, _update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
+		g_signal_handlers_block_by_func(range, (gpointer)_update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
 		gtk_range_set_value(range, max_scale_percentage);
-		g_signal_handlers_unblock_by_func(range, _update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
+		g_signal_handlers_unblock_by_func(range, (gpointer)_update_display_brightness, GUINT_TO_POINTER(_display_sections[index]->display_index));
 		set_display_brightness_percentage(_display_sections[index]->display_index, max_scale_percentage, FALSE);
 	}
 }
 
 
 static void _cleanup_display_resources(GtkWidget *widget, gpointer data) {
+    (void)widget;
+    (void)data;
     if (_pending_brightness_timeout_ids != NULL) {
         for (guint i = 0; i < _display_sections_count; i++) {
             if (_pending_brightness_timeout_ids[i] > 0) {

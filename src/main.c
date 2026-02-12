@@ -41,6 +41,7 @@ void update_window_contents_in_ui() {
 }
 
 static void on_app_startup(GApplication *app, gpointer user_data) {
+  (void)user_data;
   // Set inactivity timeout to 10 seconds.
   // This ensures the service stays alive for a short while after D-Bus activation
   // to handle requests, then quits if no window starts or requests cease.
@@ -55,6 +56,8 @@ static void activate_gtk_ui(GtkApplication *app) {
 }
 
 static void quit_application(GSimpleAction *action, GVariant *parameter, gpointer user_data) {
+  (void)action;
+  (void)parameter;
   AdwApplication *app = user_data;
   g_application_quit(G_APPLICATION(app));
 }
@@ -388,7 +391,7 @@ int main(int argc, char **argv) {
     app = adw_application_new(APP_INFO_PACKAGE_NAME, flags);
 
     static const GActionEntry app_actions[] = {
-        { "quit", quit_application },
+        { "quit", quit_application, NULL, NULL, NULL, {0, 0, 0} },
     };
 
     g_action_map_add_action_entries(G_ACTION_MAP(app), app_actions, G_N_ELEMENTS(app_actions), app);

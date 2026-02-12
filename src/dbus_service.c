@@ -25,6 +25,7 @@ on_handle_get_monitors (LuminanceService *interface,
                         GDBusMethodInvocation *invocation,
                         gpointer user_data)
 {
+  (void)user_data;
   load_displays(NULL, NULL);
 
   GString *json_builder = g_string_new("[");
@@ -59,6 +60,7 @@ on_handle_set_brightness (LuminanceService *interface,
                           gdouble value,
                           gpointer user_data)
 {
+  (void)user_data;
   gchar *endptr;
   guint64 index_val = g_ascii_strtoull(monitor_id, &endptr, 10);
 
@@ -89,6 +91,7 @@ on_handle_quit (LuminanceService *interface,
                 GDBusMethodInvocation *invocation,
                 gpointer user_data)
 {
+  (void)user_data;
   luminance_service_complete_quit (interface, invocation);
   GApplication *app = g_application_get_default();
   if (app) {

@@ -27,10 +27,14 @@ void _on_should_hide_internal_if_lid_closed_checkbox_toggled(GtkCheckButton *wid
 	gboolean should_hide_internal_if_lid_closed = gtk_check_button_get_active(widget);
 	gtk_check_button_set_active(GTK_CHECK_BUTTON(widget), should_hide_internal_if_lid_closed);
 	set_should_hide_internal_if_lid_closed(should_hide_internal_if_lid_closed);
-    
-    if (!is_lid_open()) {
-        reload_displays(update_window_contents_in_ui, update_window_contents_in_ui);
-    }
+  if (!is_lid_open()) {
+      reload_displays(update_window_contents_in_ui, update_window_contents_in_ui);
+  }
+}
+
+void _open_about_dialog_and_close_popover() {
+	AdwDialog *about_dialog = adw_about_dialog_new();
+
 	gtk_popover_popdown(GTK_POPOVER(_menu_popover));
 	adw_about_dialog_set_application_name(ADW_ABOUT_DIALOG(about_dialog), APP_INFO_DISPLAY_NAME);
 	adw_about_dialog_set_version(ADW_ABOUT_DIALOG(about_dialog), APP_INFO_VERSION_NUMBER);

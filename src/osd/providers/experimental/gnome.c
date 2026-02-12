@@ -18,5 +18,6 @@ void show_gnome_osd(gdouble brightness_percentage) {
 		// );
 	}
 
-	system(command);
+	int result = system(command);
+	(void)result;
 }

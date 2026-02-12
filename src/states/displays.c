@@ -154,8 +154,10 @@ guint16 _get_display_max_brightness_value(guint index) {
 
     FILE* file = fopen(max_brightness_file_path, "r");
     if (file != NULL) {
-        guint max_brightness;
-        fscanf(file, "%u", &max_brightness);
+        guint max_brightness = 0;
+        if (fscanf(file, "%u", &max_brightness) != 1) {
+            max_brightness = 0;
+        }
         fclose(file);
         return max_brightness;
     }
@@ -237,8 +239,10 @@ gdouble get_display_brightness_percentage(guint index) {
 
     FILE* file = fopen(brightness_file_path, "r");
     if (file != NULL) {
-      guint brightness;
-			fscanf(file, "%u", &brightness);
+      guint brightness = 0;
+			if (fscanf(file, "%u", &brightness) != 1) {
+        brightness = 0;
+      }
       fclose(file);
       return brightness * 100.0 / max_brightness_value;
     }

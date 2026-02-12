@@ -69,6 +69,9 @@ static void on_upower_properties_changed (GDBusProxy *proxy,
                                           const gchar *const *invalidated_properties,
                                           gpointer    user_data)
 {
+    (void)proxy;
+    (void)invalidated_properties;
+    (void)user_data;
     if (g_variant_lookup (changed_properties, "LidIsClosed", "b", NULL)) {
         g_print("UPower signal received: LidIsClosed changed.\n");
         if (on_lid_state_changed_cb) {

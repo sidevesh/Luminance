@@ -10,6 +10,7 @@ gnome = import('gnome')
 
 # Dependencies
 gtk4_dep = dependency('gtk4', required: true)
+gio_dep = dependency('gio-2.0')
 libadwaita_dep = dependency('libadwaita-1', required: true)
 ddcutil_dep = dependency('ddcutil', required: true)
 thread_dep = dependency('threads')
@@ -52,17 +53,25 @@ gdbus_src = gnome.gdbus_codegen(
   annotations: [[app_id, 'org.gtk.GDBus.C.Name', 'Service']]
 )
 
+# Create a static library for generated code to suppress strict warnings
+gdbus_lib = static_library('gdbus_generated',
+  sources: gdbus_src,
+  dependencies: [gio_dep],
+  override_options: ['warning_level=0']
+)
+
 # Main executable
 # Note: src/main.c includes other source files directly.
 # This structure means we only need to compile main.c.
 executable(app_id,
-  sources: ['src/main.c', gdbus_src],
+  sources: ['src/main.c'],
   dependencies: [
     gtk4_dep, 
     libadwaita_dep, 
     ddcutil_dep,
     thread_dep
   ],
+  link_with: gdbus_lib,
   install: true,
   install_dir: get_option('bindir')
 )
