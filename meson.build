@@ -120,12 +120,28 @@ endif
 releases_content = run_command('cat', 'releases.xml', check: true).stdout().strip()
 
 # Validate that the latest release version matches version.txt
-# Extract the first version from releases.xml using a simple shell command
-latest_release_version = run_command('sh', '-c', 
-  'grep -m 1 "release version=" releases.xml | sed -E \'s/.*version="([^"]+)".*/\\1/\'',
-  check: false).stdout().strip()
+# Extract the first version from releases.xml using a more robust pattern
+# This matches: <release version="X.Y.Z" ... /> where X.Y.Z is the version
+version_extract_result = run_command('sh', '-c', 
+  'grep -m 1 "<release version=" releases.xml | sed -E \'s/.*<release[[:space:]]+version="([^"]+)".*/\\1/\'',
+  check: true)
+latest_release_version = version_extract_result.stdout().strip()
 
-if latest_release_version != '' and latest_release_version != meson.project_version()
+# Validate that we extracted a non-empty version in proper format
+if latest_release_version == ''
+  error('Failed to extract version from releases.xml. The file may be malformed or empty.')
+endif
+
+# Verify the version has a reasonable format (X.Y.Z where X, Y, Z are numbers, with optional suffixes)
+version_format_check = run_command('sh', '-c',
+  'echo "' + latest_release_version + '" | grep -qE \'^[0-9]+\\.[0-9]+\\.[0-9]+(\\.[0-9]+)?(-[a-zA-Z0-9]+)?$\' && echo "valid" || echo "invalid"',
+  check: true)
+
+if version_format_check.stdout().strip() != 'valid'
+  error('Invalid version format in releases.xml: "' + latest_release_version + '". Expected format: X.Y.Z (e.g., 1.4.3)')
+endif
+
+if latest_release_version != meson.project_version()
   error('Version mismatch: releases.xml latest version (' + latest_release_version + ') does not match version.txt (' + meson.project_version() + ')')
 endif
 
