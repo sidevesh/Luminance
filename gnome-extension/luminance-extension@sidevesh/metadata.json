@@ -1,0 +1,10 @@
+{
+  "name": "Luminance extension",
+  "description": "Companion extension for Luminance app",
+  "uuid": "luminance-extension@sidevesh",
+  "shell-version": [
+    "49"
+  ],
+  "version": 1,
+  "url": "https://github.com/sidevesh/Luminance"
+}
