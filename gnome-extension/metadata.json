@@ -1,8 +1,0 @@
-{
-  "name": "Luminance",
-  "description": "Companion extension for Luminance app",
-  "uuid": "luminance@sidevesh.com",
-  "shell-version": [
-    "49"
-  ]
-}

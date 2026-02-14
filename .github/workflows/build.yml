@@ -12,7 +12,7 @@ env:
   CI: true
 
 jobs:
-  build-deb:
+  package-deb:
     name: Build and upload deb package
     runs-on: ubuntu-24.04
     steps:
@@ -38,7 +38,7 @@ jobs:
           asset_name: luminance-${{ github.event.release.tag_name }}.deb
           tag: ${{ github.ref }}
 
-  build-rpm:
+  package-rpm:
     name: Build and upload rpm package
     runs-on: ubuntu-latest
     container:
@@ -66,4 +66,25 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./build/packaging/outputs/luminance.rpm
           asset_name: luminance-${{ github.event.release.tag_name }}.rpm
+          tag: ${{ github.ref }}
+
+  package-zip:
+    name: Create zip for publishing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Git repository
+        uses: actions/checkout@v2
+
+      - name: Create zip
+        run: |
+          cd gnome-extension/luminance-extension@sidevesh
+          zip -r ../../luminance-extension@sidevesh.zip *
+          cd ../..
+
+      - name: Upload package
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./luminance-extension@sidevesh.zip
+          asset_name: luminance-extension@sidevesh.zip
           tag: ${{ github.ref }}
