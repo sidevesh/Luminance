@@ -1,4 +1,4 @@
-.PHONY: all release debug install uninstall install-debug uninstall-debug clean package-deb package-rpm package-arch package-arch-test install-arch uninstall-arch flatpak install-flatpak uninstall-flatpak lint-flatpak run-flatpak flatpak-bundle pack-extension install-extension uninstall-extension
+.PHONY: all release debug install uninstall install-debug uninstall-debug clean package-deb package-rpm package-arch package-arch-test install-arch uninstall-arch flatpak install-flatpak uninstall-flatpak lint-flatpak run-flatpak flatpak-bundle pack-gnome-extension install-gnome-extension uninstall-gnome-extension
 
 # Build directories
 BUILD_RELEASE_DIR = build/release
@@ -176,12 +176,12 @@ clean:
 	rm -rf build
 
 # GNOME Extension
-EXTENSION_UUID = luminance@sidevesh.com
-SRC_EXTENSION_DIR = gnome-extension
+EXTENSION_UUID = luminance-extension@sidevesh
+SRC_EXTENSION_DIR = gnome-extension/$(EXTENSION_UUID)
 EXTENSION_BUILD_DIR = $(PKG_DIR)/gnome-extension
 EXTENSION_ZIP = $(OUTPUTS_DIR)/$(EXTENSION_UUID).shell-extension.zip
 
-pack-extension:
+pack-gnome-extension:
 	@echo "Packing GNOME extension..."
 	rm -rf $(EXTENSION_BUILD_DIR)
 	mkdir -p $(EXTENSION_BUILD_DIR)
@@ -190,13 +190,13 @@ pack-extension:
 	gnome-extensions pack $(EXTENSION_BUILD_DIR) --force --out-dir=$(OUTPUTS_DIR)
 	@echo "Extension packed at $(EXTENSION_ZIP)"
 
-install-extension: pack-extension
+install-gnome-extension: pack-gnome-extension
 	@echo "Installing GNOME extension..."
 	gnome-extensions install --force $(EXTENSION_ZIP)
 	@echo "GNOME extension installed. You may need to enable it with: gnome-extensions enable $(EXTENSION_UUID)"
 	@echo "You may need to restart GNOME Shell (Alt+F2, 'r') or log out/in."
 
-uninstall-extension:
+uninstall-gnome-extension:
 	@echo "Uninstalling GNOME extension..."
 	-gnome-extensions uninstall $(EXTENSION_UUID)
 	@echo "Extension uninstalled."

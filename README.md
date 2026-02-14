@@ -158,7 +158,44 @@ Options:
 When no arguments are provided, the application starts in GUI mode.
 ```
 
-## Note for AUR publishers
+## GNOME Extension
+
+A companion GNOME Shell extension is available for Luminance. This extension displays the native GNOME brightness OSD (On-Screen Display) when brightness is adjusted outside of the main GUI application window (e.g. via command line interface or D-Bus calls).
+
+### Install from Release
+Latest extension release is available on the releases page https://github.com/sidevesh/Luminance/releases
+Download the zip file and install it using `gnome-extensions install [ZIP_FILE]`.
+
+### Install from Source
+To build and install the extension from source:
+```bash
+make install-gnome-extension
+```
+
+After installation, you may need to restart GNOME Shell (Alt+F2, type `r`, enter on X11, or log out/in on Wayland) and enable the extension:
+```bash
+gnome-extensions enable luminance-extension@sidevesh
+```
+
+## Note for Maintainers
+
+### Updating Release Information
+Before building or tagging a new release, ensure that `releases.xml` is up-to-date:
+
+1. Create and push a new git tag for the release (e.g., `v1.4.3`)
+2. Generate the `releases.xml` file by running:
+   ```
+   ./scripts/generate-releases.sh
+   ```
+3. If you already have a releases.xml then skip step 2 and directly edit the file in step 3, adding the new version to the top of the file
+3. Edit the generated `releases.xml` with release information if needed
+4. Commit the updated `releases.xml` file to the repository
+
+The build system will fail if:
+- `releases.xml` does not exist
+- The latest version in `releases.xml` does not match the version in `version.txt`
+
+### Note for AUR publishers
 
 Switch the arch submodule push url to the ssh url before pushing to AUR for the first time:
 ```
