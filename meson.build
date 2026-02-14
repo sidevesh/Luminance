@@ -110,10 +110,29 @@ configure_file(
 )
 
 # AppStream Metadata
+# Check if releases.xml exists
+releases_xml_file = meson.project_source_root() / 'releases.xml'
+if not import('fs').is_file(releases_xml_file)
+  error('releases.xml file not found. Please generate it by running: ./scripts/generate-releases.sh')
+endif
+
+# Read releases.xml content
+releases_content = run_command('cat', 'releases.xml', check: true).stdout().strip()
+
+# Validate that the latest release version matches version.txt
+# Extract the first version from releases.xml using a simple shell command
+latest_release_version = run_command('sh', '-c', 
+  'grep -m 1 "release version=" releases.xml | sed -E \'s/.*version="([^"]+)".*/\\1/\'',
+  check: false).stdout().strip()
+
+if latest_release_version != '' and latest_release_version != meson.project_version()
+  error('Version mismatch: releases.xml latest version (' + latest_release_version + ') does not match version.txt (' + meson.project_version() + ')')
+endif
+
 appstream_conf = configuration_data()
 appstream_conf.set('APP_ID', app_id)
 appstream_conf.set('DESCRIPTION', run_command('cat', 'description.txt', check: true).stdout().strip())
-appstream_conf.set('RELEASES', run_command('sh', './scripts/generate-releases.sh', check: false).stdout())
+appstream_conf.set('RELEASES', releases_content)
 
 configure_file(
   input: 'install_files/com.sidevesh.Luminance.metainfo.xml.in',

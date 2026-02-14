@@ -158,7 +158,23 @@ Options:
 When no arguments are provided, the application starts in GUI mode.
 ```
 
-## Note for AUR publishers
+## Note for Maintainers
+
+### Updating Release Information
+Before building or tagging a new release, ensure that `releases.xml` is up-to-date:
+
+1. Create and push a new git tag for the release (e.g., `v1.4.3`)
+2. Generate the `releases.xml` file by running:
+   ```
+   ./scripts/generate-releases.sh
+   ```
+3. Commit the updated `releases.xml` file to the repository
+
+The build system will fail if:
+- `releases.xml` does not exist
+- The latest version in `releases.xml` does not match the version in `version.txt`
+
+### Note for AUR publishers
 
 Switch the arch submodule push url to the ssh url before pushing to AUR for the first time:
 ```
