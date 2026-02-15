@@ -5,6 +5,8 @@
 #include "../states/displays.c"
 #include "../states/laptop_lid.c"
 #include "../states/should_hide_internal_if_lid_closed.c"
+#include "../utils/flatpak.c"
+#include "./components/flatpak_setup_dialog.c"
 
 GtkWidget *_window;
 GtkWidget *_window_header;
@@ -30,6 +32,13 @@ void _on_should_hide_internal_if_lid_closed_checkbox_toggled(GtkCheckButton *wid
   if (!is_lid_open()) {
       reload_displays(update_window_contents_in_ui, update_window_contents_in_ui);
   }
+}
+
+void _on_setup_permissions_button_clicked(GtkWidget *widget, gpointer data) {
+    (void)widget;
+    (void)data;
+    gtk_popover_popdown(GTK_POPOVER(_menu_popover));
+    show_flatpak_setup_dialog(GTK_WINDOW(_window));
 }
 
 void _open_about_dialog_and_close_popover() {
@@ -86,6 +95,25 @@ void initialize_application_window(GtkApplication *app) {
 		gtk_style_context_add_provider(separator_style_context, GTK_STYLE_PROVIDER(separator_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 		gtk_box_append(GTK_BOX(menu_box), separator);
 	}
+
+	//if (is_running_in_flatpak()) {
+	//	GtkWidget *setup_button = gtk_button_new_with_label("Setup Permissions");
+	//	GtkStyleContext *setup_button_style_context = gtk_widget_get_style_context(setup_button);
+	//	GtkCssProvider *setup_button_css_provider = gtk_css_provider_new();
+	//	gtk_css_provider_load_from_string(setup_button_css_provider, "button.flat {font-weight: normal;}");
+	//	gtk_style_context_add_provider(setup_button_style_context, GTK_STYLE_PROVIDER(setup_button_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+	//	gtk_style_context_add_class(setup_button_style_context, "flat");
+	//
+	//	gtk_box_append(GTK_BOX(menu_box), setup_button);
+	//	g_signal_connect(setup_button, "clicked", G_CALLBACK(_on_setup_permissions_button_clicked), NULL);
+	//
+	//	GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+	//	GtkStyleContext *separator_style_context = gtk_widget_get_style_context(separator);
+	//	GtkCssProvider *separator_css_provider = gtk_css_provider_new();
+	//	gtk_css_provider_load_from_string(separator_css_provider, "separator {margin-top: 8px; margin-bottom: 8px;}");
+	//	gtk_style_context_add_provider(separator_style_context, GTK_STYLE_PROVIDER(separator_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+	//	gtk_box_append(GTK_BOX(menu_box), separator);
+	//}
 
 	gchar about_button_label_text[100];
 	sprintf(about_button_label_text, "About %s", APP_INFO_DISPLAY_NAME);

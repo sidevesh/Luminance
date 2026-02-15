@@ -77,6 +77,17 @@ verify() {
         BACKLIGHT_COUNT=$(ls /sys/class/backlight/ | wc -l)
         if [ "$BACKLIGHT_COUNT" -gt 0 ]; then
             echo -e "[${GREEN}OK${NC}] Found $BACKLIGHT_COUNT backlight interfaces in /sys/class/backlight/"
+            
+            # Check for actual write permissions
+            CAN_WRITE=0
+            for backlight in /sys/class/backlight/*; do
+                if [ -w "$backlight/brightness" ]; then
+                    echo -e "[${GREEN}OK${NC}] Write permission available for $(basename "$backlight")"
+                    CAN_WRITE=1
+                else
+                    echo -e "[${RED}FAIL${NC}] No write permission for $(basename "$backlight")/brightness. (Current user: $(whoami))"
+                fi
+            done
         else
             echo -e "[${YELLOW}INFO${NC}] No internal backlight interfaces found (normal for desktops)"
         fi
@@ -89,15 +100,40 @@ verify() {
     exit 0
 }
 
-# Check for uninstall flag
-if [ "$1" == "--uninstall" ]; then
-    uninstall
-fi
+# Function to show help
+show_help() {
+    echo "Usage: $(basename "$0") [OPTION]"
+    echo "Setup permissions for Luminance Flatpak to control monitors."
+    echo ""
+    echo "Options:"
+    echo "  --verify     Verify the installation and permissions"
+    echo "  --uninstall  Uninstall the setup and revert changes"
+    echo "  --help       Show this help message"
+    echo ""
+    echo "If no option is provided, the setup will be performed."
+    exit 0
+}
 
-# Check for verify flag
-if [ "$1" == "--verify" ]; then
-    verify
-fi
+# Parse arguments
+case "$1" in
+    --uninstall)
+        uninstall
+        ;;
+    --verify)
+        verify
+        ;;
+    --help|-h)
+        show_help
+        ;;
+    "")
+        # Proceed with setup
+        ;;
+    *)
+        echo "Error: Unknown option '$1'"
+        echo "Try '$(basename "$0") --help' for more information."
+        exit 1
+        ;;
+esac
 
 echo "Starting setup for Luminance..."
 
@@ -153,6 +189,15 @@ if [ "$STEAMOS" = 1 ] ; then
 		echo "Re-enabling SteamOS readonly mode..."
 		sudo steamos-readonly enable
 	fi
+fi
+
+# Check if user is in video group
+if groups "$USER" | grep &>/dev/null '\bvideo\b'; then
+    echo "User $USER is already in the video group."
+else
+    echo "Adding user $USER to the video group..."
+    sudo usermod -aG video "$USER"
+    echo "PLEASE NOTE: You may need to log out and log back in for group changes to take effect."
 fi
 
 echo "Setup complete!"

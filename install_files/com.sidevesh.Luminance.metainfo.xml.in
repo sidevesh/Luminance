@@ -26,6 +26,10 @@
         <image type="source">https://raw.githubusercontent.com/sidevesh/Luminance/main/screenshots/screenshot.dark.png</image>
       </screenshot>
   </screenshots>
+  <branding>
+    <color type="primary" scheme_preference="light">#70b0ff</color>
+    <color type="primary" scheme_preference="dark">#144785</color>
+  </branding>
   <releases>
 @RELEASES@
   </releases>

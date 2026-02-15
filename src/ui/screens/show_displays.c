@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include "../../states/displays.c"
+#include "../components/flatpak_setup_dialog.c"
 
 #ifndef BRIGHTNESS_DEBOUNCE_DELAY_MS
 #define BRIGHTNESS_DEBOUNCE_DELAY_MS 300
@@ -137,12 +138,49 @@ static void _cleanup_display_resources(GtkWidget *widget, gpointer data) {
     _display_sections_count = 0;
 }
 
+void _on_setup_permissions_banner_button_clicked(GtkWidget *widget, gpointer data) {
+    (void)data;
+    show_flatpak_setup_dialog(GTK_WINDOW(gtk_widget_get_root(widget)));
+}
+
 GtkWidget* get_show_displays_screen() {
+    GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    
+    // Check for permissions
+    gboolean show_banner = have_internal_displays_without_permission_in_flatpak();
+    
+    if (show_banner) {
+        GtkWidget *banner = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
+        gtk_widget_add_css_class(banner, "banner");
+        gtk_widget_add_css_class(banner, "warning");
+        
+        GtkWidget *label = gtk_label_new("Missing permissions for built-in displays.");
+        gtk_label_set_wrap(GTK_LABEL(label), TRUE);
+        gtk_widget_set_hexpand(label, TRUE);
+        gtk_widget_set_halign(label, GTK_ALIGN_START);
+        
+        GtkWidget *button = gtk_button_new_with_label("Setup");
+        g_signal_connect(button, "clicked", G_CALLBACK(_on_setup_permissions_banner_button_clicked), NULL);
+        
+        gtk_box_append(GTK_BOX(banner), label);
+        gtk_box_append(GTK_BOX(banner), button);
+        
+        // Add styling for banner
+        GtkCssProvider *provider = gtk_css_provider_new();
+        gtk_css_provider_load_from_string(provider, 
+            ".banner { padding: 12px; background-color: alpha(@warning_bg_color, 0.2); border-bottom: 1px solid alpha(@warning_fg_color, 0.2); }");
+        gtk_style_context_add_provider_for_display(gdk_display_get_default(), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+        
+        gtk_box_append(GTK_BOX(main_box), banner);
+    }
+
 	GtkWidget *grid, *link_brightness_checkbox;
 	display_section **sections = malloc(displays_count() * sizeof(display_section *));
 	display_section *sibling = NULL;
 
 	grid = gtk_grid_new();
+    gtk_box_append(GTK_BOX(main_box), grid);
+    
     g_signal_connect(grid, "destroy", G_CALLBACK(_cleanup_display_resources), NULL);
 
 	_display_sections = sections;
@@ -183,5 +221,5 @@ GtkWidget* get_show_displays_screen() {
 	gtk_grid_attach_next_to(GTK_GRID(grid), link_brightness_checkbox, sibling->separator_right_column, GTK_POS_BOTTOM, 1, 1);
 	g_signal_connect(link_brightness_checkbox, "toggled", G_CALLBACK(_link_brightness), NULL);
 
-	return grid;
+	return main_box;
 }

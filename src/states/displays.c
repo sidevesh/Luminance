@@ -219,10 +219,10 @@ char* get_display_name(guint index) {
   GlobalDisplayIndex display_index = _display_indexes[index];
   if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
 		if (_internal_backlight_display_directories_count == 1) {
-			return "Built-in display";
+			return "Built-in Display";
 		}
 		gchar *display_name = malloc(256);
-		snprintf(display_name, 256, "Built-in display %d", display_index.index + 1);
+		snprintf(display_name, 256, "Built-in Display %d", display_index.index + 1);
 		return display_name;
   } else {
     ddcbc_display* display = _get_ddcbc_display(index);
@@ -286,7 +286,7 @@ void set_display_brightness_percentage(guint index, gdouble brightness_percentag
   if (emit_osd_signal) {
     gchar model_name[256];
     if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
-      snprintf(model_name, sizeof(model_name), "Built-in display");
+      snprintf(model_name, sizeof(model_name), "Built-in Display");
     } else {
       ddcbc_display* display = _get_ddcbc_display(index);
       if (display)
@@ -296,6 +296,26 @@ void set_display_brightness_percentage(guint index, gdouble brightness_percentag
     }
     emit_osd_signal_dbus(brightness_percentage, model_name);
   }
+}
+
+gboolean have_internal_displays_without_permission_in_flatpak() {
+  if (is_running_in_flatpak() == FALSE) {
+    return FALSE;
+  }
+  
+  if (_internal_backlight_display_directories_count == 0) {
+    return FALSE;
+  }
+
+  for (guint i = 0; i < _internal_backlight_display_directories_count; i++) {
+    gchar brightness_file_path[256];
+    snprintf(brightness_file_path, sizeof(brightness_file_path), "/sys/class/backlight/%s/brightness", _internal_backlight_display_directories[i]);
+    if (access(brightness_file_path, W_OK) != 0) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
 }
 
 #endif

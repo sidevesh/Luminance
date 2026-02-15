@@ -1,4 +1,4 @@
-.PHONY: all release debug install uninstall install-debug uninstall-debug clean package-deb package-rpm package-arch package-arch-test install-arch uninstall-arch flatpak install-flatpak uninstall-flatpak lint-flatpak run-flatpak flatpak-bundle pack-gnome-extension install-gnome-extension uninstall-gnome-extension
+.PHONY: all release debug install uninstall install-debug uninstall-debug package-deb package-rpm package-arch package-arch-test install-arch uninstall-arch flatpak flatpak-bundle install-flatpak uninstall-flatpak run-flatpak package-flatpak-flathub lint-flatpak-flathub package-gnome-extension install-gnome-extension uninstall-gnome-extension clean
 
 # Build directories
 BUILD_RELEASE_DIR = build/release
@@ -13,7 +13,7 @@ RPMBUILD_DIR = $(RPM_DIR)/rpmbuild
 OUTPUTS_DIR = $(PKG_DIR)/outputs
 FLATPAK_DIR = $(PKG_DIR)/flatpak
 FLATPAK_REPO_DIR = $(FLATPAK_DIR)/repo
-FLATPAK_MANIFEST = $(CURDIR)/packaging/flatpak/com.sidevesh.Luminance.yml
+FLATPAK_MANIFEST_IN = $(CURDIR)/packaging/flatpak/com.sidevesh.Luminance.yml.in
 FLATPAK_APP_ID = com.sidevesh.Luminance
 
 VERSION = $(shell cat version.txt)
@@ -124,12 +124,13 @@ uninstall-arch:
 	@echo "Uninstalling Arch package..."
 	sudo pacman -R luminance
 
-flatpak:
+flatpak: $(FLATPAK_MANIFEST_IN)
 	@echo "Building Flatpak..."
 	mkdir -p $(FLATPAK_DIR)
-	# Copy manifest to build directory to satisfy flatpak-builder output requirements
-	# This is necessary because flatpak-builder forbids 'path' from pointing outside the manifest directory
-	cp $(FLATPAK_MANIFEST) $(CURDIR)/.flatpak-manifest.yml
+	# Generate manifest for local build directly to .flatpak-manifest.yml
+	sed -e "s|@LUMINANCE_SOURCE_TYPE@|dir|g" \
+	    -e "s|@LUMINANCE_SOURCE_DETAILS@|path: $(CURDIR)|g" \
+	    $(FLATPAK_MANIFEST_IN) > $(CURDIR)/.flatpak-manifest.yml
 	
 	# Run flathub-build from root. This creates 'repo' and 'builddir' in $(CURDIR)
 	flatpak run --filesystem=$(CURDIR) --command=flathub-build org.flatpak.Builder --force-clean $(CURDIR)/.flatpak-manifest.yml
@@ -139,6 +140,12 @@ flatpak:
 	mv repo $(FLATPAK_DIR)/
 	mv builddir $(FLATPAK_DIR)/
 	rm $(CURDIR)/.flatpak-manifest.yml
+
+flatpak-bundle: flatpak
+	@echo "Creating Flatpak bundle..."
+	mkdir -p $(OUTPUTS_DIR)
+	flatpak build-bundle $(FLATPAK_REPO_DIR) $(OUTPUTS_DIR)/$(FLATPAK_APP_ID).flatpak $(FLATPAK_APP_ID)
+	@echo "Flatpak bundle created at $(OUTPUTS_DIR)/$(FLATPAK_APP_ID).flatpak"
 
 install-flatpak: flatpak
 	@echo "Installing Flatpak..."
@@ -150,30 +157,20 @@ uninstall-flatpak:
 	-flatpak uninstall --user -y $(FLATPAK_APP_ID)
 	-flatpak remote-delete --user luminance-local-repo
 
-lint-flatpak: flatpak
-	@echo "Linting Flatpak manifest..."
-	# Lint the original manifest
-	-flatpak run --filesystem=$(CURDIR) --command=flatpak-builder-lint org.flatpak.Builder manifest $(FLATPAK_MANIFEST)
-	@echo "Linting Flatpak repo..."
-	@if [ -d "$(FLATPAK_REPO_DIR)" ]; then \
-		flatpak run --filesystem=$(CURDIR) --command=flatpak-builder-lint org.flatpak.Builder repo $(CURDIR)/$(FLATPAK_REPO_DIR); \
-	else \
-		echo "Repo directory not found. Skipping repo linting (run 'make flatpak-build' first)."; \
-	fi
-
 run-flatpak: install-flatpak
 	@echo "Running Flatpak with GDB..."
 	flatpak run --devel --command=sh $(FLATPAK_APP_ID) -c "gdb -batch -ex run -ex \"bt full\" --args /app/bin/$(FLATPAK_APP_ID)"
 
-flatpak-bundle: flatpak
-	@echo "Creating Flatpak bundle..."
-	mkdir -p $(OUTPUTS_DIR)
-	flatpak build-bundle $(FLATPAK_REPO_DIR) $(OUTPUTS_DIR)/$(FLATPAK_APP_ID).flatpak $(FLATPAK_APP_ID)
-	@echo "Flatpak bundle created at $(OUTPUTS_DIR)/$(FLATPAK_APP_ID).flatpak"
+package-flatpak-flathub: $(FLATPAK_MANIFEST_IN) version.txt
+	@echo "Updating flathub manifest..."
+	sed -e "s|@LUMINANCE_SOURCE_TYPE@|git|g" \
+	    -e "s|@LUMINANCE_SOURCE_DETAILS@|url: https://github.com/sidevesh/Luminance.git\n        tag: $(VERSION)|g" \
+	    $(FLATPAK_MANIFEST_IN) > flathub/com.sidevesh.Luminance.yml
 
-# Remove build directories
-clean:
-	rm -rf build
+lint-flatpak-flathub: package-flatpak-flathub
+	@echo "Linting Flatpak manifest..."
+	# Lint the manifest generated for flathub
+	-flatpak run --filesystem=$(CURDIR) --command=flatpak-builder-lint org.flatpak.Builder manifest flathub/com.sidevesh.Luminance.yml
 
 # GNOME Extension
 EXTENSION_UUID = luminance-extension@sidevesh
@@ -181,7 +178,7 @@ SRC_EXTENSION_DIR = gnome-extension/$(EXTENSION_UUID)
 EXTENSION_BUILD_DIR = $(PKG_DIR)/gnome-extension
 EXTENSION_ZIP = $(OUTPUTS_DIR)/$(EXTENSION_UUID).shell-extension.zip
 
-pack-gnome-extension:
+package-gnome-extension:
 	@echo "Packing GNOME extension..."
 	rm -rf $(EXTENSION_BUILD_DIR)
 	mkdir -p $(EXTENSION_BUILD_DIR)
@@ -190,7 +187,7 @@ pack-gnome-extension:
 	gnome-extensions pack $(EXTENSION_BUILD_DIR) --force --out-dir=$(OUTPUTS_DIR)
 	@echo "Extension packed at $(EXTENSION_ZIP)"
 
-install-gnome-extension: pack-gnome-extension
+install-gnome-extension: package-gnome-extension
 	@echo "Installing GNOME extension..."
 	gnome-extensions install --force $(EXTENSION_ZIP)
 	@echo "GNOME extension installed. You may need to enable it with: gnome-extensions enable $(EXTENSION_UUID)"
@@ -200,3 +197,6 @@ uninstall-gnome-extension:
 	@echo "Uninstalling GNOME extension..."
 	-gnome-extensions uninstall $(EXTENSION_UUID)
 	@echo "Extension uninstalled."
+
+clean:
+	rm -rf build
