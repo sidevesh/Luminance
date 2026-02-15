@@ -181,7 +181,7 @@ gnome-extensions enable luminance-extension@sidevesh
 
 ### Release Workflow
 
-The release process involves updating the version, packaging for different distributions, and then tagging/pushing.
+The release process involves updating the version, tagging/pushing the main application, and then updating downstream packagers (Arch/Flathub).
 
 1.  **Update Version & Changelog**:
     *   Update `version.txt` with the new version number.
@@ -189,31 +189,51 @@ The release process involves updating the version, packaging for different distr
         ```bash
         ./scripts/generate-releases.sh
         ```
-    *   **Commit these changes** to the main repository. This is critical because the Flatpak build step uses the commit hash of `version.txt`.
+    *   **Commit these changes** to the main repository.
 
-2.  **Run Packaging Scripts**:
-    Run the packaging make targets. These will update the submodules (`flathub`, `arch`) with the new version and commit hash.
-    *   For Arch: `make package-arch`
-    *   For Flatpak: `make package-flatpak-flathub` (See detailed sections below)
-
-3.  **Commit Submodule Changes (Local)**:
-    Go into the submodules (`arch/` and `flathub/`) and commit the generated changes locally. **Do not push them yet.**
-
-4.  **Update Main Repo Submodule Pointers**:
-    Go back to the root of the `Luminance` repository. You will see that `arch` and `flathub` folders are modified. Commit these changes to the main repository.
-
-5.  **Tag and Push Main Repo**:
-    *   Create a git tag for the new version (e.g., `v1.4.4`).
-    *   Push the commits and the tag to GitHub.
+2.  **Tag and Push Main Repo**:
+    *   **Important**: Flathub and Arch builds rely on the tag existing on GitHub.
+    *   **Sync Tags**: First, ensure you have all tags from GitHub (in case releases were created there).
         ```bash
-        git tag v1.4.4
-        git push origin main --tags
+        git pull --tags
         ```
+    *   **Create Tag**: You can create the release tag (e.g., `1.4.4`) either locally or by drafting a release on GitHub.
+        *   **Locally**:
+            ```bash
+            git tag 1.4.4
+            git push origin main --tags
+            ```
+        *   **GitHub**: Go to Releases -> Draft a new release -> Create new tag -> Publish.
 
-6.  **Push Submodules**:
-    Now that the tag exists on GitHub, you can safely push the submodule changes.
-    *   Push `arch` to AUR.
-    *   Push `flathub` to the Flathub repository.
+3.  **Update Arch (Direct Push)**:
+    *   Run packaging script: `make package-arch`
+    *   Go into `arch/`, commit changes, and push to AUR (master branch is allowed).
+    *   Go back to root, commit the `arch` submodule change, and push.
+
+4.  **Update Flathub (PR Workflow)**:
+    **Note**: Direct push to Flathub `master` is **not allowed**. You must use a Pull Request.
+    
+    *   **Preparation**:
+        ```bash
+        cd flathub
+        git checkout master
+        git pull
+        git checkout -b update-to-1.4.4  # Create a new branch
+        cd ..
+        ```
+    *   **Generate Manifest**:
+        ```bash
+        make package-flatpak-flathub
+        ```
+    *   **Commit and Push Branch**:
+        ```bash
+        cd flathub
+        git add .
+        git commit -m "Update to 1.4.4"
+        git push -u origin update-to-1.4.4
+        ```
+    *   **Open PR**: Go to the Flathub repository URL and open a Pull Request from `update-to-1.4.4` to `master`.
+    *   **Cleanup**: Once the PR is merged, you can pull the latest `master` in the `flathub` directory and commit that pointer to the main repo if you wish to keep it in sync.
 
 ## Note for AUR publishers
 
