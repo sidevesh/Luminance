@@ -170,7 +170,7 @@ package-flatpak-flathub: $(FLATPAK_MANIFEST_IN)
 	@COMMIT=$$(git log -n 1 --pretty=format:%H -- version.txt); \
 	echo "Updating flathub manifest for version $(VERSION) (commit $$COMMIT)..."; \
 	sed -e "s|@LUMINANCE_SOURCE_TYPE@|git|g" \
-	    -e "s|@LUMINANCE_SOURCE_DETAILS@|url: https://github.com/sidevesh/Luminance.git\\n        tag: v$(VERSION)\\n        commit: $$COMMIT|g" \
+	    -e "s|@LUMINANCE_SOURCE_DETAILS@|url: https://github.com/sidevesh/Luminance.git\\n        tag: $(VERSION)\\n        commit: $$COMMIT|g" \
 	    $(FLATPAK_MANIFEST_IN) > flathub/com.sidevesh.Luminance.yml
 
 lint-flatpak-flathub: package-flatpak-flathub
