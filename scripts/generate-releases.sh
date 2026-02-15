@@ -9,8 +9,21 @@ OUTPUT_PATH="$REPO_ROOT/$OUTPUT_FILE"
 
 # Check if releases.xml already exists
 if [ -f "$OUTPUT_PATH" ]; then
-    echo "$OUTPUT_FILE already exists. skipping generation."
-    echo "Please edit it manually and add the latest version entry."
+    VERSION=$(cat "$REPO_ROOT/version.txt")
+    DATE=$(date +%Y-%m-%d)
+    
+    # Check if version already exists in the file
+    if grep -q "version=\"$VERSION\"" "$OUTPUT_PATH"; then
+        echo "Version $VERSION already exists in $OUTPUT_FILE. Skipping."
+    else
+        echo "Adding version $VERSION to $OUTPUT_FILE..."
+        # Create temp file with new release at the top
+        TEMP_FILE=$(mktemp)
+        echo "    <release version=\"$VERSION\" date=\"$DATE\"/>" > "$TEMP_FILE"
+        cat "$OUTPUT_PATH" >> "$TEMP_FILE"
+        mv "$TEMP_FILE" "$OUTPUT_PATH"
+        echo "Added release $VERSION to $OUTPUT_FILE"
+    fi
     exit 0
 fi
 

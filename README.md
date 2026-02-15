@@ -179,63 +179,103 @@ gnome-extensions enable luminance-extension@sidevesh
 
 ## Note for Maintainers
 
-### Updating Release Information
-Before building or tagging a new release, ensure that `releases.xml` is up-to-date:
+### Release Workflow
 
-1. Create and push a new git tag for the release (e.g., `v1.4.3`)
-2. Generate the `releases.xml` file by running:
-   ```
-   ./scripts/generate-releases.sh
-   ```
-3. If you already have a releases.xml then skip step 2 and directly edit the file in step 3, adding the new version to the top of the file
-3. Edit the generated `releases.xml` with release information if needed
-4. Commit the updated `releases.xml` file to the repository
+The release process involves updating the version, packaging for different distributions, and then tagging/pushing.
 
-The build system will fail if:
-- `releases.xml` does not exist
-- The latest version in `releases.xml` does not match the version in `version.txt`
+1.  **Update Version & Changelog**:
+    *   Update `version.txt` with the new version number.
+    *   Update `releases.xml` using the script:
+        ```bash
+        ./scripts/generate-releases.sh
+        ```
+    *   **Commit these changes** to the main repository. This is critical because the Flatpak build step uses the commit hash of `version.txt`.
 
-### Note for AUR publishers
+2.  **Run Packaging Scripts**:
+    Run the packaging make targets. These will update the submodules (`flathub`, `arch`) with the new version and commit hash.
+    *   For Arch: `make package-arch`
+    *   For Flatpak: `make package-flatpak-flathub` (See detailed sections below)
+
+3.  **Commit Submodule Changes (Local)**:
+    Go into the submodules (`arch/` and `flathub/`) and commit the generated changes locally. **Do not push them yet.**
+
+4.  **Update Main Repo Submodule Pointers**:
+    Go back to the root of the `Luminance` repository. You will see that `arch` and `flathub` folders are modified. Commit these changes to the main repository.
+
+5.  **Tag and Push Main Repo**:
+    *   Create a git tag for the new version (e.g., `v1.4.4`).
+    *   Push the commits and the tag to GitHub.
+        ```bash
+        git tag v1.4.4
+        git push origin main --tags
+        ```
+
+6.  **Push Submodules**:
+    Now that the tag exists on GitHub, you can safely push the submodule changes.
+    *   Push `arch` to AUR.
+    *   Push `flathub` to the Flathub repository.
+
+## Note for AUR publishers
 
 Switch the arch submodule push url to the ssh url before pushing to AUR for the first time:
-```
+```bash
 cd arch
 git remote set-url --push origin ssh://aur@aur.archlinux.org/luminance.git
 ```
 
+### Packaging for Arch
+1.  Ensure step 1 from "Release Workflow" is done and `version.txt` is committed.
+2.  Run the packaging command:
+    ```bash
+    make package-arch
+    ```
+    This updates `PKGBUILD` and `.SRCINFO` in the `arch/` directory.
+3.  Go into `arch/` and commit the changes.
+4.  **Wait** until you have pushed the tag to the main repository (Step 5 of Release Workflow) before pushing this submodule to AUR.
+
 ## Note for Flatpak Packaging
 
 ### Prerequisites
-1. Install `flatpak`:
-2. Install `flatpak-builder` (It is recommended to use the flatpak version of the builder):
-    ```
+1.  Install `flatpak`.
+2.  Install `flatpak-builder` (It is recommended to use the flatpak version of the builder):
+    ```bash
     flatpak install -y flathub org.flatpak.Builder
     ```
-3. Install the required GNOME Runtime and SDK:
-   ```
-   flatpak install org.gnome.Platform//48 org.gnome.Sdk//48
-   ```
+3.  Install the required GNOME Runtime and SDK:
+    ```bash
+    flatpak install org.gnome.Platform//49 org.gnome.Sdk//49
+    ```
 
-### Build and Install
+### Packaging for Flathub
+1.  Ensure step 1 from "Release Workflow" is done and `version.txt` is committed.
+2.  Run the packaging command:
+    ```bash
+    make package-flatpak-flathub
+    ```
+    This updates `flathub/com.sidevesh.Luminance.yml` with the URL, the new tag (which doesn't exist yet), and the commit hash of `version.txt`.
+3.  Go into `flathub/` and commit the changes.
+4.  **Wait** until you have pushed the tag to the main repository (Step 5 of Release Workflow) before pushing this submodule to Flathub.
+
+### Build and Install Locally
 To build and install the Flatpak locally for testing:
-```
-make flatpak-install
+```bash
+make install-flatpak
 ```
 
 ### Validate (Lint)
 To validate the manifest and repository against Flathub requirements:
-```
-make flatpak-lint
+```bash
+make lint-flatpak-flathub
 ```
 
 ### Run the Application (with Debugging)
-```
-make flatpak-run
+```bash
+make run-flatpak
 ```
 
-### Creating a Bundle (Publishing)
+### Creating a Bundle
 To create a binary bundle `.flatpak` for distribution:
-```
+```bash
 make flatpak-bundle
 ```
 

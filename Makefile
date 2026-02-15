@@ -161,10 +161,16 @@ run-flatpak: install-flatpak
 	@echo "Running Flatpak with GDB..."
 	flatpak run --devel --command=sh $(FLATPAK_APP_ID) -c "gdb -batch -ex run -ex \"bt full\" --args /app/bin/$(FLATPAK_APP_ID)"
 
-package-flatpak-flathub: $(FLATPAK_MANIFEST_IN) version.txt
-	@echo "Updating flathub manifest..."
+package-flatpak-flathub: $(FLATPAK_MANIFEST_IN)
+	@echo "Checking version.txt status..."
+	@if git status --porcelain version.txt | grep -q 'M'; then \
+		echo "Error: version.txt has uncommitted changes. Please commit changes."; \
+		exit 1; \
+	fi
+	@COMMIT=$$(git log -n 1 --pretty=format:%H -- version.txt); \
+	echo "Updating flathub manifest for version $(VERSION) (commit $$COMMIT)..."; \
 	sed -e "s|@LUMINANCE_SOURCE_TYPE@|git|g" \
-	    -e "s|@LUMINANCE_SOURCE_DETAILS@|url: https://github.com/sidevesh/Luminance.git\n        tag: $(VERSION)|g" \
+	    -e "s|@LUMINANCE_SOURCE_DETAILS@|url: https://github.com/sidevesh/Luminance.git\\n        tag: v$(VERSION)\\n        commit: $$COMMIT|g" \
 	    $(FLATPAK_MANIFEST_IN) > flathub/com.sidevesh.Luminance.yml
 
 lint-flatpak-flathub: package-flatpak-flathub
