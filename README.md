@@ -19,6 +19,11 @@
   <img src="screenshots/screenshot-faded.png" alt="Screenshot">
 </div>
 
+## Install from Flathub
+<a href='https://flathub.org/apps/com.sidevesh.Luminance'>
+<img width='200' alt='Get it on Flathub' src='https://flathub.org/api/badge?locale=en'/>
+</a>
+
 ## Install from AUR (Arch Linux):
   
   ```
@@ -52,7 +57,7 @@ Latest rpm release is available on the releases page https://github.com/sidevesh
     pacman -S --needed make meson glib2-devel glib2 gtk4 libadwaita ddcutil
     ```
     
-    ##### Ubuntu-based distros (credit @aidengilmartin):
+    ##### Ubuntu-based distros (Ubuntu 24.04 or later, Debian Bookworm or later):
     ```
     sudo apt install make gcc meson libglib2.0-dev libgtk-4-dev libadwaita-1-dev libddcutil-dev
     ```
@@ -235,27 +240,23 @@ The release process involves updating the version, tagging/pushing the main appl
     *   **Open PR**: Go to the Flathub repository URL and open a Pull Request from `update-to-1.4.4` to `master`.
     *   **Cleanup**: Once the PR is merged, you can pull the latest `master` in the `flathub` directory and commit that pointer to the main repo if you wish to keep it in sync.
 
-## Note for AUR publishers
+### Note for AUR publishers
 
-Switch the arch submodule push url to the ssh url before pushing to AUR for the first time:
+Switch the `arch` submodule push url to the ssh url before pushing to AUR for the first time:
 ```bash
 cd arch
 git remote set-url --push origin ssh://aur@aur.archlinux.org/luminance.git
 ```
 
-### Packaging for Arch
-1.  Ensure step 1 from "Release Workflow" is done and `version.txt` is committed.
-2.  Run the packaging command:
-    ```bash
-    make package-arch
-    ```
-    This updates `PKGBUILD` and `.SRCINFO` in the `arch/` directory.
-3.  Go into `arch/` and commit the changes.
-4.  **Wait** until you have pushed the tag to the main repository (Step 5 of Release Workflow) before pushing this submodule to AUR.
+### Note for Flathub publishers
 
-## Note for Flatpak Packaging
+Switch the `flathub` submodule push url to the ssh url before pushing to Flathub for the first time:
+```bash
+cd flathub
+git remote set-url --push origin git@github.com:flathub/com.sidevesh.Luminance.git
+```
 
-### Prerequisites
+### Flatpak Build Prerequisites
 1.  Install `flatpak`.
 2.  Install `flatpak-builder` (It is recommended to use the flatpak version of the builder):
     ```bash
@@ -265,16 +266,6 @@ git remote set-url --push origin ssh://aur@aur.archlinux.org/luminance.git
     ```bash
     flatpak install org.gnome.Platform//49 org.gnome.Sdk//49
     ```
-
-### Packaging for Flathub
-1.  Ensure step 1 from "Release Workflow" is done and `version.txt` is committed.
-2.  Run the packaging command:
-    ```bash
-    make package-flatpak-flathub
-    ```
-    This updates `flathub/com.sidevesh.Luminance.yml` with the URL, the new tag (which doesn't exist yet), and the commit hash of `version.txt`.
-3.  Go into `flathub/` and commit the changes.
-4.  **Wait** until you have pushed the tag to the main repository (Step 5 of Release Workflow) before pushing this submodule to Flathub.
 
 ### Build and Install Locally
 To build and install the Flatpak locally for testing:
