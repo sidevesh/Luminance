@@ -2,9 +2,12 @@
 
 # Fedora Atomic editions like Silverblue or Kinoite have /usr read-only
 INSTALL_DIR="/usr/lib"
+ATOMIC=0
 if grep -E "Silverblue|Kinoite" "/etc/os-release" >> /dev/null; then
     INSTALL_DIR="/etc"
+    ATOMIC=1
 fi
+#echo $INSTALL_DIR && exit 0
 
 # Function to handle uninstallation
 uninstall() {
@@ -202,6 +205,9 @@ if groups "$USER" | grep &>/dev/null '\bvideo\b'; then
     echo "User $USER is already in the video group."
 else
     echo "Adding user $USER to the video group..."
+    if [ $ATOMIC = 1 ]; then
+        grep -E '^video:' /usr/lib/group | sudo tee -a /etc/group
+    fi
     sudo usermod -aG video "$USER"
     echo "PLEASE NOTE: You may need to log out and log back in for group changes to take effect."
 fi
