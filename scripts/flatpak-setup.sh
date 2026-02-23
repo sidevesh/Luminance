@@ -1,23 +1,32 @@
 #! /bin/bash
 
+# Fedora Atomic editions like Silverblue or Kinoite have /usr read-only
+INSTALL_DIR="/usr/lib"
+ATOMIC=0
+if grep -E "Silverblue|Kinoite" "/etc/os-release" >> /dev/null; then
+    INSTALL_DIR="/etc"
+    ATOMIC=1
+fi
+#echo $INSTALL_DIR && exit 0
+
 # Function to handle uninstallation
 uninstall() {
     echo "Uninstalling setup for Luminance..."
     
     # Remove files
-    if [ -f "/usr/lib/udev/rules.d/60-ddcutil-i2c.rules" ]; then
-        echo "Removing /usr/lib/udev/rules.d/60-ddcutil-i2c.rules..."
-        sudo rm /usr/lib/udev/rules.d/60-ddcutil-i2c.rules
+    if [ -f "$INSTALL_DIR/udev/rules.d/60-ddcutil-i2c.rules" ]; then
+        echo "Removing $INSTALL_DIR/udev/rules.d/60-ddcutil-i2c.rules..."
+        sudo rm $INSTALL_DIR/udev/rules.d/60-ddcutil-i2c.rules
     fi
     
-    if [ -f "/usr/lib/udev/rules.d/44-backlight-permissions.rules" ]; then
-         echo "Removing /usr/lib/udev/rules.d/44-backlight-permissions.rules..."
-         sudo rm /usr/lib/udev/rules.d/44-backlight-permissions.rules
+    if [ -f "$INSTALL_DIR/udev/rules.d/44-backlight-permissions.rules" ]; then
+         echo "Removing $INSTALL_DIR/udev/rules.d/44-backlight-permissions.rules..."
+         sudo rm $INSTALL_DIR/udev/rules.d/44-backlight-permissions.rules
     fi
 
-    if [ -f "/usr/lib/modules-load.d/ddcutil.conf" ]; then
-        echo "Removing /usr/lib/modules-load.d/ddcutil.conf..."
-        sudo rm /usr/lib/modules-load.d/ddcutil.conf
+    if [ -f "$INSTALL_DIR/modules-load.d/ddcutil.conf" ]; then
+        echo "Removing $INSTALL_DIR/modules-load.d/ddcutil.conf..."
+        sudo rm $INSTALL_DIR/modules-load.d/ddcutil.conf
     fi
 
     echo "Reloading udev rules..."
@@ -54,9 +63,9 @@ verify() {
     }
 
     echo "--- Checking Installation Files ---"
-    check_file "/usr/lib/udev/rules.d/60-ddcutil-i2c.rules"
-    check_file "/usr/lib/udev/rules.d/44-backlight-permissions.rules"
-    check_file "/usr/lib/modules-load.d/ddcutil.conf"
+    check_file "$INSTALL_DIR/udev/rules.d/60-ddcutil-i2c.rules"
+    check_file "$INSTALL_DIR/udev/rules.d/44-backlight-permissions.rules"
+    check_file "$INSTALL_DIR/modules-load.d/ddcutil.conf"
 
     echo ""
     echo "--- Checking Kernel Modules ---"
@@ -167,13 +176,13 @@ echo "Moving files to system directories..."
 
 # Move udev rules files to udev rules directory
 echo "Installing udev rules..."
-sudo mv 60-ddcutil-i2c.rules /usr/lib/udev/rules.d/
-sudo mv 44-backlight-permissions.rules /usr/lib/udev/rules.d/
+sudo mv 60-ddcutil-i2c.rules $INSTALL_DIR/udev/rules.d/
+sudo mv 44-backlight-permissions.rules $INSTALL_DIR/udev/rules.d/
 
 # Move ddcutil modules-load config
 echo "Installing module load config..."
-sudo mkdir -p /usr/lib/modules-load.d
-sudo mv ddcutil.conf /usr/lib/modules-load.d/
+sudo mkdir -p $INSTALL_DIR/modules-load.d
+sudo mv ddcutil.conf $INSTALL_DIR/modules-load.d/
 
 # Reload the rules
 echo "Reloading udev rules..."
@@ -196,6 +205,9 @@ if groups "$USER" | grep &>/dev/null '\bvideo\b'; then
     echo "User $USER is already in the video group."
 else
     echo "Adding user $USER to the video group..."
+    if [ $ATOMIC = 1 ]; then
+        grep -E '^video:' /usr/lib/group | sudo tee -a /etc/group
+    fi
     sudo usermod -aG video "$USER"
     echo "PLEASE NOTE: You may need to log out and log back in for group changes to take effect."
 fi
