@@ -1,10 +1,8 @@
 #! /bin/bash
 
-# Fedora Atomic editions like Silverblue or Kinoite have /usr read-only
-INSTALL_DIR="/usr/lib"
+INSTALL_DIR="/etc"
 ATOMIC=0
 if grep -E "Silverblue|Kinoite" "/etc/os-release" >> /dev/null; then
-    INSTALL_DIR="/etc"
     ATOMIC=1
 fi
 #echo $INSTALL_DIR && exit 0
@@ -176,6 +174,7 @@ echo "Moving files to system directories..."
 
 # Move udev rules files to udev rules directory
 echo "Installing udev rules..."
+sudo mkdir -p $INSTALL_DIR/udev/rules.d
 sudo mv 60-ddcutil-i2c.rules $INSTALL_DIR/udev/rules.d/
 sudo mv 44-backlight-permissions.rules $INSTALL_DIR/udev/rules.d/
 
