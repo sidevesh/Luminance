@@ -5,4 +5,5 @@ Icon=@ICON_NAME@
 Exec=@EXEC_NAME@
 Terminal=false
 Type=Application
+Keywords=Brightness;Display;Monitor;Screen;Backlight;
 Categories=GTK;Utility;
