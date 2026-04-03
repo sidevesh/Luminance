@@ -167,8 +167,8 @@ When no arguments are provided, the application starts in GUI mode.
 
 A companion GNOME Shell extension is available for Luminance. This extension displays the native GNOME brightness OSD (On-Screen Display) when brightness is adjusted outside of the main GUI application window (e.g. via command line interface or D-Bus calls).
 
-### Install from Gnome Extensions
-Available at [GNOME Extensions](https://extensions.gnome.org/extension/9579/luminance-extension/).
+### Install from GNOME Shell Extensions
+Available at [GNOME Shell Extensions](https://extensions.gnome.org/extension/9579/luminance-extension/).
 
 ### Install from Release
 Latest extension release is available on the releases page https://github.com/sidevesh/Luminance/releases
