@@ -26,5 +26,10 @@
       <summary>Minimum brightness percentage per display</summary>
       <description>A dictionary mapping display names to their minimum brightness percentage (0-100). When set, the brightness slider for that display will start at the specified value instead of 0%.</description>
     </key>
+    <key name="display-names" type="a{ss}">
+      <default>{}</default>
+      <summary>Custom display names</summary>
+      <description>A dictionary mapping default display names to custom names. If a custom name is empty, the default name is used.</description>
+    </key>
   </schema>
 </schemalist>

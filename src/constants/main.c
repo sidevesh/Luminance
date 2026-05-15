@@ -29,3 +29,7 @@
 #ifndef MIN_BRIGHTNESS_PER_DISPLAY_GSETTINGS_KEY
 #define MIN_BRIGHTNESS_PER_DISPLAY_GSETTINGS_KEY "min-brightness-per-display"
 #endif
+
+#ifndef DISPLAY_NAMES_GSETTINGS_KEY
+#define DISPLAY_NAMES_GSETTINGS_KEY "display-names"
+#endif
