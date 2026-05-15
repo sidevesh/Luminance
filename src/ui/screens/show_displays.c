@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include "../../states/displays.c"
 #include "../../states/brightness_range.c"
+#include "../../states/display_names.c"
 #include "../components/flatpak_setup_dialog.c"
 #include "../components/range_label.c"
+#include "../components/editable_label.c"
 
 #ifndef BRIGHTNESS_DEBOUNCE_DELAY_MS
 #define BRIGHTNESS_DEBOUNCE_DELAY_MS 300
@@ -202,6 +204,20 @@ void _link_proportional_brightness(GtkCheckButton *checkbox) {
 
 // --- Show/hide brightness range ---
 
+// --- Display rename callback ---
+
+static void _on_display_renamed(const gchar *new_name, gpointer user_data) {
+	guint index = GPOINTER_TO_UINT(user_data);
+	if (index >= _display_sections_count) return;
+	const gchar *default_name = _display_sections[index]->display_name;
+	// If new_name matches default, save empty (clears custom name)
+	if (g_strcmp0(new_name, default_name) == 0) {
+		set_custom_display_name(default_name, "");
+	} else {
+		set_custom_display_name(default_name, new_name);
+	}
+}
+
 static void _toggle_brightness_range(GtkCheckButton *checkbox) {
 	_show_brightness_range = gtk_check_button_get_active(checkbox);
 	for (guint i = 0; i < _display_sections_count; i++) {
@@ -374,7 +390,13 @@ GtkWidget* get_show_displays_screen() {
 		gdouble max_pct = get_max_brightness_percentage(display_name);
 		display_section_instance->min_percentage = min_pct;
 		display_section_instance->max_percentage = max_pct;
-		display_section_instance->label = get_display_label(display_name);
+		// Look up custom name, fall back to default
+		gchar *custom_name = get_custom_display_name(display_name);
+		const gchar *shown_name = custom_name != NULL ? custom_name : display_name;
+		display_section_instance->label = get_editable_label(
+			shown_name, display_name,
+			_on_display_renamed, GUINT_TO_POINTER(index));
+		if (custom_name != NULL) g_free(custom_name);
 		gdouble current_pct = get_display_brightness_percentage(index);
 		gdouble clamped_current = CLAMP(current_pct, min_pct, max_pct);
 		// If current brightness is outside the range, force it into range
