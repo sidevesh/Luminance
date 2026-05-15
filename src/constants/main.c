@@ -14,6 +14,18 @@
 #define IS_BRIGHTNESS_LINKED_GSETTINGS_KEY "is-brightness-linked"
 #endif
 
+#ifndef IS_BRIGHTNESS_PROPORTIONALLY_LINKED_GSETTINGS_KEY
+#define IS_BRIGHTNESS_PROPORTIONALLY_LINKED_GSETTINGS_KEY "is-brightness-proportionally-linked"
+#endif
+
 #ifndef SHOULD_HIDE_INTERNAL_IF_LID_CLOSED_GSETTINGS_KEY
 #define SHOULD_HIDE_INTERNAL_IF_LID_CLOSED_GSETTINGS_KEY "should-hide-internal-if-lid-closed"
+#endif
+
+#ifndef MAX_BRIGHTNESS_PER_DISPLAY_GSETTINGS_KEY
+#define MAX_BRIGHTNESS_PER_DISPLAY_GSETTINGS_KEY "max-brightness-per-display"
+#endif
+
+#ifndef MIN_BRIGHTNESS_PER_DISPLAY_GSETTINGS_KEY
+#define MIN_BRIGHTNESS_PER_DISPLAY_GSETTINGS_KEY "min-brightness-per-display"
 #endif
