@@ -19,4 +19,18 @@ gboolean get_is_brightness_linked() {
   return value;
 }
 
+void set_is_brightness_proportionally_linked(gboolean value) {
+  GSettings *settings = g_settings_new(APP_INFO_PACKAGE_NAME);
+  g_settings_set_boolean(settings, IS_BRIGHTNESS_PROPORTIONALLY_LINKED_GSETTINGS_KEY, value);
+  g_object_unref(settings);
+}
+
+gboolean get_is_brightness_proportionally_linked() {
+  GSettings *settings = g_settings_new(APP_INFO_PACKAGE_NAME);
+  gboolean value = g_settings_get_boolean(settings, IS_BRIGHTNESS_PROPORTIONALLY_LINKED_GSETTINGS_KEY);
+  g_object_unref(settings);
+
+  return value;
+}
+
 #endif
