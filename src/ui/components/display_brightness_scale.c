@@ -5,11 +5,11 @@
 static char* format_brightness_value(GtkScale *scale, gdouble value, gpointer data) {
     (void)scale;
     (void)data;
-	return g_strdup_printf(" %d%%", (int)value);
+	return g_strdup_printf("%3d%%", (int)value);
 }
 
-GtkWidget* get_display_brightness_scale(gdouble last_value, gdouble max_value) {
-	GtkWidget *scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, max_value, 1);
+GtkWidget* get_display_brightness_scale(gdouble last_value, gdouble min_value, gdouble max_value) {
+	GtkWidget *scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, min_value, max_value, 1);
 
 	gtk_scale_set_draw_value(GTK_SCALE(scale), TRUE);
 	gtk_scale_set_value_pos(GTK_SCALE(scale), GTK_POS_RIGHT);
