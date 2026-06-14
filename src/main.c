@@ -281,19 +281,20 @@ int parse_cli_arguments(int argc, char **argv) {
 
 	// Same reason as get_percentage_display_number's check for zero above,
 	// except we set the set_brightness_display_number to 99 to indicate the case of user submitting 0 as value
+	if (set_brightness_option == -1) {
+		display_help_in_cli();
+		status = 1;
+		return status;
+	}
+
 	if (set_brightness_display_number == 99) {
 		fprintf(stderr, "Invalid display number: 0\n");
 		status = 1;
 		return status;
 	}
 
-	if (set_brightness_display_number == (guint) -1) {
-		display_help_in_cli();
-		status = 1;
-		return status;
-	}
 	if (set_brightness_percentage_value == (guint) -1) {
-		display_help_in_cli();
+		fprintf(stderr, "Percentage value is required. Use -p or --percentage to specify the brightness percentage.\n");
 		status = 1;
 		return status;
 	}
