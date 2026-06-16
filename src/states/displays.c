@@ -1,7 +1,7 @@
 #include "../constants/main.c"
 
 #ifndef BRIGHTNESS_CODE
-#include "../../ddcbc-api/ddcbc-api.c"
+#include "../../ddc/ddc.c"
 #endif
 
 #include "./laptop_lid.c"
@@ -34,8 +34,8 @@ gchar* _internal_backlight_display_directories[MAX_INTERNAL_BACKLIGHT_DISPLAYS];
 guint _internal_backlight_display_directories_count = 0;
 
 gboolean _is_displays_loading = TRUE;
-ddcbc_display_list *_display_list;
-ddcbc_display_list _display_list_instance;
+ddc_display_list *_display_list;
+ddc_display_list _display_list_instance;
 int _last_displays_load_time = 0;
 void (*_on_refresh_completed_callback)() = NULL;
 
@@ -72,11 +72,11 @@ void _initialize_displays(gboolean first_time_loading) {
 
   if (!first_time_loading) {
     if (_display_list != NULL) {
-      ddcbc_display_list_free(_display_list);
+      ddc_display_list_free(_display_list);
     }
   }
 
-  _display_list_instance = ddcbc_display_list_init(FALSE);
+  _display_list_instance = ddc_display_list_init(FALSE);
   _display_list = &_display_list_instance;
 
 	// insert all DDC displays into the _display_indexes array
@@ -141,9 +141,9 @@ void _refresh_displays_with_callbacks(gboolean first_time_loading, void (*on_ref
   }
 }
 
-ddcbc_display* _get_ddcbc_display(guint index) {
+ddc_display* _get_ddc_display(guint index) {
   GlobalDisplayIndex display_index = _display_indexes[index];
-  return ddcbc_display_list_get(_display_list, display_index.index);
+  return ddc_display_list_get(_display_list, display_index.index);
 }
 
 guint16 _get_display_max_brightness_value(guint index) {
@@ -163,7 +163,7 @@ guint16 _get_display_max_brightness_value(guint index) {
     }
 	return 0;
   } else {
-    ddcbc_display* display = _get_ddcbc_display(index);
+    ddc_display* display = _get_ddc_display(index);
     return display->max_val;
   }
 }
@@ -200,7 +200,7 @@ void reload_displays(void (*on_reload_started_callback)(), void (*on_reload_comp
 }
 
 void free_displays() {
-  ddcbc_display_list_free(_display_list);
+  ddc_display_list_free(_display_list);
 }
 
 gboolean is_displays_loading() {
@@ -225,7 +225,7 @@ char* get_display_name(guint index) {
 		snprintf(display_name, 256, "Built-in Display %d", display_index.index + 1);
 		return display_name;
   } else {
-    ddcbc_display* display = _get_ddcbc_display(index);
+    ddc_display* display = _get_ddc_display(index);
     return display->info.model_name;
   }
 }
@@ -249,7 +249,7 @@ gdouble get_display_brightness_percentage(guint index) {
 
 	  return 0.0;
   } else {
-    ddcbc_display* display = _get_ddcbc_display(index);
+    ddc_display* display = _get_ddc_display(index);
     return display->last_val * 100.0 / max_brightness_value;
   }
 }
@@ -270,8 +270,8 @@ void set_display_brightness_percentage(guint index, gdouble brightness_percentag
       fprintf(stderr, "Error opening brightness file for writing: %s\n", brightness_file_path);
     }
   } else {
-    ddcbc_display* display = _get_ddcbc_display(index);
-    DDCBC_Status rc = ddcbc_display_set_brightness(display, brightness_value);
+    ddc_display* display = _get_ddc_display(index);
+    DDC_Status rc = ddc_display_set_brightness(display, brightness_value);
 
     if (rc == 1) {
       fprintf(stderr, "Partial success in setting the brightness of display no %d to %u. Code: %d\n",
@@ -288,13 +288,44 @@ void set_display_brightness_percentage(guint index, gdouble brightness_percentag
     if (display_index.type == DISPLAY_TYPE_INTERNAL_BACKLIGHT) {
       snprintf(model_name, sizeof(model_name), "Built-in Display");
     } else {
-      ddcbc_display* display = _get_ddcbc_display(index);
+      ddc_display* display = _get_ddc_display(index);
       if (display)
           snprintf(model_name, sizeof(model_name), "%s", display->info.model_name);
       else
           snprintf(model_name, sizeof(model_name), "Unknown Display"); 
     }
     emit_osd_signal_dbus(brightness_percentage, model_name);
+  }
+}
+
+gboolean get_display_has_contrast(guint index) {
+  GlobalDisplayIndex display_index = _display_indexes[index];
+  if (display_index.type != DISPLAY_TYPE_DDC) {
+    return FALSE;
+  }
+  ddc_display* display = _get_ddc_display(index);
+  return display->has_contrast;
+}
+
+gdouble get_display_contrast_percentage(guint index) {
+  ddc_display* display = _get_ddc_display(index);
+  if (display->contrast_max_val == 0) {
+    return 0.0;
+  }
+  return display->contrast_last_val * 100.0 / display->contrast_max_val;
+}
+
+void set_display_contrast_percentage(guint index, gdouble contrast_percentage) {
+  ddc_display* display = _get_ddc_display(index);
+  guint16 contrast_value = (guint16)(contrast_percentage * display->contrast_max_val / 100);
+  DDC_Status rc = ddc_display_set_contrast(display, contrast_value);
+
+  if (rc == 1) {
+    fprintf(stderr, "Partial success in setting the contrast of display no %d to %u. Code: %d\n",
+      display->info.dispno, contrast_value, rc);
+  } else if (rc != 0) {
+    fprintf(stderr, "An error occurred when setting the contrast of display no %d to %u. Code: %d\n",
+      display->info.dispno, contrast_value, rc);
   }
 }
 

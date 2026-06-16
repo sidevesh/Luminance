@@ -24,9 +24,6 @@ jobs:
       - name: Set up Git repository
         uses: actions/checkout@v2
 
-      - name: Initialize ddcbc-api git submodule
-        run: git submodule update --init ddcbc-api
-
       - name: Build package
         run: make package-deb
 
@@ -51,11 +48,6 @@ jobs:
 
       - name: Set up Git repository
         uses: actions/checkout@v2
-
-      - name: Initialize ddcbc-api git submodule
-        run: |
-          git config --global --add safe.directory /__w/Luminance/Luminance
-          git submodule update --init ddcbc-api
 
       - name: Build package
         run: make package-rpm

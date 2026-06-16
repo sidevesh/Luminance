@@ -9,6 +9,7 @@
 #include "./osd/main.c"
 #include "./states/displays.c"
 #include "./states/is_brightness_linked.c"
+#include "./states/is_contrast_hidden.c"
 #include "./ui/constants/main.c"
 #include "./ui/components/display_brightness_scale.c"
 #include "./ui/components/display_icon.c"
@@ -19,6 +20,11 @@
 #include "./ui/screens/no_displays.c"
 #include "./ui/screens/refreshing_displays.c"
 #include "./ui/window.c"
+
+#define OPT_GET_CONTRAST      256
+#define OPT_SET_CONTRAST      257
+#define OPT_INCREASE_CONTRAST 258
+#define OPT_DECREASE_CONTRAST 259
 
 gboolean is_cli_mode = FALSE;
 
@@ -75,7 +81,13 @@ int list_displays_in_cli() {
   for (guint index = 0; index < displays_count(); index++) {
     gchar *label = get_display_name(index);
     gdouble brightness_percentage = get_display_brightness_percentage(index);
-    printf("Display %d: Label: %s, Brightness: %.2f%%\n", index + 1, label, brightness_percentage);
+    if (get_display_has_contrast(index)) {
+      gdouble contrast_percentage = get_display_contrast_percentage(index);
+      printf("Display %d: Label: %s, Brightness: %.2f%%, Contrast: %.2f%%\n",
+        index + 1, label, brightness_percentage, contrast_percentage);
+    } else {
+      printf("Display %d: Label: %s, Brightness: %.2f%%\n", index + 1, label, brightness_percentage);
+    }
   }
 
 	return 0;
@@ -172,6 +184,97 @@ int set_display_brightness_if_needed_in_cli(guint display_number, guint brightne
 	return 0;
 }
 
+int get_display_contrast_in_cli(guint display_number) {
+	for (guint index = 0; index < displays_count(); index++) {
+		if ((index + 1) == display_number) {
+			if (!get_display_has_contrast(index)) {
+				fprintf(stderr, "Display %d does not support contrast control via DDC/CI.\n", display_number);
+				return 1;
+			}
+			gdouble contrast_percentage = get_display_contrast_percentage(index);
+			printf("%.2f%%\n", contrast_percentage);
+			return 0;
+		}
+	}
+
+	fprintf(stderr, "Invalid display number: %d\n", display_number);
+	return 1;
+}
+
+void set_contrast_percentage_in_cli(guint display_index, double contrast_percentage) {
+  for (guint index = 0; index < displays_count(); index++) {
+    if (index == display_index) {
+      if (!get_display_has_contrast(index)) {
+        fprintf(stderr, "Display %d does not support contrast control via DDC/CI.\n", display_index + 1);
+        return;
+      }
+      set_display_contrast_percentage(index, contrast_percentage);
+      return;
+    }
+  }
+
+	fprintf(stderr, "Invalid display number: %d\n", display_index + 1);
+}
+
+int set_display_contrast_if_needed_in_cli(guint display_number, guint contrast_percentage, int option) {
+	gboolean any_ddc_display_processed = FALSE;
+
+  load_displays(NULL, NULL);
+  ensure_displays_are_present_in_cli();
+
+	for (guint index = 0; index < displays_count(); index++) {
+		if (display_number == 0 || (index + 1) == display_number) {
+			if (!get_display_has_contrast(index)) {
+				if (display_number > 0) {
+					fprintf(stderr, "Display %d does not support contrast control via DDC/CI.\n", display_number);
+					free_displays();
+					return 1;
+				}
+				continue;
+			}
+
+			gdouble current_contrast_percentage = get_display_contrast_percentage(index);
+			gdouble final_contrast_percentage = contrast_percentage;
+			if (option == OPT_INCREASE_CONTRAST) {
+				final_contrast_percentage = current_contrast_percentage + contrast_percentage;
+			}
+			if (option == OPT_DECREASE_CONTRAST) {
+				final_contrast_percentage = current_contrast_percentage - contrast_percentage;
+			}
+			if (final_contrast_percentage > 100) {
+				final_contrast_percentage = 100;
+			} else if (final_contrast_percentage < 0) {
+				final_contrast_percentage = 0;
+			}
+
+			if (final_contrast_percentage != current_contrast_percentage) {
+				set_contrast_percentage_in_cli(index, final_contrast_percentage);
+			}
+			any_ddc_display_processed = TRUE;
+
+			if (display_number > 0) {
+				free_displays();
+				return 0;
+			}
+		}
+	}
+
+	if (display_number > 0) {
+		fprintf(stderr, "Invalid display number: %d\n", display_number);
+		free_displays();
+		return 1;
+	}
+
+	if (!any_ddc_display_processed) {
+		fprintf(stderr, "No DDC/CI displays with contrast control found.\n");
+		free_displays();
+		return 1;
+	}
+
+	free_displays();
+	return 0;
+}
+
 int display_help_in_cli() {
   printf("Usage: %s [OPTIONS]\n", APP_INFO_PACKAGE_NAME);
   printf("An application to control brightness of displays including external displays supporting DDC/CI\n");
@@ -182,8 +285,13 @@ int display_help_in_cli() {
   printf("  -s, --set-brightness [DISPLAY NUMBER]       Set the brightness of a display to a percentage value\n");
 	printf("  -i, --increase-brightness [DISPLAY NUMBER]  Increase the brightness of a display by a percentage value\n");
 	printf("  -d, --decrease-brightness [DISPLAY NUMBER]  Decrease the brightness of a display by a percentage value\n");
-	printf("                                                - If DISPLAY NUMBER is not provided, for --set-brightness, --increase-brightness and --decrease-brightness options, the brightness of all displays will be changed\n");
-  printf("  -p  --percentage [PERCENTAGE]               Percentage value to set the brightness to in case of --set-brightness option or to increase or decrease the brightness by in case of --increase-brightness or --decrease-brightness option\n");
+	printf("                                                - If DISPLAY NUMBER is not provided, the brightness of all displays will be changed\n");
+	printf("      --get-contrast DISPLAY NUMBER            Get the contrast percentage of a DDC/CI display\n");
+	printf("      --set-contrast [DISPLAY NUMBER]          Set the contrast of a DDC/CI display to a percentage value\n");
+	printf("      --increase-contrast [DISPLAY NUMBER]     Increase the contrast of a DDC/CI display by a percentage value\n");
+	printf("      --decrease-contrast [DISPLAY NUMBER]     Decrease the contrast of a DDC/CI display by a percentage value\n");
+	printf("                                                - If DISPLAY NUMBER is not provided, the contrast of all DDC/CI displays will be changed\n");
+  printf("  -p  --percentage [PERCENTAGE]               Percentage value for brightness or contrast operations\n");
 	printf("  -h, --help                                  Show help information\n");
   printf("\n");
   printf("When no arguments are provided, the application starts in GUI mode.\n");
@@ -198,17 +306,23 @@ int parse_cli_arguments(int argc, char **argv) {
     {"set-brightness", optional_argument, NULL, 's'},
 		{"increase-brightness", optional_argument, NULL, 'i'},
 		{"decrease-brightness", optional_argument, NULL, 'd'},
+		{"get-contrast", required_argument, NULL, OPT_GET_CONTRAST},
+		{"set-contrast", optional_argument, NULL, OPT_SET_CONTRAST},
+		{"increase-contrast", optional_argument, NULL, OPT_INCREASE_CONTRAST},
+		{"decrease-contrast", optional_argument, NULL, OPT_DECREASE_CONTRAST},
     {"percentage", required_argument, NULL, 'p'},
 		{"show-osd", required_argument, NULL, 'o'},
     {"help", no_argument, NULL, 'h'},
     {NULL, 0, NULL, 0}
   };
 
-	gchar option;
+	int option;
 	int option_index;
 
 	gchar set_brightness_option = -1;
 	guint set_brightness_display_number = -1;
+	int set_contrast_option = -1;
+	guint set_contrast_display_number = -1;
 	guint set_brightness_percentage_value = -1;
 	gchar show_osd = 0;
 
@@ -258,6 +372,36 @@ int parse_cli_arguments(int argc, char **argv) {
 					set_brightness_display_number = 0;
 				}
 				break;
+      case OPT_GET_CONTRAST: // --get-contrast option
+			{
+        guint get_contrast_display_number = atoi(optarg);
+				if (get_contrast_display_number == 0) {
+					fprintf(stderr, "Invalid display number: %d\n", get_contrast_display_number);
+					status = 1;
+					return status;
+				}
+				load_displays(NULL, NULL);
+				status = ensure_displays_are_present_in_cli();
+				status = get_display_contrast_in_cli(get_contrast_display_number);
+				free_displays();
+				return status;
+			}
+			case OPT_SET_CONTRAST: // --set-contrast option
+			case OPT_INCREASE_CONTRAST: // --increase-contrast option
+			case OPT_DECREASE_CONTRAST: // --decrease-contrast option
+				set_contrast_option = option;
+				if (optarg == NULL && optind < argc && argv[optind][0] != '-') {
+					optarg = argv[optind++];
+				}
+				if (optarg != NULL) {
+					set_contrast_display_number = atoi(optarg);
+					if (set_contrast_display_number == 0) {
+						set_contrast_display_number = 99;
+					}
+				} else {
+					set_contrast_display_number = 0;
+				}
+				break;
       case 'p': // --percentage option
 				set_brightness_percentage_value = atoi(optarg);
 				break;
@@ -279,43 +423,64 @@ int parse_cli_arguments(int argc, char **argv) {
     }
   }
 
-	// Same reason as get_percentage_display_number's check for zero above,
-	// except we set the set_brightness_display_number to 99 to indicate the case of user submitting 0 as value
-	if (set_brightness_option == -1) {
+	gboolean has_brightness_op = (set_brightness_option != (gchar)-1);
+	gboolean has_contrast_op = (set_contrast_option != (gchar)-1);
+
+	if (!has_brightness_op && !has_contrast_op) {
 		display_help_in_cli();
 		status = 1;
 		return status;
 	}
 
-	if (set_brightness_display_number == 99) {
+	// Validate display number 0 (invalid) for whichever ops are set
+	if (has_brightness_op && set_brightness_display_number == 99) {
+		fprintf(stderr, "Invalid display number: 0\n");
+		status = 1;
+		return status;
+	}
+
+	if (has_contrast_op && set_contrast_display_number == 99) {
 		fprintf(stderr, "Invalid display number: 0\n");
 		status = 1;
 		return status;
 	}
 
 	if (set_brightness_percentage_value == (guint) -1) {
-		fprintf(stderr, "Percentage value is required. Use -p or --percentage to specify the brightness percentage.\n");
+		fprintf(stderr, "Percentage value is required. Use -p or --percentage to specify the percentage.\n");
 		status = 1;
 		return status;
 	}
 
-	if (show_osd != 0) {
-		if (is_osd_provider_supported(show_osd) == FALSE) {
-			fprintf(stderr, "Invalid OSD provider: %c\n", show_osd);
-			status = 1;
+	if (has_brightness_op) {
+		if (show_osd != 0) {
+			if (is_osd_provider_supported(show_osd) == FALSE) {
+				fprintf(stderr, "Invalid OSD provider: %c\n", show_osd);
+				status = 1;
+				return status;
+			}
+		}
+		status = set_display_brightness_if_needed_in_cli(
+			set_brightness_display_number,
+			set_brightness_percentage_value,
+			set_brightness_option,
+			show_osd
+		);
+		if (status == 0 && show_osd != 0) {
+			show_osd_after_brightness_change(show_osd);
+		}
+		if (status != 0) {
 			return status;
 		}
 	}
 
-  status = set_display_brightness_if_needed_in_cli(
-		set_brightness_display_number,
-		set_brightness_percentage_value,
-		set_brightness_option,
-		show_osd
-	);
-	if (status == 0 && show_osd != 0) {
-		show_osd_after_brightness_change(show_osd);
+	if (has_contrast_op) {
+		status = set_display_contrast_if_needed_in_cli(
+			set_contrast_display_number,
+			set_brightness_percentage_value,
+			set_contrast_option
+		);
 	}
+
 	return status;
 }
 

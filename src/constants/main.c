@@ -17,3 +17,7 @@
 #ifndef SHOULD_HIDE_INTERNAL_IF_LID_CLOSED_GSETTINGS_KEY
 #define SHOULD_HIDE_INTERNAL_IF_LID_CLOSED_GSETTINGS_KEY "should-hide-internal-if-lid-closed"
 #endif
+
+#ifndef IS_CONTRAST_HIDDEN_GSETTINGS_KEY
+#define IS_CONTRAST_HIDDEN_GSETTINGS_KEY "is-contrast-hidden"
+#endif

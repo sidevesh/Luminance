@@ -1,7 +1,3 @@
-[submodule "ddcbc-api"]
-	path = ddcbc-api
-	url = https://github.com/ahshabbir/ddcbc-api.git
-	branch = master
 [submodule "arch"]
 	path = arch
 	url = https://aur.archlinux.org/luminance.git

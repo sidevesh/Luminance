@@ -8,6 +8,9 @@ guint displays_count(void);
 char* get_display_name(guint index);
 gdouble get_display_brightness_percentage(guint index);
 void set_display_brightness_percentage(guint index, gdouble brightness_percentage, gboolean emit_osd_signal);
+gboolean get_display_has_contrast(guint index);
+gdouble get_display_contrast_percentage(guint index);
+void set_display_contrast_percentage(guint index, gdouble contrast_percentage);
 void load_displays(void (*)(), void (*)());
 
 static gchar *
@@ -38,10 +41,18 @@ on_handle_get_monitors (LuminanceService *interface,
     // Escape the name for JSON
     gchar *escaped_name = g_strescape(name, "");
     gdouble brightness = get_display_brightness_percentage(i);
+    gboolean has_contrast = get_display_has_contrast(i);
+    gdouble contrast = has_contrast ? get_display_contrast_percentage(i) : -1.0;
 
-    g_string_append_printf(json_builder,
-                           "{\"id\": \"%u\", \"name\": \"%s\", \"brightness\": %.2f}",
-                           i, escaped_name ? escaped_name : "Unknown", brightness);
+    if (has_contrast) {
+      g_string_append_printf(json_builder,
+                             "{\"id\": \"%u\", \"name\": \"%s\", \"brightness\": %.2f, \"has_contrast\": true, \"contrast\": %.2f}",
+                             i, escaped_name ? escaped_name : "Unknown", brightness, contrast);
+    } else {
+      g_string_append_printf(json_builder,
+                             "{\"id\": \"%u\", \"name\": \"%s\", \"brightness\": %.2f, \"has_contrast\": false}",
+                             i, escaped_name ? escaped_name : "Unknown", brightness);
+    }
 
     if (escaped_name) g_free(escaped_name);
   }
@@ -87,6 +98,42 @@ on_handle_set_brightness (LuminanceService *interface,
 }
 
 static gboolean
+on_handle_set_contrast (LuminanceService *interface,
+                        GDBusMethodInvocation *invocation,
+                        const gchar *monitor_id,
+                        gdouble value,
+                        gpointer user_data)
+{
+  (void)user_data;
+  gchar *endptr;
+  guint64 index_val = g_ascii_strtoull(monitor_id, &endptr, 10);
+
+  if (*endptr != '\0') {
+      g_warning("Invalid monitor ID format: %s", monitor_id);
+      luminance_service_complete_set_contrast (interface, invocation);
+      return TRUE;
+  }
+
+  if (displays_count() == 0) {
+      load_displays(NULL, NULL);
+  }
+
+  if (index_val < displays_count()) {
+      if (get_display_has_contrast((guint)index_val)) {
+          g_print("DBus Request: Set contrast for %s (index %lu) to %f\n", monitor_id, index_val, value);
+          set_display_contrast_percentage((guint)index_val, value);
+      } else {
+          g_warning("Monitor %s does not support contrast control", monitor_id);
+      }
+  } else {
+      g_warning("Monitor ID out of range: %s", monitor_id);
+  }
+
+  luminance_service_complete_set_contrast (interface, invocation);
+  return TRUE;
+}
+
+static gboolean
 on_handle_quit (LuminanceService *interface,
                 GDBusMethodInvocation *invocation,
                 gpointer user_data)
@@ -115,6 +162,10 @@ void setup_dbus_service (GDBusConnection *connection)
   g_signal_connect (skeleton,
                     "handle-set-brightness",
                     G_CALLBACK (on_handle_set_brightness),
+                    NULL);
+  g_signal_connect (skeleton,
+                    "handle-set-contrast",
+                    G_CALLBACK (on_handle_set_contrast),
                     NULL);
   g_signal_connect (skeleton,
                     "handle-quit",

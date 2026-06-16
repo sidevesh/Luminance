@@ -15,7 +15,12 @@
       <arg type="s" name="monitor_id" direction="in"/>
       <arg type="d" name="value" direction="in"/>
     </method>
-    
+
+    <method name="SetContrast">
+      <arg type="s" name="monitor_id" direction="in"/>
+      <arg type="d" name="value" direction="in"/>
+    </method>
+
     <method name="Quit">
     </method>
   </interface>

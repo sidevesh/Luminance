@@ -5,6 +5,7 @@
 #include "../states/displays.c"
 #include "../states/laptop_lid.c"
 #include "../states/should_hide_internal_if_lid_closed.c"
+#include "../states/is_contrast_hidden.c"
 #include "../utils/flatpak.c"
 #include "./components/flatpak_setup_dialog.c"
 
@@ -17,6 +18,7 @@ GtkWidget *_refresh_displays_button = NULL;
 extern GtkApplication *app;
 
 extern void update_window_contents_in_ui();
+extern void set_contrast_row_visibility(gboolean visible);
 
 void _on_window_refresh_button_clicked(GtkWidget *widget, gpointer data) {
     (void)widget;
@@ -32,6 +34,13 @@ void _on_should_hide_internal_if_lid_closed_checkbox_toggled(GtkCheckButton *wid
   if (!is_lid_open()) {
       reload_displays(update_window_contents_in_ui, update_window_contents_in_ui);
   }
+}
+
+void _on_hide_contrast_checkbox_toggled(GtkCheckButton *widget, gpointer data) {
+    (void)data;
+    gboolean hide_contrast = gtk_check_button_get_active(widget);
+    set_is_contrast_hidden(hide_contrast);
+    set_contrast_row_visibility(!hide_contrast);
 }
 
 void _on_setup_permissions_button_clicked(GtkWidget *widget, gpointer data) {
@@ -81,19 +90,12 @@ void initialize_application_window(GtkApplication *app) {
 
 		GtkStyleContext *should_hide_internal_if_lid_closed_checkbox_style_context = gtk_widget_get_style_context(should_hide_internal_if_lid_closed_checkbox);
 		GtkCssProvider *should_hide_internal_if_lid_closed_checkbox_css_provider = gtk_css_provider_new();
-		gtk_css_provider_load_from_string(should_hide_internal_if_lid_closed_checkbox_css_provider, g_strdup_printf("checkbutton.flat {padding: 4px;margin-top: 4px;margin-bottom: 8px;}"));
+		gtk_css_provider_load_from_string(should_hide_internal_if_lid_closed_checkbox_css_provider, g_strdup_printf("checkbutton.flat {padding: 4px;margin-top: 4px;margin-bottom: 8px;} checkbutton.flat label {margin-start: 6px;}"));
 		gtk_style_context_add_provider(should_hide_internal_if_lid_closed_checkbox_style_context, GTK_STYLE_PROVIDER(should_hide_internal_if_lid_closed_checkbox_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 		gtk_style_context_add_class(should_hide_internal_if_lid_closed_checkbox_style_context, "flat");
 
 		gtk_box_append(GTK_BOX(menu_box), should_hide_internal_if_lid_closed_checkbox);
 		g_signal_connect(should_hide_internal_if_lid_closed_checkbox, "toggled", G_CALLBACK(_on_should_hide_internal_if_lid_closed_checkbox_toggled), NULL);
-
-		GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-		GtkStyleContext *separator_style_context = gtk_widget_get_style_context(separator);
-		GtkCssProvider *separator_css_provider = gtk_css_provider_new();
-		gtk_css_provider_load_from_string(separator_css_provider, "separator {margin-bottom: 8px;}");
-		gtk_style_context_add_provider(separator_style_context, GTK_STYLE_PROVIDER(separator_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-		gtk_box_append(GTK_BOX(menu_box), separator);
 	}
 
 	//if (is_running_in_flatpak()) {
@@ -115,9 +117,32 @@ void initialize_application_window(GtkApplication *app) {
 	//	gtk_box_append(GTK_BOX(menu_box), separator);
 	//}
 
+	GtkWidget *hide_contrast_checkbox = gtk_check_button_new_with_label("Hide contrast sliders");
+	gtk_check_button_set_active(GTK_CHECK_BUTTON(hide_contrast_checkbox), get_is_contrast_hidden());
+
+	GtkStyleContext *hide_contrast_style_context = gtk_widget_get_style_context(hide_contrast_checkbox);
+	GtkCssProvider *hide_contrast_css_provider = gtk_css_provider_new();
+	gtk_css_provider_load_from_string(hide_contrast_css_provider, g_strdup_printf("checkbutton.flat {padding: 4px;margin-top: 4px;margin-bottom: 8px;} checkbutton.flat label {margin-start: 6px;}"));
+	gtk_style_context_add_provider(hide_contrast_style_context, GTK_STYLE_PROVIDER(hide_contrast_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+	gtk_style_context_add_class(hide_contrast_style_context, "flat");
+
+	gtk_box_append(GTK_BOX(menu_box), hide_contrast_checkbox);
+	g_signal_connect(hide_contrast_checkbox, "toggled", G_CALLBACK(_on_hide_contrast_checkbox_toggled), NULL);
+
+	GtkWidget *contrast_separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+	GtkStyleContext *contrast_separator_style = gtk_widget_get_style_context(contrast_separator);
+	GtkCssProvider *contrast_separator_css = gtk_css_provider_new();
+	gtk_css_provider_load_from_string(contrast_separator_css, "separator {margin-bottom: 8px;}");
+	gtk_style_context_add_provider(contrast_separator_style, GTK_STYLE_PROVIDER(contrast_separator_css), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+	gtk_box_append(GTK_BOX(menu_box), contrast_separator);
+
 	gchar about_button_label_text[100];
 	sprintf(about_button_label_text, "About %s", APP_INFO_DISPLAY_NAME);
-	GtkWidget *about_button = gtk_button_new_with_label(about_button_label_text);
+	GtkWidget *about_button = gtk_button_new();
+	GtkWidget *about_button_label = gtk_label_new(about_button_label_text);
+	gtk_label_set_xalign(GTK_LABEL(about_button_label), 0.0);
+	gtk_widget_set_hexpand(about_button_label, TRUE);
+	gtk_button_set_child(GTK_BUTTON(about_button), about_button_label);
 
 	GtkStyleContext *about_button_style_context = gtk_widget_get_style_context(about_button);
 	GtkCssProvider *about_button_css_provider = gtk_css_provider_new();

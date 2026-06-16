@@ -71,7 +71,7 @@ https://www.ddcutil.com/i2c_permissions/
 
 3. Clone this repo:
     ```
-    git clone --recurse-submodules https://github.com/sidevesh/Luminance.git
+    git clone https://github.com/sidevesh/Luminance.git
     ```
 
 4. Change into the `Luminance` directory and build the application:
@@ -156,8 +156,13 @@ Options:
   -s, --set-brightness [DISPLAY NUMBER]       Set the brightness of a display to a percentage value
   -i, --increase-brightness [DISPLAY NUMBER]  Increase the brightness of a display by a percentage value
   -d, --decrease-brightness [DISPLAY NUMBER]  Decrease the brightness of a display by a percentage value
-                                              If DISPLAY NUMBER is not provided, for --set-brightness, --increase-brightness and --decrease-brightness options, the brightness of all displays will be changed
-  -p  --percentage [PERCENTAGE]               Percentage value to set the brightness to in case of --set-brightness option or to increase or decrease the brightness by in case of --increase-brightness or --decrease-brightness option
+                                                - If DISPLAY NUMBER is not provided, the brightness of all displays will be changed
+      --get-contrast DISPLAY NUMBER            Get the contrast percentage of a DDC/CI display
+      --set-contrast [DISPLAY NUMBER]          Set the contrast of a DDC/CI display to a percentage value
+      --increase-contrast [DISPLAY NUMBER]     Increase the contrast of a DDC/CI display by a percentage value
+      --decrease-contrast [DISPLAY NUMBER]     Decrease the contrast of a DDC/CI display by a percentage value
+                                                - If DISPLAY NUMBER is not provided, the contrast of all DDC/CI displays will be changed
+  -p  --percentage [PERCENTAGE]               Percentage value for brightness or contrast operations
   -h, --help                                  Show help information
 
 When no arguments are provided, the application starts in GUI mode.
@@ -310,6 +315,6 @@ Project Link: [https://github.com/sidevesh/Luminance](https://github.com/sideves
 
 ## Acknowledgments
 
-- @ahshabbir : for ddcbc-api and ddcbc-gtk: https://github.com/ahshabbir/ddcbc-api
+- @ahshabbir : for the original ddcbc-api which the DDC/CI integration is based on: https://github.com/ahshabbir/ddcbc-api
 - @rockowitz : for ddcutil c api: https://github.com/rockowitz/ddcutil
 - @jimmac : for the awesome icon: https://github.com/jimmac

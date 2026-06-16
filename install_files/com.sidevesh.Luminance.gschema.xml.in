@@ -11,5 +11,10 @@
       <summary>Whether to hide the internal display when the lid is closed</summary>
       <description>When true, the internal display will be hidden when the lid is closed. This is useful for laptops that are connected to external displays.</description>
     </key>
+    <key name="is-contrast-hidden" type="b">
+      <default>false</default>
+      <summary>Whether to hide contrast sliders</summary>
+      <description>When true, contrast sliders are hidden for all displays.</description>
+    </key>
   </schema>
 </schemalist>
