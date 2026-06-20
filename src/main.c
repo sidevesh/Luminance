@@ -208,7 +208,7 @@ void set_contrast_percentage_in_cli(guint display_index, double contrast_percent
         fprintf(stderr, "Display %d does not support contrast control via DDC/CI.\n", display_index + 1);
         return;
       }
-      set_display_contrast_percentage(index, contrast_percentage);
+      set_display_contrast_percentage(index, contrast_percentage, FALSE);
       return;
     }
   }

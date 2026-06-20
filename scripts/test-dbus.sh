@@ -7,6 +7,7 @@ INTERFACE="com.sidevesh.Luminance"
 if [[ "$1" == "--devel" ]]; then
     BUS_NAME="com.sidevesh.Luminance.Devel"
     OBJECT_PATH="/com/sidevesh/Luminance/Devel/Service"
+    INTERFACE="com.sidevesh.Luminance.Devel"
     echo "Running in development mode..."
 fi
 
@@ -59,6 +60,9 @@ gdbus call --session --dest $BUS_NAME --object-path $OBJECT_PATH --method $INTER
 # Wait for signal capture
 sleep 2
 
+# Wait for signal capture
+sleep 2
+
 # Kill monitor process
 kill $MONITOR_PID 2>/dev/null
 
@@ -74,4 +78,31 @@ else
 fi
 
 rm "$TMP_LOG"
+
+# 5. SetBrightnessQuiet (new method — must NOT emit ShowOSD)
+echo -e "\n5. Calling SetBrightnessQuiet('$TARGET_MONITOR', 50.0)..."
+TMP_LOG2=$(mktemp)
+gdbus monitor --session --dest $BUS_NAME --object-path $OBJECT_PATH > "$TMP_LOG2" &
+MONITOR_PID2=$!
+sleep 1
+
+OUTPUT2=$(gdbus call --session --dest $BUS_NAME --object-path $OBJECT_PATH --method $INTERFACE.SetBrightnessQuiet "$TARGET_MONITOR" 50.0 2>&1)
+if [[ $? -ne 0 ]]; then
+    echo -e "\033[0;31mFAILURE: SetBrightnessQuiet call failed: $OUTPUT2\033[0m"
+else
+    echo "Call succeeded."
+fi
+
+sleep 2
+kill $MONITOR_PID2 2>/dev/null
+
+echo -e "\n6. Verifying NO ShowOSD signal was emitted..."
+if grep -q "ShowOSD" "$TMP_LOG2"; then
+    echo -e "\033[0;31mFAILURE: ShowOSD signal was unexpectedly emitted.\033[0m"
+    grep "ShowOSD" "$TMP_LOG2" -A 1
+else
+    echo -e "\033[0;32mSUCCESS: No ShowOSD signal emitted (as expected).\033[0m"
+fi
+
+rm "$TMP_LOG2"
 echo -e "\nTest Complete."

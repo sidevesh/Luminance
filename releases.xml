@@ -1,19 +1,131 @@
-    <release version="1.4.6" date="2026-02-16"/>
-    <release version="1.4.5" date="2026-02-16"/>
-<release version="1.4.4" date="2026-02-16"/>
-<release version="1.4.3" date="2026-02-13"/>
-<release version="1.4.2" date="2026-02-03"/>
-<release version="1.4.1" date="2026-02-03"/>
-<release version="1.4.0" date="2026-02-03"/>
-<release version="1.3.0" date="2026-02-02"/>
-<release version="1.2.0" date="2025-10-10"/>
-<release version="1.1.0" date="2024-06-28"/>
-<release version="1.0.4" date="2024-06-01"/>
-<release version="1.0.3" date="2024-05-31"/>
-<release version="1.0.2" date="2023-07-11"/>
-<release version="1.0.1.1" date="2023-07-03"/>
-<release version="1.0.1" date="2023-07-09"/>
-<release version="1.0.0.2" date="2023-07-02"/>
-<release version="1.0.0.1" date="2023-07-02"/>
-<release version="1.0.0" date="2023-07-01"/>
-<release version="0.0.9" date="2023-07-01"/>
+    <release version="1.5.0" date="2026-06-20">
+      <description>
+        <ul>
+          <li>Add contrast control for monitors that support it, with sliders in the main UI</li>
+          <li>Add option to hide contrast sliders from the settings menu</li>
+          <li>Add contrast control via CLI with --get-contrast, --set-contrast, --increase-contrast, and --decrease-contrast options</li>
+          <li>Add SetContrast D-Bus method and ShowContrastOSD signal for controlling contrast from external tools and scripts</li>
+          <li>Add DDC monitor brightness sliders to the GNOME Quick Settings panel</li>
+          <li>Fix incorrect error messages when CLI arguments are provided in certain orders</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.4.6" date="2026-02-16">
+      <description>
+        <p>Bug fixes and stability improvements</p>
+      </description>
+    </release>
+    <release version="1.4.5" date="2026-02-16">
+      <description>
+        <p>Minor fixes</p>
+      </description>
+    </release>
+    <release version="1.4.4" date="2026-02-16">
+      <description>
+        <ul>
+          <li>Add setup dialog to grant required DDC permissions when running as a Flatpak</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.4.3" date="2026-02-13">
+      <description>
+        <ul>
+          <li>Automatically hide the built-in display when the laptop lid is closed</li>
+          <li>Reload display list immediately when toggling the lid-closed option</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.4.2" date="2026-02-03">
+      <description>
+        <p>Improve Flatpak installation experience</p>
+      </description>
+    </release>
+    <release version="1.4.1" date="2026-02-03">
+      <description>
+        <p>Fix installation on Arch Linux</p>
+      </description>
+    </release>
+    <release version="1.4.0" date="2026-02-03">
+      <description>
+        <ul>
+          <li>Add D-Bus interface for controlling brightness and contrast from external tools and scripts</li>
+          <li>Add GNOME Shell extension that shows OSD notifications when brightness is changed via DDC</li>
+          <li>Add Flatpak support</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.3.0" date="2026-02-02">
+      <description>
+        <ul>
+          <li>Add Ctrl+Q keyboard shortcut to quit</li>
+          <li>Debounce brightness slider to prevent laggy behaviour when dragging</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.2.0" date="2025-10-10">
+      <description>
+        <ul>
+          <li>Show brightness OSD on all monitors simultaneously</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.1.0" date="2024-06-28">
+      <description>
+        <ul>
+          <li>Redesigned UI using GTK4 and libadwaita</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.0.4" date="2024-06-01">
+      <description>
+        <p>Minor fixes and improvements</p>
+      </description>
+    </release>
+    <release version="1.0.3" date="2024-05-31">
+      <description>
+        <ul>
+          <li>New app icon</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.0.2" date="2023-07-11">
+      <description>
+        <ul>
+          <li>Improve CLI help text</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.0.1.1" date="2023-07-03">
+      <description>
+        <p>Minor fixes</p>
+      </description>
+    </release>
+    <release version="1.0.1" date="2023-07-09">
+      <description>
+        <p>Minor fixes and improvements</p>
+      </description>
+    </release>
+    <release version="1.0.0.2" date="2023-07-02">
+      <description>
+        <p>Fix installation on Debian and Ubuntu</p>
+      </description>
+    </release>
+    <release version="1.0.0.1" date="2023-07-02">
+      <description>
+        <p>Minor fixes</p>
+      </description>
+    </release>
+    <release version="1.0.0" date="2023-07-01">
+      <description>
+        <p>Minor fixes and improvements</p>
+      </description>
+    </release>
+    <release version="0.0.9" date="2023-07-01">
+      <description>
+        <p>Initial release</p>
+        <ul>
+          <li>Control brightness and contrast of external DDC/CI monitors</li>
+          <li>Link multiple monitors to control brightness together</li>
+        </ul>
+      </description>
+    </release>

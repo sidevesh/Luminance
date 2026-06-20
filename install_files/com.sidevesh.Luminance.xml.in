@@ -6,12 +6,24 @@
       <arg type="s" name="monitor_name"/>
     </signal>
 
+    <!-- Signal to notify listeners to show contrast OSD -->
+    <signal name="ShowContrastOSD">
+      <arg type="d" name="contrast_percentage"/>
+      <arg type="s" name="monitor_name"/>
+    </signal>
+
     <method name="GetMonitors">
       <!-- Returning JSON string for flexibility given C structure -->
       <arg type="s" name="monitors_json" direction="out"/>
     </method>
 
     <method name="SetBrightness">
+      <arg type="s" name="monitor_id" direction="in"/>
+      <arg type="d" name="value" direction="in"/>
+    </method>
+
+    <!-- Same as SetBrightness but does not emit ShowOSD (used by UI surfaces, e.g. GNOME Quick Settings, that already show their own visual feedback) -->
+    <method name="SetBrightnessQuiet">
       <arg type="s" name="monitor_id" direction="in"/>
       <arg type="d" name="value" direction="in"/>
     </method>

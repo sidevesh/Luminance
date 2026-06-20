@@ -10,7 +10,7 @@ gdouble get_display_brightness_percentage(guint index);
 void set_display_brightness_percentage(guint index, gdouble brightness_percentage, gboolean emit_osd_signal);
 gboolean get_display_has_contrast(guint index);
 gdouble get_display_contrast_percentage(guint index);
-void set_display_contrast_percentage(guint index, gdouble contrast_percentage);
+void set_display_contrast_percentage(guint index, gdouble contrast_percentage, gboolean emit_osd_signal);
 void load_displays(void (*)(), void (*)());
 
 static gchar *
@@ -98,6 +98,38 @@ on_handle_set_brightness (LuminanceService *interface,
 }
 
 static gboolean
+on_handle_set_brightness_quiet (LuminanceService *interface,
+                                GDBusMethodInvocation *invocation,
+                                const gchar *monitor_id,
+                                gdouble value,
+                                gpointer user_data)
+{
+  (void)user_data;
+  gchar *endptr;
+  guint64 index_val = g_ascii_strtoull(monitor_id, &endptr, 10);
+
+  if (*endptr != '\0') {
+      g_warning("Invalid monitor ID format: %s", monitor_id);
+      luminance_service_complete_set_brightness_quiet (interface, invocation);
+      return TRUE;
+  }
+
+  if (displays_count() == 0) {
+      load_displays(NULL, NULL);
+  }
+
+  if (index_val < displays_count()) {
+      g_print("DBus Request: Set brightness (quiet) for %s (index %lu) to %f\n", monitor_id, index_val, value);
+      set_display_brightness_percentage((guint)index_val, value, FALSE);
+  } else {
+      g_warning("Monitor ID out of range: %s", monitor_id);
+  }
+
+  luminance_service_complete_set_brightness_quiet (interface, invocation);
+  return TRUE;
+}
+
+static gboolean
 on_handle_set_contrast (LuminanceService *interface,
                         GDBusMethodInvocation *invocation,
                         const gchar *monitor_id,
@@ -121,7 +153,7 @@ on_handle_set_contrast (LuminanceService *interface,
   if (index_val < displays_count()) {
       if (get_display_has_contrast((guint)index_val)) {
           g_print("DBus Request: Set contrast for %s (index %lu) to %f\n", monitor_id, index_val, value);
-          set_display_contrast_percentage((guint)index_val, value);
+          set_display_contrast_percentage((guint)index_val, value, TRUE);
       } else {
           g_warning("Monitor %s does not support contrast control", monitor_id);
       }
@@ -164,6 +196,10 @@ void setup_dbus_service (GDBusConnection *connection)
                     G_CALLBACK (on_handle_set_brightness),
                     NULL);
   g_signal_connect (skeleton,
+                    "handle-set-brightness-quiet",
+                    G_CALLBACK (on_handle_set_brightness_quiet),
+                    NULL);
+  g_signal_connect (skeleton,
                     "handle-set-contrast",
                     G_CALLBACK (on_handle_set_contrast),
                     NULL);
@@ -186,33 +222,44 @@ void setup_dbus_service (GDBusConnection *connection)
   g_free(object_path);
 }
 
+static void _emit_named_signal_dbus(const char* signal_name, gdouble percentage, const char* monitor) {
+    GError *error = NULL;
+    GDBusConnection *conn = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
+    if (conn) {
+         gchar *object_path = get_dbus_object_path();
+         g_dbus_connection_emit_signal(conn,
+                                       NULL,
+                                       object_path,
+                                       APP_INFO_PACKAGE_NAME,
+                                       signal_name,
+                                       g_variant_new("(ds)", percentage, monitor ? monitor : ""),
+                                       &error);
+         g_free(object_path);
+         if (error) {
+             g_warning("Failed to emit signal: %s", error->message);
+             g_error_free(error);
+         } else {
+             g_dbus_connection_flush_sync(conn, NULL, NULL);
+         }
+         g_object_unref(conn);
+    } else {
+         g_warning("Could not connect to session bus: %s", error ? error->message : "Unknown error");
+         if (error) g_error_free(error);
+    }
+}
+
 void emit_osd_signal_dbus(gdouble percentage, const char* monitor) {
     if (skeleton != NULL) {
         luminance_service_emit_show_osd(skeleton, percentage, monitor ? monitor : "");
     } else {
-        // CLI mode: emit signal directly
-        GError *error = NULL;
-        GDBusConnection *conn = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
-        if (conn) {
-             gchar *object_path = get_dbus_object_path();
-             g_dbus_connection_emit_signal(conn,
-                                           NULL, 
-                                           object_path,
-                                           APP_INFO_PACKAGE_NAME,
-                                           "ShowOSD",
-                                           g_variant_new("(ds)", percentage, monitor ? monitor : ""),
-                                           &error);
-             g_free(object_path);
-             if (error) {
-                 g_warning("Failed to emit signal: %s", error->message);
-                 g_error_free(error);
-             } else {
-                 g_dbus_connection_flush_sync(conn, NULL, NULL);
-             }
-             g_object_unref(conn);
-        } else {
-             g_warning("Could not connect to session bus: %s", error ? error->message : "Unknown error");
-             if (error) g_error_free(error);
-        }
+        _emit_named_signal_dbus("ShowOSD", percentage, monitor);
+    }
+}
+
+void emit_contrast_osd_signal_dbus(gdouble percentage, const char* monitor) {
+    if (skeleton != NULL) {
+        luminance_service_emit_show_contrast_osd(skeleton, percentage, monitor ? monitor : "");
+    } else {
+        _emit_named_signal_dbus("ShowContrastOSD", percentage, monitor);
     }
 }

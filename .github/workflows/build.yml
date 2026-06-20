@@ -22,7 +22,7 @@ jobs:
           sudo apt-get install -y gcc meson libglib2.0-dev libgtk-4-dev libadwaita-1-dev libddcutil-dev
 
       - name: Set up Git repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Build package
         run: make package-deb
@@ -43,11 +43,11 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo dnf -y upgrade
-          sudo dnf install -y git-all gcc meson glib2-devel gtk4-devel libadwaita-devel libddcutil-devel fedora-packager rpmdevtools
+          dnf -y upgrade
+          dnf install -y git-all gcc meson glib2-devel gtk4-devel libadwaita-devel libddcutil-devel fedora-packager rpmdevtools
 
       - name: Set up Git repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Build package
         run: make package-rpm
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Git repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Create zip
         run: |

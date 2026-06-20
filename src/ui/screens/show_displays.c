@@ -10,6 +10,7 @@
 
 typedef struct display_section {
   GtkWidget *icon;
+  GtkWidget *brightness_icon; // small secondary icon, NULL if display has no contrast
   GtkWidget *label;
   GtkWidget *scale;          // brightness GtkScale
   GtkWidget *contrast_scale; // contrast GtkScale, NULL if not supported
@@ -91,7 +92,7 @@ static gboolean _apply_debounced_contrast(gpointer user_data) {
         return G_SOURCE_REMOVE;
     }
     gdouble contrast = _pending_contrast_values[index];
-    set_display_contrast_percentage(_display_sections[index]->display_index, contrast);
+    set_display_contrast_percentage(_display_sections[index]->display_index, contrast, FALSE);
     _pending_contrast_timeout_ids[index] = 0;
     return G_SOURCE_REMOVE;
 }
@@ -196,6 +197,9 @@ void set_contrast_row_visibility(gboolean visible) {
         if (_display_sections[i]->contrast_row != NULL) {
             gtk_widget_set_visible(_display_sections[i]->contrast_row, visible);
         }
+        if (_display_sections[i]->brightness_icon != NULL) {
+            gtk_widget_set_visible(_display_sections[i]->brightness_icon, visible);
+        }
     }
 }
 
@@ -294,10 +298,18 @@ GtkWidget* get_show_displays_screen() {
 		display_section_instance->label = get_display_label(get_display_name(index));
 		gtk_box_append(GTK_BOX(content_box), display_section_instance->label);
 
-		// Brightness row: small icon left of scale
+		// Brightness row: small icon left of scale (icon only shown when contrast also visible)
 		GtkWidget *brightness_row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-		GtkWidget *brightness_icon = _make_secondary_icon("display-brightness-symbolic");
-		gtk_box_append(GTK_BOX(brightness_row), brightness_icon);
+
+		if (has_contrast) {
+			GtkWidget *brightness_icon = _make_secondary_icon("display-brightness-symbolic");
+			display_section_instance->brightness_icon = brightness_icon;
+			gtk_widget_set_visible(brightness_icon, !contrast_hidden);
+			gtk_box_append(GTK_BOX(brightness_row), brightness_icon);
+		} else {
+			display_section_instance->brightness_icon = NULL;
+		}
+
 		gtk_box_append(GTK_BOX(brightness_row), display_section_instance->scale);
 
 		if (has_contrast) {

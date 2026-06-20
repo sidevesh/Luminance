@@ -315,7 +315,7 @@ gdouble get_display_contrast_percentage(guint index) {
   return display->contrast_last_val * 100.0 / display->contrast_max_val;
 }
 
-void set_display_contrast_percentage(guint index, gdouble contrast_percentage) {
+void set_display_contrast_percentage(guint index, gdouble contrast_percentage, gboolean emit_osd_signal) {
   ddc_display* display = _get_ddc_display(index);
   guint16 contrast_value = (guint16)(contrast_percentage * display->contrast_max_val / 100);
   DDC_Status rc = ddc_display_set_contrast(display, contrast_value);
@@ -326,6 +326,10 @@ void set_display_contrast_percentage(guint index, gdouble contrast_percentage) {
   } else if (rc != 0) {
     fprintf(stderr, "An error occurred when setting the contrast of display no %d to %u. Code: %d\n",
       display->info.dispno, contrast_value, rc);
+  }
+
+  if (emit_osd_signal) {
+    emit_contrast_osd_signal_dbus(contrast_percentage, display->info.model_name);
   }
 }
 
