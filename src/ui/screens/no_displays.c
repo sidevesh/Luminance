@@ -36,10 +36,12 @@ GtkWidget* get_no_displays_screen() {
 	gtk_box_append(GTK_BOX(box), image);
 
 	title = gtk_label_new(NULL);
-	gtk_label_set_markup(GTK_LABEL(title), "<span size='xx-large' weight='heavy'>No compatible displays found</span>");
+	gchar *title_markup = g_markup_printf_escaped("<span size='xx-large' weight='heavy'>%s</span>", _("No compatible displays found"));
+	gtk_label_set_markup(GTK_LABEL(title), title_markup);
+	g_free(title_markup);
   gtk_box_append(GTK_BOX(box), title);
 
-  button = gtk_button_new_with_label("Refresh");
+  button = gtk_button_new_with_label(_("Refresh"));
   gtk_widget_add_css_class(button, "circular");
   button_css_provider = gtk_css_provider_new();
   gtk_css_provider_load_from_string(button_css_provider, "button {padding-left: 12px;padding-right: 12px;padding-top: 4px;padding-bottom: 4px;}");
@@ -48,7 +50,7 @@ GtkWidget* get_no_displays_screen() {
   g_signal_connect(button, "clicked", G_CALLBACK(_on_no_displays_screen_refresh_button_clicked), NULL);
 
   if (is_running_in_flatpak()) {
-    subtitle = gtk_label_new("If you don't see your displays, you may need to grant hardware permissions.");
+    subtitle = gtk_label_new(_("If you don't see your displays, you may need to grant hardware permissions."));
     gtk_widget_set_margin_bottom(subtitle, MARGIN_UNIT);
     gtk_label_set_wrap(GTK_LABEL(subtitle), TRUE);
     gtk_widget_set_halign(subtitle, GTK_ALIGN_CENTER);
@@ -59,7 +61,7 @@ GtkWidget* get_no_displays_screen() {
     gtk_widget_set_halign(button_box, GTK_ALIGN_CENTER);
     gtk_box_append(GTK_BOX(box), button_box);
 
-    setup_button = gtk_button_new_with_label("Setup Instructions");
+    setup_button = gtk_button_new_with_label(_("Setup Instructions"));
     gtk_widget_add_css_class(setup_button, "circular");
     gtk_style_context_add_provider(gtk_widget_get_style_context(setup_button), GTK_STYLE_PROVIDER(button_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     g_signal_connect(setup_button, "clicked", G_CALLBACK(_on_no_displays_screen_setup_button_clicked), NULL);
@@ -67,7 +69,7 @@ GtkWidget* get_no_displays_screen() {
     gtk_box_append(GTK_BOX(button_box), button);
 
   } else {
-    subtitle = gtk_label_new("Try refreshing if you have just connected the displays");
+    subtitle = gtk_label_new(_("Try refreshing if you have just connected the displays"));
 	  gtk_widget_set_margin_bottom(subtitle, MARGIN_UNIT);
     gtk_box_append(GTK_BOX(box), subtitle);
 

@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include <getopt.h>
 #include <gtk/gtk.h>
 #include <adwaita.h>
+#include <glib/gi18n.h>
+#include "config.h"
 #include "./dbus_service.c"
 #include "./constants/main.c"
 #include "./osd/main.c"
@@ -550,6 +553,10 @@ int parse_cli_arguments(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
+  setlocale(LC_ALL, "");
+  bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+  bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+  textdomain(GETTEXT_PACKAGE);
   gboolean service_mode = FALSE;
   if (argc > 1 && strcmp(argv[1], "--gapplication-service") == 0) {
     service_mode = TRUE;

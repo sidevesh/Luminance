@@ -23,7 +23,7 @@ void show_flatpak_setup_dialog(GtkWindow *parent_window) {
     if (parent_window) {
         gtk_window_set_transient_for(GTK_WINDOW(dialog), parent_window);
     }
-    gtk_window_set_title(GTK_WINDOW(dialog), "Flatpak Setup");
+    gtk_window_set_title(GTK_WINDOW(dialog), _("Flatpak Setup"));
     gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
     gtk_window_set_default_size(GTK_WINDOW(dialog), 450, -1);
 
@@ -50,37 +50,45 @@ void show_flatpak_setup_dialog(GtkWindow *parent_window) {
     gtk_box_append(GTK_BOX(main_box), content_box);
     
     // Intro
-    intro_label = gtk_label_new("To control monitors from a Flatpak app, you need to grant permissions on your host system.");
+    intro_label = gtk_label_new(_("To control monitors from a Flatpak app, you need to grant permissions on your host system."));
     gtk_label_set_wrap(GTK_LABEL(intro_label), TRUE);
     gtk_label_set_xalign(GTK_LABEL(intro_label), 0);
     gtk_box_append(GTK_BOX(content_box), intro_label);
 
     // Step 1
     step1_label = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(step1_label), "<b>1.</b> Download the setup script below:");
+    gchar *step1_markup = g_markup_printf_escaped("<b>1.</b> %s", _("Download the setup script below:"));
+    gtk_label_set_markup(GTK_LABEL(step1_label), step1_markup);
+    g_free(step1_markup);
     gtk_label_set_xalign(GTK_LABEL(step1_label), 0);
     gtk_box_append(GTK_BOX(content_box), step1_label);
 
-    link_button = gtk_link_button_new_with_label(APP_INFO_FLATPAK_SETUP_SCRIPT_URL, "Download Setup Script");
+    link_button = gtk_link_button_new_with_label(APP_INFO_FLATPAK_SETUP_SCRIPT_URL, _("Download Setup Script"));
     gtk_widget_set_halign(link_button, GTK_ALIGN_START);
     gtk_box_append(GTK_BOX(content_box), link_button);
 
     // Step 2
     step2_label = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(step2_label), "<b>2.</b> Allow the file to be executed (Properties > Permissions > Allow executing file as program).");
+    gchar *step2_markup = g_markup_printf_escaped("<b>2.</b> %s", _("Allow the file to be executed (Properties > Permissions > Allow executing file as program)."));
+    gtk_label_set_markup(GTK_LABEL(step2_label), step2_markup);
+    g_free(step2_markup);
     gtk_label_set_wrap(GTK_LABEL(step2_label), TRUE);
     gtk_label_set_xalign(GTK_LABEL(step2_label), 0);
     gtk_box_append(GTK_BOX(content_box), step2_label);
 
     // Step 3
     step3_label = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(step3_label), "<b>3.</b> Run the script (double-click or run from terminal).");
+    gchar *step3_markup = g_markup_printf_escaped("<b>3.</b> %s", _("Run the script (double-click or run from terminal)."));
+    gtk_label_set_markup(GTK_LABEL(step3_label), step3_markup);
+    g_free(step3_markup);
     gtk_label_set_wrap(GTK_LABEL(step3_label), TRUE);
     gtk_label_set_xalign(GTK_LABEL(step3_label), 0);
     gtk_box_append(GTK_BOX(content_box), step3_label);
 
     command_label = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(command_label), "<b>4.</b> Restart this app for changes to take effect.");
+    gchar *step4_markup = g_markup_printf_escaped("<b>4.</b> %s", _("Restart this app for changes to take effect."));
+    gtk_label_set_markup(GTK_LABEL(command_label), step4_markup);
+    g_free(step4_markup);
     gtk_label_set_xalign(GTK_LABEL(command_label), 0);
     gtk_box_append(GTK_BOX(content_box), command_label);
     

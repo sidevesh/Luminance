@@ -2,7 +2,7 @@
 #include "../constants/main.c"
 
 GtkWidget* get_link_brightness_checkbox(gboolean initial_value) {
-	GtkWidget *link_brightness_checkbox = gtk_check_button_new_with_label("Sync brightness of all displays");
+	GtkWidget *link_brightness_checkbox = gtk_check_button_new_with_label(_("Sync brightness of all displays"));
 	gtk_check_button_set_active(GTK_CHECK_BUTTON(link_brightness_checkbox), initial_value);
 
 	gtk_widget_set_margin_start(link_brightness_checkbox, MARGIN_UNIT);

@@ -227,12 +227,12 @@ GtkWidget* get_show_displays_screen() {
         gtk_widget_add_css_class(banner, "banner");
         gtk_widget_add_css_class(banner, "warning");
 
-        GtkWidget *label = gtk_label_new("Missing permissions for built-in displays.");
+        GtkWidget *label = gtk_label_new(_("Missing permissions for built-in displays."));
         gtk_label_set_wrap(GTK_LABEL(label), TRUE);
         gtk_widget_set_hexpand(label, TRUE);
         gtk_widget_set_halign(label, GTK_ALIGN_START);
 
-        GtkWidget *button = gtk_button_new_with_label("Setup");
+        GtkWidget *button = gtk_button_new_with_label(_("Setup"));
         g_signal_connect(button, "clicked", G_CALLBACK(_on_setup_permissions_banner_button_clicked), NULL);
 
         gtk_box_append(GTK_BOX(banner), label);

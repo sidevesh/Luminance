@@ -1,0 +1,6 @@
+src/ui/window.c
+src/ui/components/link_brightness_check_button.c
+src/ui/components/flatpak_setup_dialog.c
+src/ui/screens/no_displays.c
+src/ui/screens/show_displays.c
+src/states/displays.c
