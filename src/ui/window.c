@@ -85,7 +85,7 @@ void initialize_application_window(GtkApplication *app) {
 	gtk_menu_button_set_icon_name(GTK_MENU_BUTTON(menu_button), "open-menu-symbolic");
 
 	if (get_has_lid()) {
-		GtkWidget *should_hide_internal_if_lid_closed_checkbox = gtk_check_button_new_with_label("Hide built-in displays when lid is closed");
+		GtkWidget *should_hide_internal_if_lid_closed_checkbox = gtk_check_button_new_with_label(_("Hide built-in displays when lid is closed"));
 		gtk_check_button_set_active(GTK_CHECK_BUTTON(should_hide_internal_if_lid_closed_checkbox), get_should_hide_internal_if_lid_closed());
 
 		GtkStyleContext *should_hide_internal_if_lid_closed_checkbox_style_context = gtk_widget_get_style_context(should_hide_internal_if_lid_closed_checkbox);
@@ -117,7 +117,7 @@ void initialize_application_window(GtkApplication *app) {
 	//	gtk_box_append(GTK_BOX(menu_box), separator);
 	//}
 
-	GtkWidget *hide_contrast_checkbox = gtk_check_button_new_with_label("Hide contrast sliders");
+	GtkWidget *hide_contrast_checkbox = gtk_check_button_new_with_label(_("Hide contrast sliders"));
 	gtk_check_button_set_active(GTK_CHECK_BUTTON(hide_contrast_checkbox), get_is_contrast_hidden());
 
 	GtkStyleContext *hide_contrast_style_context = gtk_widget_get_style_context(hide_contrast_checkbox);
@@ -136,10 +136,10 @@ void initialize_application_window(GtkApplication *app) {
 	gtk_style_context_add_provider(contrast_separator_style, GTK_STYLE_PROVIDER(contrast_separator_css), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 	gtk_box_append(GTK_BOX(menu_box), contrast_separator);
 
-	gchar about_button_label_text[100];
-	sprintf(about_button_label_text, "About %s", APP_INFO_DISPLAY_NAME);
+	gchar *about_button_label_text = g_strdup_printf(_("About %s"), APP_INFO_DISPLAY_NAME);
 	GtkWidget *about_button = gtk_button_new();
 	GtkWidget *about_button_label = gtk_label_new(about_button_label_text);
+	g_free(about_button_label_text);
 	gtk_label_set_xalign(GTK_LABEL(about_button_label), 0.0);
 	gtk_widget_set_hexpand(about_button_label, TRUE);
 	gtk_button_set_child(GTK_BUTTON(about_button), about_button_label);

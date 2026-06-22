@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include <getopt.h>
 #include <gtk/gtk.h>
 #include <adwaita.h>
+#include <glib/gi18n.h>
+#include "config.h"
 #include "./dbus_service.c"
 #include "./constants/main.c"
 #include "./osd/main.c"
@@ -505,6 +508,11 @@ gboolean already_running(void) {
 }
 
 int main(int argc, char **argv) {
+  setlocale(LC_ALL, "");
+  bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+  bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+  textdomain(GETTEXT_PACKAGE);
+
   if (already_running()) {
     fprintf(stderr, "Another instance of the application is already running.\n");
     return 1;

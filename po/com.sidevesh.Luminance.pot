@@ -1,0 +1,128 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the com.sidevesh.Luminance package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: com.sidevesh.Luminance\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-22 14:25+0530\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/ui/window.c:88
+msgid "Hide built-in displays when lid is closed"
+msgstr ""
+
+#. if (is_running_in_flatpak()) {
+#. GtkWidget *setup_button = gtk_button_new_with_label("Setup Permissions");
+#. GtkStyleContext *setup_button_style_context = gtk_widget_get_style_context(setup_button);
+#. GtkCssProvider *setup_button_css_provider = gtk_css_provider_new();
+#. gtk_css_provider_load_from_string(setup_button_css_provider, "button.flat {font-weight: normal;}");
+#. gtk_style_context_add_provider(setup_button_style_context, GTK_STYLE_PROVIDER(setup_button_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+#. gtk_style_context_add_class(setup_button_style_context, "flat");
+#.
+#. gtk_box_append(GTK_BOX(menu_box), setup_button);
+#. g_signal_connect(setup_button, "clicked", G_CALLBACK(_on_setup_permissions_button_clicked), NULL);
+#.
+#. GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+#. GtkStyleContext *separator_style_context = gtk_widget_get_style_context(separator);
+#. GtkCssProvider *separator_css_provider = gtk_css_provider_new();
+#. gtk_css_provider_load_from_string(separator_css_provider, "separator {margin-top: 8px; margin-bottom: 8px;}");
+#. gtk_style_context_add_provider(separator_style_context, GTK_STYLE_PROVIDER(separator_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+#. gtk_box_append(GTK_BOX(menu_box), separator);
+#. }
+#: src/ui/window.c:120
+msgid "Hide contrast sliders"
+msgstr ""
+
+#: src/ui/window.c:139
+#, c-format
+msgid "About %s"
+msgstr ""
+
+#: src/ui/components/link_brightness_check_button.c:5
+msgid "Sync brightness of all displays"
+msgstr ""
+
+#: src/ui/components/flatpak_setup_dialog.c:26
+msgid "Flatpak Setup"
+msgstr ""
+
+#. Intro
+#: src/ui/components/flatpak_setup_dialog.c:53
+msgid ""
+"To control monitors from a Flatpak app, you need to grant permissions on "
+"your host system."
+msgstr ""
+
+#: src/ui/components/flatpak_setup_dialog.c:60
+msgid "Download the setup script below:"
+msgstr ""
+
+#: src/ui/components/flatpak_setup_dialog.c:66
+msgid "Download Setup Script"
+msgstr ""
+
+#: src/ui/components/flatpak_setup_dialog.c:72
+msgid ""
+"Allow the file to be executed (Properties > Permissions > Allow executing "
+"file as program)."
+msgstr ""
+
+#: src/ui/components/flatpak_setup_dialog.c:81
+msgid "Run the script (double-click or run from terminal)."
+msgstr ""
+
+#: src/ui/components/flatpak_setup_dialog.c:89
+msgid "Restart this app for changes to take effect."
+msgstr ""
+
+#: src/ui/screens/no_displays.c:39
+msgid "No compatible displays found"
+msgstr ""
+
+#: src/ui/screens/no_displays.c:44
+msgid "Refresh"
+msgstr ""
+
+#: src/ui/screens/no_displays.c:53
+msgid ""
+"If you don't see your displays, you may need to grant hardware permissions."
+msgstr ""
+
+#: src/ui/screens/no_displays.c:64
+msgid "Setup Instructions"
+msgstr ""
+
+#: src/ui/screens/no_displays.c:72
+msgid "Try refreshing if you have just connected the displays"
+msgstr ""
+
+#: src/ui/screens/show_displays.c:230
+msgid "Missing permissions for built-in displays."
+msgstr ""
+
+#: src/ui/screens/show_displays.c:235
+msgid "Setup"
+msgstr ""
+
+#: src/states/displays.c:222 src/states/displays.c:289
+msgid "Built-in Display"
+msgstr ""
+
+#: src/states/displays.c:225
+#, c-format
+msgid "Built-in Display %d"
+msgstr ""
+
+#: src/states/displays.c:295
+msgid "Unknown Display"
+msgstr ""

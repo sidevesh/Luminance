@@ -7,6 +7,7 @@ project('com.sidevesh.Luminance', 'c',
 )
 
 gnome = import('gnome')
+i18n = import('i18n')
 
 # Dependencies
 gtk4_dep = dependency('gtk4', required: true)
@@ -19,6 +20,8 @@ thread_dep = dependency('threads')
 conf_data = configuration_data()
 conf_data.set_quoted('APP_INFO_VERSION_NUMBER', meson.project_version())
 conf_data.set_quoted('APP_INFO_DESCRIPTION', run_command('cat', 'description.txt', check: true).stdout().strip())
+conf_data.set_quoted('GETTEXT_PACKAGE', 'com.sidevesh.Luminance')
+conf_data.set_quoted('LOCALEDIR', join_paths(get_option('prefix'), get_option('localedir')))
 
 # Application ID and Icon determination
 if get_option('buildtype').startswith('debug')
@@ -75,6 +78,9 @@ executable(app_id,
   install: true,
   install_dir: get_option('bindir')
 )
+
+# Translations
+subdir('po')
 
 # Installation of data files
 datadir = get_option('datadir')
