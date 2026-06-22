@@ -133,7 +133,8 @@ flatpak: $(FLATPAK_MANIFEST_IN)
 	    $(FLATPAK_MANIFEST_IN) > $(CURDIR)/.flatpak-manifest.yml
 	
 	# Run flathub-build from root. This creates 'repo' and 'builddir' in $(CURDIR)
-	flatpak run --filesystem=$(CURDIR) --command=flathub-build org.flatpak.Builder --force-clean $(CURDIR)/.flatpak-manifest.yml
+	# GIT_CONFIG_COUNT/KEY/VALUE: override safe.bareRepository so flatpak-builder's bare git cache works with git >= 2.41
+	flatpak run --filesystem=$(CURDIR) --env=GIT_CONFIG_COUNT=1 --env=GIT_CONFIG_KEY_0=safe.bareRepository --env=GIT_CONFIG_VALUE_0=all --command=flathub-build org.flatpak.Builder --force-clean $(CURDIR)/.flatpak-manifest.yml
 	
 	# Move artifacts to clean up root
 	rm -rf $(FLATPAK_DIR)/repo $(FLATPAK_DIR)/builddir
@@ -147,15 +148,13 @@ flatpak-bundle: flatpak
 	flatpak build-bundle $(FLATPAK_REPO_DIR) $(OUTPUTS_DIR)/$(FLATPAK_APP_ID).flatpak $(FLATPAK_APP_ID)
 	@echo "Flatpak bundle created at $(OUTPUTS_DIR)/$(FLATPAK_APP_ID).flatpak"
 
-install-flatpak: flatpak
+install-flatpak: flatpak-bundle
 	@echo "Installing Flatpak..."
-	flatpak remote-add --user --if-not-exists --no-gpg-verify luminance-local-repo $(CURDIR)/$(FLATPAK_REPO_DIR)
-	flatpak install --user -y --reinstall luminance-local-repo $(FLATPAK_APP_ID)
+	flatpak install --user -y --bundle $(OUTPUTS_DIR)/$(FLATPAK_APP_ID).flatpak
 
 uninstall-flatpak:
 	@echo "Uninstalling Flatpak..."
 	-flatpak uninstall --user -y $(FLATPAK_APP_ID)
-	-flatpak remote-delete --user luminance-local-repo
 
 run-flatpak: install-flatpak
 	@echo "Running Flatpak with GDB..."
