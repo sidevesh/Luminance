@@ -44,6 +44,10 @@ install: release
 
 # Uninstall release version
 uninstall:
+	@if [ ! -f "$(BUILD_RELEASE_DIR)/meson-logs/install-log.txt" ]; then \
+		echo "Error: no installation log found. Run 'make install' before 'make uninstall'."; \
+		exit 1; \
+	fi
 	sudo ninja -C $(BUILD_RELEASE_DIR) uninstall
 
 # Install debug version
@@ -54,6 +58,10 @@ install-debug: debug
 
 # Uninstall debug version
 uninstall-debug:
+	@if [ ! -f "$(BUILD_DEBUG_DIR)/meson-logs/install-log.txt" ]; then \
+		echo "Error: no installation log found. Run 'make install-debug' before 'make uninstall-debug'."; \
+		exit 1; \
+	fi
 	sudo ninja -C $(BUILD_DEBUG_DIR) uninstall
 
 
