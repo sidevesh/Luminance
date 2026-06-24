@@ -316,6 +316,5 @@ Project Link: [https://github.com/sidevesh/Luminance](https://github.com/sideves
 
 ## Acknowledgments
 
-- @ahshabbir : for the original ddcbc-api which the DDC/CI integration is based on: https://github.com/ahshabbir/ddcbc-api
 - @rockowitz : for ddcutil c api: https://github.com/rockowitz/ddcutil
 - @jimmac : for the awesome icon: https://github.com/jimmac
