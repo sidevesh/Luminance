@@ -168,7 +168,7 @@ echo "Downloading ddcutil module config..."
 wget https://raw.githubusercontent.com/rockowitz/ddcutil/v2.1.4/data/usr/lib/modules-load.d/ddcutil.conf
 
 echo "Downloading Luminance backlight permissions..."
-wget https://raw.githubusercontent.com/sidevesh/Luminance/main/install_files/44-backlight-permissions.rules
+wget https://raw.githubusercontent.com/sidevesh/Luminance/main/install-files/44-backlight-permissions.rules
 
 echo "Moving files to system directories..."
 

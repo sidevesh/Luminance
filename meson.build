@@ -39,7 +39,7 @@ xml_conf = configuration_data()
 xml_conf.set('APP_INFO_PACKAGE_NAME', app_id)
 
 dbus_xml = configure_file(
-    input: 'install_files/com.sidevesh.Luminance.xml.in',
+    input: 'install-files/com.sidevesh.Luminance.xml.in',
     output: app_id + '.xml',
     configuration: xml_conf
 )
@@ -87,7 +87,7 @@ desktop_conf.set('EXEC_NAME', app_id)
 desktop_conf.set('DESCRIPTION', run_command('cat', 'description.txt', check: true).stdout().strip())
 
 configure_file(
-  input: 'install_files/com.sidevesh.Luminance.desktop.in',
+  input: 'install-files/com.sidevesh.Luminance.desktop.in',
   output: app_id + '.desktop',
   configuration: desktop_conf,
   install: true,
@@ -102,7 +102,7 @@ schema_path = '/' + app_id.replace('.', '/') + '/'
 schema_conf.set('SCHEMA_PATH', schema_path)
 
 configure_file(
-  input: 'install_files/com.sidevesh.Luminance.gschema.xml.in',
+  input: 'install-files/com.sidevesh.Luminance.gschema.xml.in',
   output: app_id + '.gschema.xml',
   configuration: schema_conf,
   install: true,
@@ -151,7 +151,7 @@ appstream_conf.set('DESCRIPTION', run_command('cat', 'description.txt', check: t
 appstream_conf.set('RELEASES', releases_content)
 
 configure_file(
-  input: 'install_files/com.sidevesh.Luminance.metainfo.xml.in',
+  input: 'install-files/com.sidevesh.Luminance.metainfo.xml.in',
   output: app_id + '.metainfo.xml',
   configuration: appstream_conf,
   install: true,
@@ -164,7 +164,7 @@ dbus_service_conf.set('APP_ID', app_id)
 dbus_service_conf.set('bindir', join_paths(get_option('prefix'), get_option('bindir')))
 
 configure_file(
-  input: 'install_files/com.sidevesh.Luminance.service.in',
+  input: 'install-files/com.sidevesh.Luminance.service.in',
   output: app_id + '.service',
   configuration: dbus_service_conf,
   install: true,
@@ -182,7 +182,7 @@ if get_option('install_udev_rules')
     udev_rules_dir = '/lib/udev/rules.d'
   endif
 
-  install_data('install_files/44-backlight-permissions.rules',
+  install_data('install-files/44-backlight-permissions.rules',
     install_dir: udev_rules_dir
   )
 endif
