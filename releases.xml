@@ -1,3 +1,14 @@
+    <release version="1.5.1" date="2026-08-09">
+      <description>
+        <ul>
+          <li>Fix brightness slider arrow not appearing in GNOME Quick Settings until the panel was opened after login</li>
+          <li>Keep brightness sliders visible in GNOME Quick Settings with last known values when Luminance exits</li>
+          <li>Fix startup race condition where the D-Bus service could fail to register on first launch</li>
+          <li>Fix errors when launching the app while it is already running as a background service</li>
+          <li>CLI commands now route through the running background service to keep state in sync</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.5.0" date="2026-06-20">
       <description>
         <ul>
