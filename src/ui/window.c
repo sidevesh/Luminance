@@ -105,25 +105,6 @@ void initialize_application_window(GtkApplication *app) {
 		g_signal_connect(should_hide_internal_if_lid_closed_checkbox, "toggled", G_CALLBACK(_on_should_hide_internal_if_lid_closed_checkbox_toggled), NULL);
 	}
 
-	//if (is_running_in_flatpak()) {
-	//	GtkWidget *setup_button = gtk_button_new_with_label("Setup Permissions");
-	//	GtkStyleContext *setup_button_style_context = gtk_widget_get_style_context(setup_button);
-	//	GtkCssProvider *setup_button_css_provider = gtk_css_provider_new();
-	//	gtk_css_provider_load_from_string(setup_button_css_provider, "button.flat {font-weight: normal;}");
-	//	gtk_style_context_add_provider(setup_button_style_context, GTK_STYLE_PROVIDER(setup_button_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-	//	gtk_style_context_add_class(setup_button_style_context, "flat");
-	//
-	//	gtk_box_append(GTK_BOX(menu_box), setup_button);
-	//	g_signal_connect(setup_button, "clicked", G_CALLBACK(_on_setup_permissions_button_clicked), NULL);
-	//
-	//	GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-	//	GtkStyleContext *separator_style_context = gtk_widget_get_style_context(separator);
-	//	GtkCssProvider *separator_css_provider = gtk_css_provider_new();
-	//	gtk_css_provider_load_from_string(separator_css_provider, "separator {margin-top: 8px; margin-bottom: 8px;}");
-	//	gtk_style_context_add_provider(separator_style_context, GTK_STYLE_PROVIDER(separator_css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-	//	gtk_box_append(GTK_BOX(menu_box), separator);
-	//}
-
 	GtkWidget *hide_contrast_checkbox = gtk_check_button_new_with_label("Hide contrast sliders");
 	gtk_check_button_set_active(GTK_CHECK_BUTTON(hide_contrast_checkbox), get_is_contrast_hidden());
 
