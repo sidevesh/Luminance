@@ -33,16 +33,71 @@ export default class Extension {
             }
         ));
 
+        // _monitors stores persistent data (id -> {name, brightness}) and is NOT
+        // cleared when the service vanishes — sliders stay visible with last known
+        // values so the user is not surprised by them disappearing.
+        // _scales stores live widget references, rebuilt on every inject since
+        // GNOME's _sync() destroys the previous section contents each time.
+        this._monitors = new Map();
         this._scales = new Map();
         this._debounces = new Map();
         this._quietSupported = undefined;
+
+        // Watch for Luminance appearing/vanishing on the session bus.
+        // NONE: fires appeared immediately if the name is already owned when
+        // watching starts. Auto-activation of the ghost is triggered by the
+        // D-Bus method calls themselves (GetMonitors, SetBrightness) not by
+        // this watcher.
+        this._nameWatchId = Gio.DBus.session.watch_name(
+            BUS_NAME,
+            Gio.BusNameWatcherFlags.NONE,
+            () => this._refresh(),          // appeared: fetch fresh state
+            () => this._onServiceVanished() // vanished: cancel pending writes
+        );
+
+        // Watch for lid open/close directly via UPower (system bus) so display
+        // list updates even when Luminance is not running.
+        this._lidSubId = Gio.DBus.system.signal_subscribe(
+            'org.freedesktop.UPower',
+            'org.freedesktop.DBus.Properties',
+            'PropertiesChanged',
+            '/org/freedesktop/UPower',
+            null,
+            Gio.DBusSignalFlags.NONE,
+            (c, s, o, i, n, params) => {
+                try {
+                    const [ifaceName, changed] = params.deep_unpack();
+                    if (ifaceName === 'org.freedesktop.UPower' && 'LidIsClosed' in changed)
+                        this._refresh();
+                } catch (e) { console.error('Luminance: UPower lid event error', e); }
+            }
+        );
+
         this._setupQuickSettings();
+
+        // Trigger an initial refresh so the arrow appears at login without the
+        // user having to first open quick settings. DBusCallFlags.NONE means
+        // this auto-activates the ghost if it is not already running. _bi is
+        // already set by _setupQuickSettings so _injectRows() will run once the
+        // async GetMonitors returns and will set menuEnabled = true on the
+        // brightness item.
+        this._refresh();
     }
 
     disable() {
         for (const id of this._subs ?? [])
             Gio.DBus.session.signal_unsubscribe(id);
         this._subs = [];
+
+        if (this._lidSubId) {
+            Gio.DBus.system.signal_unsubscribe(this._lidSubId);
+            this._lidSubId = null;
+        }
+
+        if (this._nameWatchId) {
+            Gio.DBus.session.unwatch_name(this._nameWatchId);
+            this._nameWatchId = null;
+        }
 
         if (this._menuOpenId)
             this._bi?.menu.disconnect(this._menuOpenId);
@@ -58,6 +113,7 @@ export default class Extension {
             GLib.source_remove(id);
         this._debounces?.clear();
         this._scales?.clear();
+        this._monitors?.clear();
     }
 
     _showOSD(pct, icon) {
@@ -81,53 +137,78 @@ export default class Extension {
             this._menuOpenId = bi.menu.connect('open-state-changed', (m, open) => {
                 if (open) this._refresh();
             });
-            this._refresh();
         } catch (e) {
             console.error('Luminance: Quick Settings setup error', e);
         }
     }
 
+    _onServiceVanished() {
+        // Luminance stopped — keep _monitors data so sliders remain visible with
+        // last known values. Cancel any pending debounced writes since the service
+        // is gone; they will naturally re-trigger if the user interacts with the
+        // slider again (which auto-starts the ghost via the NONE D-Bus flag).
+        for (const id of this._debounces.values())
+            GLib.source_remove(id);
+        this._debounces.clear();
+        // _scales remain valid; _monitors retained intentionally
+    }
+
     _injectRows() {
-        if (!this._bi?.visible || !this._scales?.size) return;
+        if (!this._bi?.visible || !this._monitors?.size) return;
+
+        // Always create fresh BrightnessScale widgets — the previous ones were
+        // destroyed by GNOME's native _sync() that ran before this call.
+        for (const id of this._debounces.keys())
+            GLib.source_remove(this._debounces.get(id));
+        this._debounces.clear();
+        this._scales.clear();
+
         this._bi.menuEnabled = true;
-        for (const scale of this._scales.values()) {
+        for (const [id, m] of this._monitors) {
+            const scale = new BrightnessScale(m.name, m.brightness / 100.0, 20);
+            this._scales.set(id, scale);
+            this._watchScale(id, scale);
             const slider = this._bi._monitorBrightnessSection.addSlider(scale);
             this._bi._connectSlider(slider, scale);
         }
     }
 
     async _refresh() {
-        let monitors;
+        if (this._refreshing) return;
+        this._refreshing = true;
         try {
-            const v = await Gio.DBus.session.call(
-                BUS_NAME, OBJECT_PATH, IFACE_NAME, 'GetMonitors',
-                null, new GLib.VariantType('(s)'), Gio.DBusCallFlags.NONE, -1, null);
-            monitors = JSON.parse(v.deep_unpack()[0])
-                .filter(m => !m.name.startsWith('Built-in Display'));
-        } catch (e) {
-            console.error('Luminance: GetMonitors error', e);
-            return;
-        }
-
-        const seen = new Set(monitors.map(m => m.id));
-        for (const m of monitors) {
-            if (!this._scales.has(m.id)) {
-                const scale = new BrightnessScale(m.name, m.brightness / 100.0, 20);
-                this._scales.set(m.id, scale);
-                this._watchScale(m.id, scale);
+            let monitors;
+            try {
+                // NONE flag: D-Bus auto-activates the ghost service if it is not
+                // already running. Opening quick settings always fetches fresh state
+                // and brings up the ghost ephemerally if needed.
+                const v = await Gio.DBus.session.call(
+                    BUS_NAME, OBJECT_PATH, IFACE_NAME, 'GetMonitors',
+                    null, new GLib.VariantType('(s)'), Gio.DBusCallFlags.NONE, -1, null);
+                monitors = JSON.parse(v.deep_unpack()[0])
+                    .filter(m => !m.name.startsWith('Built-in Display'));
+            } catch (e) {
+                console.error('Luminance: GetMonitors error', e);
+                return;
             }
-        }
-        for (const id of [...this._scales.keys()]) {
-            if (seen.has(id)) continue;
-            const tid = this._debounces.get(id);
-            if (tid) GLib.source_remove(tid);
-            this._debounces.delete(id);
-            this._scales.delete(id);
-        }
 
-        // Native _sync rebuilds the menu cleanly; then we append DDC rows
-        this._bi?._sync();
-        this._injectRows();
+            // Guard: empty response during startup/rescan — keep existing data
+            if (monitors.length === 0) return;
+
+            const seen = new Set(monitors.map(m => m.id));
+            for (const id of [...this._monitors.keys()]) {
+                if (!seen.has(id)) this._monitors.delete(id);
+            }
+            for (const m of monitors) {
+                this._monitors.set(m.id, {name: m.name, brightness: m.brightness});
+            }
+
+            // Native _sync rebuilds the menu cleanly; then we append DDC rows
+            this._bi?._sync();
+            this._injectRows();
+        } finally {
+            this._refreshing = false;
+        }
     }
 
     _watchScale(id, scale) {
