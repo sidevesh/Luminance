@@ -200,7 +200,10 @@ void reload_displays(void (*on_reload_started_callback)(), void (*on_reload_comp
 }
 
 void free_displays() {
-  ddc_display_list_free(_display_list);
+  if (_display_list != NULL) {
+    ddc_display_list_free(_display_list);
+    _display_list = NULL;
+  }
 }
 
 gboolean is_displays_loading() {
@@ -280,6 +283,11 @@ void set_display_brightness_percentage(guint index, gdouble brightness_percentag
       fprintf(stderr, "An error occurred when setting the brightness of display no %d to %u. Code: %d\n",
         display->info.dispno, brightness_value, rc);
     }
+  }
+
+  // Notify UI to refresh displayed brightness values
+  if (_global_ui_callback != NULL) {
+    _global_ui_callback();
   }
 
   // Emit OSD signal

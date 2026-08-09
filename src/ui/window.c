@@ -68,8 +68,15 @@ void _open_about_dialog_and_close_popover() {
 	adw_dialog_present(ADW_DIALOG(about_dialog), _window);
 }
 
+static void _on_window_destroy(GtkWidget *widget, gpointer user_data) {
+    (void)widget;
+    (void)user_data;
+    _window = NULL;
+}
+
 void initialize_application_window(GtkApplication *app) {
 	_window = gtk_application_window_new(app);
+    g_signal_connect(_window, "destroy", G_CALLBACK(_on_window_destroy), NULL);
 	gtk_window_set_title(GTK_WINDOW(_window), APP_INFO_DISPLAY_NAME);
 
 	gtk_window_set_resizable(GTK_WINDOW(_window), FALSE);

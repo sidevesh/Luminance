@@ -27,6 +27,7 @@
 #define OPT_DECREASE_CONTRAST 259
 
 gboolean is_cli_mode = FALSE;
+static GDBusConnection *_cli_dbus_conn = NULL;
 
 void update_window_contents_in_ui() {
   if (is_cli_mode) {
@@ -55,10 +56,16 @@ static void on_app_startup(GApplication *app, gpointer user_data) {
 }
 
 static void activate_gtk_ui(GtkApplication *app) {
-	initialize_application_window(GTK_APPLICATION(app));
-	update_window_contents_in_ui();
-  set_displays_update_callback(update_window_contents_in_ui);
-  load_displays(update_window_contents_in_ui, update_window_contents_in_ui);
+    // If window already exists (e.g. ghost upgrading to UI), just present it.
+    // _window is set to NULL by the destroy signal handler when the window is closed.
+    if (_window != NULL) {
+        gtk_window_present(GTK_WINDOW(_window));
+        return;
+    }
+    initialize_application_window(GTK_APPLICATION(app));
+    update_window_contents_in_ui();
+    set_displays_update_callback(update_window_contents_in_ui);
+    load_displays(update_window_contents_in_ui, update_window_contents_in_ui);
 }
 
 static void quit_application(GSimpleAction *action, GVariant *parameter, gpointer user_data) {
@@ -106,15 +113,53 @@ int get_display_brightness_in_cli(guint display_number) {
 	return 1;
 }
 
-void set_brightness_percentage_in_cli(guint display_index, double brightness_percentage) {
-  for (guint index = 0; index < displays_count(); index++) {
-    if (index == display_index) {
-      set_display_brightness_percentage(index, brightness_percentage, TRUE);
-      return;
-    }
-  }
+static gboolean _cli_service_is_running(GDBusConnection *conn) {
+    GError *error = NULL;
+    GVariant *result = g_dbus_connection_call_sync(
+        conn,
+        "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
+        "NameHasOwner",
+        g_variant_new("(s)", APP_INFO_PACKAGE_NAME),
+        G_VARIANT_TYPE("(b)"),
+        G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error
+    );
+    if (error) { g_error_free(error); return FALSE; }
+    if (!result) return FALSE;
+    gboolean has_owner = FALSE;
+    g_variant_get(result, "(b)", &has_owner);
+    g_variant_unref(result);
+    return has_owner;
+}
 
-	fprintf(stderr, "Invalid display number: %d\n", display_index + 1);
+void set_brightness_percentage_in_cli(guint display_index, double brightness_percentage) {
+    if (_cli_dbus_conn != NULL) {
+        gchar id_str[32];
+        snprintf(id_str, sizeof(id_str), "%u", display_index);
+        gchar *object_path = get_dbus_object_path();
+        GError *error = NULL;
+        GVariant *result = g_dbus_connection_call_sync(
+            _cli_dbus_conn,
+            APP_INFO_PACKAGE_NAME, object_path, APP_INFO_PACKAGE_NAME,
+            "SetBrightness",
+            g_variant_new("(sd)", id_str, brightness_percentage),
+            NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error
+        );
+        g_free(object_path);
+        if (error) {
+            fprintf(stderr, "Error setting brightness via service: %s\n", error->message);
+            g_error_free(error);
+        }
+        if (result) g_variant_unref(result);
+        return;
+    }
+    // Direct DDC fallback when no service is running
+    for (guint index = 0; index < displays_count(); index++) {
+        if (index == display_index) {
+            set_display_brightness_percentage(index, brightness_percentage, TRUE);
+            return;
+        }
+    }
+    fprintf(stderr, "Invalid display number: %d\n", display_index + 1);
 }
 
 int set_display_brightness_if_needed_in_cli(guint display_number, guint brightness_percentage, gchar option, gchar show_osd) {
@@ -202,18 +247,38 @@ int get_display_contrast_in_cli(guint display_number) {
 }
 
 void set_contrast_percentage_in_cli(guint display_index, double contrast_percentage) {
-  for (guint index = 0; index < displays_count(); index++) {
-    if (index == display_index) {
-      if (!get_display_has_contrast(index)) {
-        fprintf(stderr, "Display %d does not support contrast control via DDC/CI.\n", display_index + 1);
+    if (_cli_dbus_conn != NULL) {
+        gchar id_str[32];
+        snprintf(id_str, sizeof(id_str), "%u", display_index);
+        gchar *object_path = get_dbus_object_path();
+        GError *error = NULL;
+        GVariant *result = g_dbus_connection_call_sync(
+            _cli_dbus_conn,
+            APP_INFO_PACKAGE_NAME, object_path, APP_INFO_PACKAGE_NAME,
+            "SetContrast",
+            g_variant_new("(sd)", id_str, contrast_percentage),
+            NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error
+        );
+        g_free(object_path);
+        if (error) {
+            fprintf(stderr, "Error setting contrast via service: %s\n", error->message);
+            g_error_free(error);
+        }
+        if (result) g_variant_unref(result);
         return;
-      }
-      set_display_contrast_percentage(index, contrast_percentage, FALSE);
-      return;
     }
-  }
-
-	fprintf(stderr, "Invalid display number: %d\n", display_index + 1);
+    // Direct DDC fallback when no service is running
+    for (guint index = 0; index < displays_count(); index++) {
+        if (index == display_index) {
+            if (!get_display_has_contrast(index)) {
+                fprintf(stderr, "Display %d does not support contrast control via DDC/CI.\n", display_index + 1);
+                return;
+            }
+            set_display_contrast_percentage(index, contrast_percentage, FALSE);
+            return;
+        }
+    }
+    fprintf(stderr, "Invalid display number: %d\n", display_index + 1);
 }
 
 int set_display_contrast_if_needed_in_cli(guint display_number, guint contrast_percentage, int option) {
@@ -484,64 +549,38 @@ int parse_cli_arguments(int argc, char **argv) {
 	return status;
 }
 
-gboolean already_running(void) {
-  intmax_t pid;
-  FILE *lock_file = fopen(LOCK_FILE_PATH, "r");
-  if (lock_file == NULL) {
-    return false;
-  }
-
-  if (
-    fscanf(lock_file, "%jd\n", &pid) == 1
-    // kill(pid, 0) does not send any signal but still validates the PID.
-    && kill((pid_t)pid, 0) == 0
-  ) {
-    fclose(lock_file);
-		return true;
-  }
-
-  fclose(lock_file);
-  return false;
-}
-
 int main(int argc, char **argv) {
-  if (already_running()) {
-    fprintf(stderr, "Another instance of the application is already running.\n");
-    return 1;
-  }
-
-  // Create the lock file
-  FILE *lock_file = fopen(LOCK_FILE_PATH, "w");
-  if (lock_file == NULL) {
-    fprintf(stderr, "Failed to create lock file.\n");
-    return 1;
-  }
-  fprintf(lock_file, "%jd\n", (intmax_t)getpid());
-  fclose(lock_file);
-
-  // Initialize DBus service early to ensure object is exported before
-  // GApplication acquires the bus name. This prevents "Object does not exist"
-  // errors during D-Bus activation.
-  GError *error = NULL;
-  GDBusConnection *conn = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
-  if (conn) {
-    setup_dbus_service(conn);
-    g_object_unref(conn);
-  } else {
-    g_warning("Failed to connect to session bus: %s", error ? error->message : "Unknown error");
-    if (error) g_error_free(error);
-  }
-
-  int status = 0;
-
   gboolean service_mode = FALSE;
   if (argc > 1 && strcmp(argv[1], "--gapplication-service") == 0) {
     service_mode = TRUE;
   }
 
+  int status = 0;
+
   if (argc > 1 && !service_mode) {
+    // CLI mode: probe the session bus to check if the service is already running.
+    // If it is, route SetBrightness/SetContrast through D-Bus so the running
+    // instance (ghost or GUI) updates its state and the quick settings sliders
+    // stay in sync. Otherwise fall back to direct DDC.
+    GError *error = NULL;
+    GDBusConnection *conn = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
+    if (conn) {
+      if (_cli_service_is_running(conn)) {
+        _cli_dbus_conn = conn;
+        g_object_ref(_cli_dbus_conn);
+      }
+      g_object_unref(conn);
+    } else {
+      g_warning("Failed to connect to session bus: %s", error ? error->message : "Unknown error");
+      if (error) g_error_free(error);
+    }
+
     is_cli_mode = TRUE;
     status = parse_cli_arguments(argc, argv);
+    if (_cli_dbus_conn != NULL) {
+      g_object_unref(_cli_dbus_conn);
+      _cli_dbus_conn = NULL;
+    }
   } else {
 		GApplicationFlags flags;
 
@@ -556,6 +595,26 @@ int main(int argc, char **argv) {
     AdwApplication *app;
     app = adw_application_new(APP_INFO_PACKAGE_NAME, flags);
 
+    // Export D-Bus skeleton BEFORE g_application_run() to prevent a race where
+    // dbus-broker dispatches a queued activation message (e.g. GetMonitors from
+    // the extension) during GApplication's internal name-acquisition loop, before
+    // the main loop has started. By registering the skeleton here the object is
+    // present on the connection as soon as the name is acquired.
+    //
+    // The secondary-instance path (second GUI launch) also reaches this code, but
+    // it is harmless: the skeleton is registered on the secondary's connection,
+    // g_application_run() detects the primary, sends Activate, and exits cleanly.
+    // The free_displays() guard in displays.c ensures that path doesn't crash.
+    GError *dbus_error = NULL;
+    GDBusConnection *dbus_conn = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &dbus_error);
+    if (dbus_conn) {
+      setup_dbus_service(dbus_conn);
+      g_object_unref(dbus_conn);
+    } else {
+      g_warning("Failed to connect to session bus: %s", dbus_error ? dbus_error->message : "Unknown");
+      if (dbus_error) g_error_free(dbus_error);
+    }
+
     static const GActionEntry app_actions[] = {
         { "quit", quit_application, NULL, NULL, NULL, {0, 0, 0} },
     };
@@ -569,9 +628,6 @@ int main(int argc, char **argv) {
     g_object_unref(app);
     free_displays();
   }
-
-  // Remove the lock file when the application exits
-  remove(LOCK_FILE_PATH);
 
 	return status;
 }
