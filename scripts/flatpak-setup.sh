@@ -5,7 +5,31 @@ ATOMIC=0
 if grep -E "Silverblue|Kinoite" "/etc/os-release" >> /dev/null; then
     ATOMIC=1
 fi
-#echo $INSTALL_DIR && exit 0
+
+# --- NEW: Helper function for SELinux context restoration ---
+restore_selinux_context() {
+    local file="$1"
+    
+    # Skip if SELinux not enabled
+    if ! command -v getenforce >& /dev/null; then
+        echo "[INFO] SELinux utilities not available, skipping context restoration"
+        return 0
+    fi
+    
+    if [ "$(getenforce)" == "Disabled" ]; then
+        echo "[INFO] SELinux is disabled, skipping context restoration"
+        return 0
+    fi
+    
+    if [ -f "$file" ]; then
+        echo "[INFO] Restoring SELinux context for $file..."
+        if sudo restorecon -v "$file"; then
+            echo -e "${GREEN}[OK${NC}] SELinux context restored"
+        else
+            echo -e "${YELLOW}[WARN${NC}] restorecon failed for $file (continuing anyway)"
+        fi
+    fi
+}
 
 # Function to handle uninstallation
 uninstall() {
@@ -24,7 +48,9 @@ uninstall() {
 
     if [ -f "$INSTALL_DIR/modules-load.d/ddcutil.conf" ]; then
         echo "Removing $INSTALL_DIR/modules-load.d/ddcutil.conf..."
-        sudo rm $INSTALL_DIR/modules-load.d/ddcutil.conf
+        sudo rm "$INSTALL_DIR/modules-load.d/ddcutil.conf"
+        # Restore parent directory context
+        sudo restorecon -v "$INSTALL_DIR/modules-load.d/" 2>/dev/null || true
     fi
 
     echo "Reloading udev rules..."
@@ -174,14 +200,21 @@ echo "Moving files to system directories..."
 
 # Move udev rules files to udev rules directory
 echo "Installing udev rules..."
-sudo mkdir -p $INSTALL_DIR/udev/rules.d
-sudo mv 60-ddcutil-i2c.rules $INSTALL_DIR/udev/rules.d/
-sudo mv 44-backlight-permissions.rules $INSTALL_DIR/udev/rules.d/
+sudo mkdir -p "$INSTALL_DIR/udev/rules.d"
+sudo mv 60-ddcutil-i2c.rules "$INSTALL_DIR/udev/rules.d/"
+sudo mv 44-backlight-permissions.rules "$INSTALL_DIR/udev/rules.d/"
+
+# Restore SELinux context for udev rules
+restore_selinux_context "$INSTALL_DIR/udev/rules.d/60-ddcutil-i2c.rules"
+restore_selinux_context "$INSTALL_DIR/udev/rules.d/44-backlight-permissions.rules"
 
 # Move ddcutil modules-load config
 echo "Installing module load config..."
 sudo mkdir -p $INSTALL_DIR/modules-load.d
 sudo mv ddcutil.conf $INSTALL_DIR/modules-load.d/
+
+# Restore SELinux context for modules-load.d config
+restore_selinux_context "$INSTALL_DIR/modules-load.d/ddcutil.conf"
 
 # Reload the rules
 echo "Reloading udev rules..."
