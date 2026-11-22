@@ -190,6 +190,8 @@ EXTENSION_UUID = luminance-extension@sidevesh
 SRC_EXTENSION_DIR = gnome-extension/$(EXTENSION_UUID)
 EXTENSION_BUILD_DIR = $(PKG_DIR)/gnome-extension
 EXTENSION_ZIP = $(OUTPUTS_DIR)/$(EXTENSION_UUID).shell-extension.zip
+# Modules besides extension.js/prefs.js/stylesheet.css (packed by default)
+EXTENSION_EXTRA_SOURCES = client.js monitors.js hotkeys.js indicator.js
 
 package-gnome-extension:
 	@echo "Packing GNOME extension..."
@@ -197,7 +199,8 @@ package-gnome-extension:
 	mkdir -p $(EXTENSION_BUILD_DIR)
 	cp -r $(SRC_EXTENSION_DIR)/* $(EXTENSION_BUILD_DIR)/
 	mkdir -p $(OUTPUTS_DIR)
-	gnome-extensions pack $(EXTENSION_BUILD_DIR) --force --out-dir=$(OUTPUTS_DIR)
+	gnome-extensions pack $(EXTENSION_BUILD_DIR) --force --out-dir=$(OUTPUTS_DIR) \
+	    $(foreach f,$(EXTENSION_EXTRA_SOURCES),--extra-source=$(f))
 	@echo "Extension packed at $(EXTENSION_ZIP)"
 
 install-gnome-extension: package-gnome-extension

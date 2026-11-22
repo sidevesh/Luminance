@@ -171,7 +171,13 @@ When no arguments are provided, the application starts in GUI mode.
 
 ## GNOME Extension
 
-A companion GNOME Shell extension is available for Luminance. This extension displays the native GNOME brightness OSD (On-Screen Display) when brightness is adjusted outside of the main GUI application window (e.g. via command line interface or D-Bus calls).
+A companion GNOME Shell extension is available for Luminance. It adds:
+
+- A top bar icon with a brightness slider for each display. Displays that cannot be controlled are shown grayed out.
+- Brightness keys (`XF86MonBrightnessUp/Down`) for DDC/CI displays. A key press changes the display under the mouse pointer; displays with a built-in backlight keep GNOME's native handling. The step size is configurable.
+- The native GNOME brightness OSD (On-Screen Display) when brightness is adjusted outside of the main GUI application window (e.g. via command line interface or D-Bus calls).
+
+Settings are available from the Extensions app or the "Settings" item in the top bar menu.
 
 ### Install from GNOME Shell Extensions
 Available at [GNOME Shell Extensions](https://extensions.gnome.org/extension/9579/luminance-extension/).
