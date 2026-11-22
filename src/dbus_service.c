@@ -9,9 +9,14 @@ char* get_display_name(guint index);
 gdouble get_display_brightness_percentage(guint index);
 void set_display_brightness_percentage(guint index, gdouble brightness_percentage, gboolean emit_osd_signal);
 gboolean get_display_has_contrast(guint index);
+gboolean get_display_is_internal(guint index);
+gboolean get_display_edid_identity(guint index, const char **vendor, const char **model, const char **serial);
 gdouble get_display_contrast_percentage(guint index);
 void set_display_contrast_percentage(guint index, gdouble contrast_percentage, gboolean emit_osd_signal);
 void load_displays(void (*)(), void (*)());
+void refresh_display_values(void);
+void notify_display_values_changed(void);
+void rescan_displays(void);
 
 static gchar *
 get_dbus_object_path (void)
@@ -23,13 +28,56 @@ get_dbus_object_path (void)
   return full_path;
 }
 
+// Restart the GApplication inactivity timer. D-Bus method calls on our own
+// skeleton do not count as application use, so without this a D-Bus activated
+// service quits on schedule even while a client keeps calling it.
+static void
+mark_service_busy (void)
+{
+  GApplication *app = g_application_get_default();
+  if (app == NULL) return;
+  g_application_hold(app);
+  g_application_release(app);
+}
+
+// Append `value` as a JSON string literal (quoted, escaped). UTF-8 passes
+// through unchanged; only quotes, backslashes and control characters are escaped.
+static void
+append_json_string (GString *out, const char *value)
+{
+  g_string_append_c(out, '"');
+  for (const char *p = value ? value : ""; *p; p++) {
+    unsigned char c = (unsigned char)*p;
+    if (c == '"' || c == '\\')
+      g_string_append_printf(out, "\\%c", c);
+    else if (c < 0x20)
+      g_string_append_printf(out, "\\u%04x", c);
+    else
+      g_string_append_c(out, c);
+  }
+  g_string_append_c(out, '"');
+}
+
+static void
+append_json_string_field (GString *out, const char *key, const char *value)
+{
+  g_string_append_printf(out, ", \"%s\": ", key);
+  append_json_string(out, value);
+}
+
 static gboolean
 on_handle_get_monitors (LuminanceService *interface,
                         GDBusMethodInvocation *invocation,
                         gpointer user_data)
 {
   (void)user_data;
-  load_displays(NULL, NULL);
+  mark_service_busy();
+  // Enumerate only once; afterwards just re-read values. Re-enumerating on
+  // every call is slow and disturbs the open window's display list.
+  if (displays_count() == 0)
+    load_displays(NULL, NULL);
+  else
+    refresh_display_values();
 
   GString *json_builder = g_string_new("[");
   guint count = displays_count();
@@ -37,24 +85,30 @@ on_handle_get_monitors (LuminanceService *interface,
   for (guint i = 0; i < count; i++) {
     if (i > 0) g_string_append(json_builder, ",");
 
-    char *name = get_display_name(i);
-    // Escape the name for JSON
-    gchar *escaped_name = g_strescape(name, "");
     gdouble brightness = get_display_brightness_percentage(i);
     gboolean has_contrast = get_display_has_contrast(i);
-    gdouble contrast = has_contrast ? get_display_contrast_percentage(i) : -1.0;
 
-    if (has_contrast) {
-      g_string_append_printf(json_builder,
-                             "{\"id\": \"%u\", \"name\": \"%s\", \"brightness\": %.2f, \"has_contrast\": true, \"contrast\": %.2f}",
-                             i, escaped_name ? escaped_name : "Unknown", brightness, contrast);
-    } else {
-      g_string_append_printf(json_builder,
-                             "{\"id\": \"%u\", \"name\": \"%s\", \"brightness\": %.2f, \"has_contrast\": false}",
-                             i, escaped_name ? escaped_name : "Unknown", brightness);
+    g_string_append_printf(json_builder, "{\"id\": \"%u\"", i);
+    append_json_string_field(json_builder, "name", get_display_name(i));
+    g_string_append_printf(json_builder, ", \"brightness\": %.2f", brightness);
+    append_json_string_field(json_builder, "type", get_display_is_internal(i) ? "internal" : "ddc");
+
+    if (has_contrast)
+      g_string_append_printf(json_builder, ", \"has_contrast\": true, \"contrast\": %.2f",
+                             get_display_contrast_percentage(i));
+    else
+      g_string_append(json_builder, ", \"has_contrast\": false");
+
+    // EDID identity lets the GNOME extension match this display to a Mutter
+    // monitor (connector), e.g. to act on the monitor under the pointer.
+    const char *vendor, *model, *serial;
+    if (get_display_edid_identity(i, &vendor, &model, &serial)) {
+      append_json_string_field(json_builder, "vendor", vendor);
+      append_json_string_field(json_builder, "model", model);
+      append_json_string_field(json_builder, "serial", serial);
     }
 
-    if (escaped_name) g_free(escaped_name);
+    g_string_append(json_builder, "}");
   }
   g_string_append(json_builder, "]");
 
@@ -72,6 +126,7 @@ on_handle_set_brightness (LuminanceService *interface,
                           gpointer user_data)
 {
   (void)user_data;
+  mark_service_busy();
   gchar *endptr;
   guint64 index_val = g_ascii_strtoull(monitor_id, &endptr, 10);
 
@@ -89,6 +144,7 @@ on_handle_set_brightness (LuminanceService *interface,
       g_print("DBus Request: Set brightness for %s (index %lu) to %f\n", monitor_id, index_val, value);
       // Emit signal is set to TRUE as requested
       set_display_brightness_percentage((guint)index_val, value, TRUE);
+      notify_display_values_changed();
   } else {
       g_warning("Monitor ID out of range: %s", monitor_id);
   }
@@ -105,6 +161,7 @@ on_handle_set_brightness_quiet (LuminanceService *interface,
                                 gpointer user_data)
 {
   (void)user_data;
+  mark_service_busy();
   gchar *endptr;
   guint64 index_val = g_ascii_strtoull(monitor_id, &endptr, 10);
 
@@ -121,6 +178,7 @@ on_handle_set_brightness_quiet (LuminanceService *interface,
   if (index_val < displays_count()) {
       g_print("DBus Request: Set brightness (quiet) for %s (index %lu) to %f\n", monitor_id, index_val, value);
       set_display_brightness_percentage((guint)index_val, value, FALSE);
+      notify_display_values_changed();
   } else {
       g_warning("Monitor ID out of range: %s", monitor_id);
   }
@@ -137,6 +195,7 @@ on_handle_set_contrast (LuminanceService *interface,
                         gpointer user_data)
 {
   (void)user_data;
+  mark_service_busy();
   gchar *endptr;
   guint64 index_val = g_ascii_strtoull(monitor_id, &endptr, 10);
 
@@ -154,6 +213,7 @@ on_handle_set_contrast (LuminanceService *interface,
       if (get_display_has_contrast((guint)index_val)) {
           g_print("DBus Request: Set contrast for %s (index %lu) to %f\n", monitor_id, index_val, value);
           set_display_contrast_percentage((guint)index_val, value, TRUE);
+          notify_display_values_changed();
       } else {
           g_warning("Monitor %s does not support contrast control", monitor_id);
       }
@@ -162,6 +222,19 @@ on_handle_set_contrast (LuminanceService *interface,
   }
 
   luminance_service_complete_set_contrast (interface, invocation);
+  return TRUE;
+}
+
+static gboolean
+on_handle_rescan (LuminanceService *interface,
+                  GDBusMethodInvocation *invocation,
+                  gpointer user_data)
+{
+  (void)user_data;
+  mark_service_busy();
+  g_print("DBus Request: Rescan displays\n");
+  rescan_displays();
+  luminance_service_complete_rescan (interface, invocation);
   return TRUE;
 }
 
@@ -202,6 +275,10 @@ void setup_dbus_service (GDBusConnection *connection)
   g_signal_connect (skeleton,
                     "handle-set-contrast",
                     G_CALLBACK (on_handle_set_contrast),
+                    NULL);
+  g_signal_connect (skeleton,
+                    "handle-rescan",
+                    G_CALLBACK (on_handle_rescan),
                     NULL);
   g_signal_connect (skeleton,
                     "handle-quit",

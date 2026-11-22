@@ -105,4 +105,44 @@ else
 fi
 
 rm "$TMP_LOG2"
+
+# 7. EDID identity fields (used by the GNOME extension to match monitors)
+echo -e "\n7. Checking GetMonitors reports type and EDID identity..."
+OUTPUT3=$(gdbus call --session --dest $BUS_NAME --object-path $OBJECT_PATH --method $INTERFACE.GetMonitors 2>&1)
+if echo "$OUTPUT3" | grep -q '"type": "ddc"' && echo "$OUTPUT3" | grep -q '"vendor": "'; then
+    echo -e "\033[0;32mSUCCESS: type and vendor/model/serial present.\033[0m"
+elif echo "$OUTPUT3" | grep -q '"type": "internal"' && ! echo "$OUTPUT3" | grep -q '"type": "ddc"'; then
+    echo "SKIPPED: no DDC display connected."
+else
+    echo -e "\033[0;31mFAILURE: missing type or EDID identity: $OUTPUT3\033[0m"
+fi
+
+# 8. Repeated GetMonitors must not lose displays (regression: re-enumerating
+#    while displays were still open made ddcutil drop them as "locked")
+echo -e "\n8. Calling GetMonitors repeatedly..."
+COUNT_FIRST=$(echo "$OUTPUT3" | grep -o '"id"' | wc -l)
+LOST=0
+for _ in 1 2 3; do
+    N=$(gdbus call --session --dest $BUS_NAME --object-path $OBJECT_PATH --method $INTERFACE.GetMonitors 2>&1 | grep -o '"id"' | wc -l)
+    [[ "$N" -ne "$COUNT_FIRST" ]] && LOST=1
+done
+if [[ $LOST -eq 0 ]]; then
+    echo -e "\033[0;32mSUCCESS: display count stable ($COUNT_FIRST).\033[0m"
+else
+    echo -e "\033[0;31mFAILURE: display count changed between calls.\033[0m"
+fi
+
+# 9. Rescan re-enumerates and keeps displays
+echo -e "\n9. Calling Rescan..."
+if gdbus call --session --dest $BUS_NAME --object-path $OBJECT_PATH --method $INTERFACE.Rescan > /dev/null 2>&1; then
+    N=$(gdbus call --session --dest $BUS_NAME --object-path $OBJECT_PATH --method $INTERFACE.GetMonitors 2>&1 | grep -o '"id"' | wc -l)
+    if [[ "$N" -eq "$COUNT_FIRST" ]]; then
+        echo -e "\033[0;32mSUCCESS: Rescan kept $N display(s).\033[0m"
+    else
+        echo -e "\033[0;31mFAILURE: Rescan changed display count ($COUNT_FIRST -> $N).\033[0m"
+    fi
+else
+    echo -e "\033[0;31mFAILURE: Rescan call failed.\033[0m"
+fi
+
 echo -e "\nTest Complete."

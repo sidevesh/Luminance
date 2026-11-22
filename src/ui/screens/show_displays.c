@@ -191,6 +191,33 @@ static void _cleanup_display_resources(GtkWidget *widget, gpointer data) {
     _display_sections_count = 0;
 }
 
+static void _set_range_value_silently(GtkWidget *scale, GCallback handler, guint index, gdouble value) {
+    GtkRange *range = GTK_RANGE(scale);
+    if (gtk_range_get_value(range) == value) return;
+    g_signal_handlers_block_by_func(range, (gpointer)handler, GUINT_TO_POINTER(index));
+    gtk_range_set_value(range, value);
+    g_signal_handlers_unblock_by_func(range, (gpointer)handler, GUINT_TO_POINTER(index));
+}
+
+// Update slider values in place after an external change (D-Bus). Sliders
+// with a pending (debounced) write from the user are left alone.
+void sync_display_values_in_ui(void) {
+    if (_display_sections == NULL || _pending_brightness_timeout_ids == NULL ||
+        _pending_contrast_timeout_ids == NULL) return;
+    if (_display_sections_count != displays_count()) return;
+    for (guint i = 0; i < _display_sections_count; i++) {
+        display_section *section = _display_sections[i];
+        if (_pending_brightness_timeout_ids[i] == 0) {
+            _set_range_value_silently(section->scale, G_CALLBACK(_update_display_brightness),
+                                      section->display_index, get_display_brightness_percentage(section->display_index));
+        }
+        if (section->contrast_scale != NULL && _pending_contrast_timeout_ids[i] == 0) {
+            _set_range_value_silently(section->contrast_scale, G_CALLBACK(_update_display_contrast),
+                                      section->display_index, get_display_contrast_percentage(section->display_index));
+        }
+    }
+}
+
 void set_contrast_row_visibility(gboolean visible) {
     if (_display_sections == NULL) return;
     for (guint i = 0; i < _display_sections_count; i++) {

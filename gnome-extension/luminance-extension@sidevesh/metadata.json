@@ -1,11 +1,13 @@
 {
   "name": "Luminance Extension",
-  "description": "Companion extension for Luminance app",
+  "description": "Companion extension for Luminance app: top bar brightness menu, brightness keys for DDC/CI displays and OSD",
   "uuid": "luminance-extension@sidevesh",
+  "settings-schema": "org.gnome.shell.extensions.luminance",
   "shell-version": [
     "49",
-    "50"
+    "50",
+    "51"
   ],
-  "version": 2,
+  "version": 3,
   "url": "https://github.com/sidevesh/Luminance"
 }

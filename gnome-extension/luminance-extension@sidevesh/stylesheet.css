@@ -1,0 +1,12 @@
+.luminance-display-value {
+  font-feature-settings: "tnum";
+}
+
+.luminance-unsupported {
+  color: rgba(128, 128, 128, 0.9);
+}
+
+.luminance-unsupported .slider {
+  -barlevel-active-background-color: rgba(128, 128, 128, 0.4);
+  -slider-handle-radius: 0;
+}

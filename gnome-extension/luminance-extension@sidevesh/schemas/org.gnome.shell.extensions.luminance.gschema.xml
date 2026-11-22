@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.luminance" path="/org/gnome/shell/extensions/luminance/">
+    <key name="brightness-step" type="i">
+      <range min="1" max="25"/>
+      <default>5</default>
+      <summary>Brightness step</summary>
+      <description>Percentage added or removed by one brightness key press.</description>
+    </key>
+    <key name="override-brightness-keys" type="b">
+      <default>true</default>
+      <summary>Handle brightness keys</summary>
+      <description>Brightness keys change the monitor under the pointer, over DDC/CI when GNOME cannot control it.</description>
+    </key>
+    <key name="brightness-up" type="as">
+      <default><![CDATA[['XF86MonBrightnessUp']]]></default>
+      <summary>Brightness up shortcut</summary>
+    </key>
+    <key name="brightness-down" type="as">
+      <default><![CDATA[['XF86MonBrightnessDown']]]></default>
+      <summary>Brightness down shortcut</summary>
+    </key>
+  </schema>
+</schemalist>

@@ -41,7 +41,7 @@ void (*_on_refresh_completed_callback)() = NULL;
 
 guint _on_refresh_displays_completed_callback_timeout_id = 0;
 
-void _initialize_displays(gboolean first_time_loading) {
+void _initialize_displays(void) {
   time_t start_loading_displays_time;
   time(&start_loading_displays_time);
 
@@ -70,10 +70,12 @@ void _initialize_displays(gboolean first_time_loading) {
     }
   }
 
-  if (!first_time_loading) {
-    if (_display_list != NULL) {
-      ddc_display_list_free(_display_list);
-    }
+  // Always close previously opened displays before enumerating again: ddcutil
+  // refuses to open a display this process still holds open ("already locked
+  // by current thread"), which would silently drop it from the new list.
+  if (_display_list != NULL) {
+    ddc_display_list_free(_display_list);
+    _display_list = NULL;
   }
 
   _display_list_instance = ddc_display_list_init(FALSE);
@@ -126,7 +128,7 @@ void _refresh_displays_with_callbacks(gboolean first_time_loading, void (*on_ref
     }
   }
 
-  _initialize_displays(first_time_loading);
+  _initialize_displays();
 
   if (on_refresh_completed_callback != NULL) {
     _on_refresh_completed_callback = on_refresh_completed_callback;
@@ -174,6 +176,27 @@ static void (*_global_ui_callback)() = NULL;
 
 void set_displays_update_callback(void (*callback)()) {
     _global_ui_callback = callback;
+}
+
+// Called when brightness/contrast was changed from outside the window (D-Bus:
+// GNOME extension, CLI). Must only update values in place: rebuilding the
+// window would destroy a slider the user may be dragging.
+static void (*_values_changed_callback)() = NULL;
+
+void set_display_values_changed_callback(void (*callback)()) {
+    _values_changed_callback = callback;
+}
+
+void notify_display_values_changed(void) {
+    if (_values_changed_callback != NULL) {
+        _values_changed_callback();
+    }
+}
+
+// Re-enumerate displays (e.g. after a monitor was plugged in) and rebuild the
+// window, if any, once done.
+void rescan_displays(void) {
+    reload_displays(_global_ui_callback, _global_ui_callback);
 }
 
 static void on_lid_state_changed() {
@@ -233,6 +256,34 @@ char* get_display_name(guint index) {
   }
 }
 
+// Re-read brightness/contrast of already opened DDC displays without
+// re-enumerating them. Internal backlights are read from sysfs on demand.
+void refresh_display_values(void) {
+  for (guint i = 0; i < _display_indexes_count; i++) {
+    if (_display_indexes[i].type != DISPLAY_TYPE_DDC) continue;
+    ddc_display* display = _get_ddc_display(i);
+    ddc_display_get_brightness(display);
+    if (display->has_contrast) ddc_display_get_contrast(display);
+  }
+}
+
+gboolean get_display_is_internal(guint index) {
+  return _display_indexes[index].type == DISPLAY_TYPE_INTERNAL_BACKLIGHT;
+}
+
+// EDID identity of a DDC display (vendor PNP id, model name, serial string),
+// used by the GNOME extension to match DDC displays to Mutter monitors.
+// Returns FALSE for internal backlight displays. Strings are owned by the
+// display list and stay valid until the next display reload.
+gboolean get_display_edid_identity(guint index, const char **vendor, const char **model, const char **serial) {
+  if (get_display_is_internal(index)) return FALSE;
+  ddc_display* display = _get_ddc_display(index);
+  *vendor = display->info.mfg_id;
+  *model = display->info.model_name;
+  *serial = display->info.sn;
+  return TRUE;
+}
+
 gdouble get_display_brightness_percentage(guint index) {
   GlobalDisplayIndex display_index = _display_indexes[index];
 	guint16 max_brightness_value = _get_display_max_brightness_value(index);
@@ -283,11 +334,6 @@ void set_display_brightness_percentage(guint index, gdouble brightness_percentag
       fprintf(stderr, "An error occurred when setting the brightness of display no %d to %u. Code: %d\n",
         display->info.dispno, brightness_value, rc);
     }
-  }
-
-  // Notify UI to refresh displayed brightness values
-  if (_global_ui_callback != NULL) {
-    _global_ui_callback();
   }
 
   // Emit OSD signal

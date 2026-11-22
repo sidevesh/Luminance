@@ -30,7 +30,8 @@ gboolean is_cli_mode = FALSE;
 static GDBusConnection *_cli_dbus_conn = NULL;
 
 void update_window_contents_in_ui() {
-  if (is_cli_mode) {
+  // The window may be gone (closed while the service keeps running).
+  if (is_cli_mode || _window == NULL) {
     return;
   }
 
@@ -49,10 +50,10 @@ void update_window_contents_in_ui() {
 
 static void on_app_startup(GApplication *app, gpointer user_data) {
   (void)user_data;
-  // Set inactivity timeout to 10 seconds.
+  // Set inactivity timeout to 60 seconds (restarted by every D-Bus call).
   // This ensures the service stays alive for a short while after D-Bus activation
   // to handle requests, then quits if no window starts or requests cease.
-  g_application_set_inactivity_timeout(app, 10000);
+  g_application_set_inactivity_timeout(app, 60000);
 }
 
 static void activate_gtk_ui(GtkApplication *app) {
@@ -65,6 +66,7 @@ static void activate_gtk_ui(GtkApplication *app) {
     initialize_application_window(GTK_APPLICATION(app));
     update_window_contents_in_ui();
     set_displays_update_callback(update_window_contents_in_ui);
+    set_display_values_changed_callback(sync_display_values_in_ui);
     load_displays(update_window_contents_in_ui, update_window_contents_in_ui);
 }
 

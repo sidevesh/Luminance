@@ -13,7 +13,10 @@
     </signal>
 
     <method name="GetMonitors">
-      <!-- Returning JSON string for flexibility given C structure -->
+      <!-- Returning JSON string for flexibility given C structure.
+           Array of {id, name, brightness, type ("ddc"|"internal"), has_contrast, contrast?,
+           vendor?, model?, serial?}. vendor/model/serial are the EDID identity of DDC
+           displays, used to match them to compositor monitors. -->
       <arg type="s" name="monitors_json" direction="out"/>
     </method>
 
@@ -31,6 +34,11 @@
     <method name="SetContrast">
       <arg type="s" name="monitor_id" direction="in"/>
       <arg type="d" name="value" direction="in"/>
+    </method>
+
+    <!-- Re-enumerate displays, e.g. after a monitor was connected or disconnected.
+         GetMonitors only enumerates once and then re-reads values. -->
+    <method name="Rescan">
     </method>
 
     <method name="Quit">
